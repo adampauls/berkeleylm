@@ -58,6 +58,7 @@ public abstract class AbstractNgramLanguageModel<W> implements NgramLanguageMode
 		return wordIndexer;
 	}
 
+	@Override
 	public abstract float getLogProb(final int[] ngram, int startPos, int endPos);
 
 }

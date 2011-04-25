@@ -1,9 +1,7 @@
 package edu.berkeley.nlp.lm.values;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import edu.berkeley.nlp.lm.array.CustomWidthArray;
 import edu.berkeley.nlp.lm.array.LongArray;
@@ -38,7 +36,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 
 	final int valueRadix;
 
-	private int wordWidth;
+	private final int wordWidth;
 
 	@SuppressWarnings("unchecked")
 	public LmValueContainer(final Indexer<V> countIndexer, final int valueRadix, final boolean storePrefixIndexes) {
@@ -82,7 +80,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 
 		if (contextOffsets != null) {
 			if (ngramOrder >= contextOffsets.length)
-				contextOffsets = Arrays.copyOf(contextOffsets, (int) Math.max(ngramOrder + 1, contextOffsets.length * 3 / 2 + 1));
+				contextOffsets = Arrays.copyOf(contextOffsets, Math.max(ngramOrder + 1, contextOffsets.length * 3 / 2 + 1));
 			contextOffsets[ngramOrder].setAndGrowIfNeeded(offset, suffixOffset);
 		}
 		valueRanksCompressed[ngramOrder].setAndGrowIfNeeded(offset, indexOfCounts);

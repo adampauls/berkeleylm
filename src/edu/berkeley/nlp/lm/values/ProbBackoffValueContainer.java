@@ -1,8 +1,5 @@
 package edu.berkeley.nlp.lm.values;
 
-import java.util.Arrays;
-import java.util.List;
-
 import edu.berkeley.nlp.lm.collections.Indexer;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 

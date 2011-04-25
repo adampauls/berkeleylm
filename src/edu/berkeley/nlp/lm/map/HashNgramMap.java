@@ -5,10 +5,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
-import edu.berkeley.nlp.lm.util.hash.HashFunction;
-import edu.berkeley.nlp.lm.util.hash.MurmurHash;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
+import edu.berkeley.nlp.lm.util.hash.HashFunction;
+import edu.berkeley.nlp.lm.util.hash.MurmurHash;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncodedNgramMap<T>
@@ -43,12 +43,6 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 
 	private static long numQueries = 0;
 
-	@SuppressWarnings("ucd")
-	private static long numQueryCalls = 0;
-
-	@SuppressWarnings("ucd")
-	private static long numQueryProbes = 0;
-
 	private static final class HashMap implements Serializable
 	{
 
@@ -69,13 +63,11 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		@PrintMemoryCount
 		final int[] wordRangesHigh;
 
-		//		LargeLongArray valsAndNexts;
-
 		long numFilled = 0;
 
 		long maxWord = 0;
 
-		private boolean reverseTrie;
+		private final boolean reverseTrie;
 
 		private static final int EMPTY_KEY = -1;
 
@@ -109,7 +101,7 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 			return noWordKeys == null ? keys[(int) index] : noWordKeys[(int) index];
 		}
 
-		private final int getNext(final int i_, final int start, final int end, final int numProbesSoFar) {
+		private final int getNext(final int i_, final int start, final int end) {
 			int i = i_;
 			++i;
 			if (i >= end) i = start;
@@ -122,22 +114,13 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 			final int rangeEnd = wordRangesHigh == null ? keys.length : (int) wordRangesHigh[firstWordOfNgram];
 			long searchKey = getKey(index);
 			int i = (int) index;
-			int numProbesHere = 1;
 			while (searchKey != EMPTY_KEY && searchKey != putKey) {
 
-				i = getNext(i, rangeStart, rangeEnd, numProbesHere);
-				++numProbesHere;
-				if (numProbesHere > 10000) {
-					@SuppressWarnings("unused")
-					final int x = 5;
-				}
+				i = getNext(i, rangeStart, rangeEnd);
 				searchKey = getKey(i);
 			}
 
 			if (searchKey == EMPTY_KEY) setKey(i, putKey);
-			numProbes += numProbesHere;
-			++numQueries;
-			//			setValue(i, value);
 
 			numFilled++;
 			maxWord = Math.max(maxWord, firstWordOfNgram);
@@ -167,11 +150,9 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 			assert index >= rangeStart;
 			assert index < rangeEnd;
 			int i = (int) index;
-			int num = 1;
 			while (true) {
 				final long searchKey = localKeys[i];
-				final int next = getNext(i, rangeStart, rangeEnd, num);
-				num++;
+				final int next = getNext(i, rangeStart, rangeEnd);
 				if (searchKey == EMPTY_KEY) {//
 					return -1L;
 				}
@@ -208,8 +189,8 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 
 		public final long getIndexImplicity(final long suffixIndex, final int firstWordOfNgram, final long index) {
 			final int[] localKeys = noWordKeys;
-			final int rangeStart = (int) wordRangesLow[firstWordOfNgram];
-			final int rangeEnd = (int) wordRangesHigh[firstWordOfNgram];
+			final int rangeStart = wordRangesLow[firstWordOfNgram];
+			final int rangeEnd = wordRangesHigh[firstWordOfNgram];
 			assert index >= rangeStart;
 			assert index < rangeEnd;
 			int i = (int) index;
@@ -235,8 +216,8 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		public final long getIndexImplicity(final int[] ngram, final long index, final int startPos, final int endPos, final HashMap[] maps) {
 			final int[] localKeys = noWordKeys;
 			final int firstWordOfNgram = reverseTrie ? ngram[startPos] : ngram[endPos - 1];
-			final int rangeStart = (int) wordRangesLow[firstWordOfNgram];
-			final int rangeEnd = (int) wordRangesHigh[firstWordOfNgram];
+			final int rangeStart = wordRangesLow[firstWordOfNgram];
+			final int rangeEnd = wordRangesHigh[firstWordOfNgram];
 			assert index >= rangeStart;
 			assert index < rangeEnd;
 			int i = (int) index;
@@ -305,7 +286,7 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		}
 
 		private static final boolean implicitSuffixEquals(final long contextOffset_, final int[] ngram, final int startPos, final int endPos,
-			final HashMap[] localMaps, boolean reverse) {
+			final HashMap[] localMaps, final boolean reverse) {
 			return reverse ? implicitSuffixEqualsReverse(contextOffset_, ngram, startPos + 1, endPos, localMaps) : implicitSuffixEqualsForward(contextOffset_,
 				ngram, startPos, endPos - 1, localMaps);
 		}
@@ -381,7 +362,6 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		this.useContextEncoding = opts.storePrefixIndexes || opts.reverseTrie;
 		maps = new HashNgramMap.HashMap[6];
 		this.hashFunction = hashFunction;
-		//		this.defaultVal = defaultVal;
 		this.initialCapacity = initialCapacity;
 		this.maxLoadFactor = opts.maxLoadFactor;
 	}
@@ -402,7 +382,6 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 			maps[i] = new HashMap(capacities[i], numNgramsForEachWord == null ? null : numNgramsForEachWord[i], opts.reverseTrie);
 		}
 		this.hashFunction = hashFunction;
-		//		this.defaultVal = defaultVal;
 		this.initialCapacity = -1L;
 		this.maxLoadFactor = 0.75;
 	}
@@ -442,21 +421,14 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 	private long addHelpWithKey(final int[] ngram, final int startPos, final int endPos, final T val, final HashMap map, final long key,
 		final boolean rehashIfNecessary) {
 
-		final long hash = // useContextEncoding ? hash(key, ngram[endPos - 1], endPos - startPos - 1, map) : 
-		hash(ngram, startPos, endPos, map);
+		final long hash = hash(ngram, startPos, endPos, map);
 		final long index = map.put(hash, key);
 		long suffixIndex = -1;
 		if (endPos - startPos > 1) {
 			final int nextStartPos = reversed ? startPos : (startPos + 1);
 			final int nextEndPos = reversed ? (endPos - 1) : (endPos);
 			final HashMap suffixMap = maps[endPos - startPos - 2];
-			long suffixHash = -1;
-			//			if (useContextEncoding) {
-			//				final long prefixKey = getKey(ngram, nextStartPos, nextEndPos, true);
-			//				prefixHash = hash(prefixKey, reverseTrie ? ngram[startPos] : ngram[endPos - 1], endPos - startPos - 2, prefixMap);
-			//			} else {
-			suffixHash = hash(ngram, nextStartPos, nextEndPos, suffixMap);
-			//			}
+			final long suffixHash = hash(ngram, nextStartPos, nextEndPos, suffixMap);
 			suffixIndex = suffixMap.getIndex(ngram, suffixHash, nextStartPos, nextEndPos, maps);
 			if (suffixIndex < 0) {
 				suffixIndex = addHelp(ngram, nextStartPos, nextEndPos, null, suffixMap, false);
@@ -479,8 +451,7 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 			final int currEndPos = reversed ? endPos : currNgramPos;
 
 			final HashMap currMap = maps[ngramOrder - 1];
-			final long hash = //useContextEncoding ? hash(key, ngram[currNgramPos - 1], ngramOrder - 1, currMap) : 
-			hash(ngram, currStartPos, currEndPos, currMap);
+			final long hash = hash(ngram, currStartPos, currEndPos, currMap);
 			long index = hash < 0 ? -1L : getIndexHelp(ngram, currStartPos, ngramOrder, currEndPos, hash);
 			if (index == -1L) {
 				if (addIfNecessary) {
@@ -537,14 +508,10 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 	public long getOffset(final int[] ngram, final int startPos, final int endPos) {
 		if (containsOutOfVocab(ngram, startPos, endPos)) return -1;
 
-		//		hashTimer.start();
 		final HashMap tightHashMap = maps[endPos - startPos - 1];
 		final long hash = hash(ngram, startPos, endPos, tightHashMap);
 		if (hash < 0) return -1;
-		//		hashTimer.accumStop();
-		//		indexTimer.start();
 		final long index = tightHashMap.getIndex(ngram, hash, startPos, endPos, maps);
-		//		indexTimer.accumStop();
 		return index;
 	}
 
@@ -574,9 +541,9 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 	}
 
 	@Override
-	public ValueOffsetPair<T> getValueAndOffset(long contextOffset, int prefixNgramOrder, int word) {
+	public ValueOffsetPair<T> getValueAndOffset(final long contextOffset, final int prefixNgramOrder, final int word) {
 		assert false : "Untested";
-		long offset = getOffset(contextOffset, prefixNgramOrder, word);
+		final long offset = getOffset(contextOffset, prefixNgramOrder, word);
 		return new ValueOffsetPair<T>(values.getFromOffset(offset, prefixNgramOrder + 1), offset);
 	}
 
@@ -653,8 +620,7 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 				for (long actualIndex = 0; actualIndex < currMap.getCapacity(); ++actualIndex) {
 					final long key = currMap.getKey(actualIndex);
 					if (key == HashMap.EMPTY_KEY) continue;
-					//					final int[] ngram = getNgram(key, ngramOrder);
-					final int firstWordOfNgram = wordOf(key);//opts.reverseTrie ? ngram[0] : ngram[ngramOrder];
+					final int firstWordOfNgram = wordOf(key);
 					numNgramsForEachWord[ngramOrder][firstWordOfNgram]++;
 				}
 
@@ -746,21 +712,12 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 	public long getOffset(final long contextOffset, final int contextOrder, final int word) {
 		final long suffixIndex = contextOrder < 0 ? 0 : contextOffset;
 		assert suffixIndex >= 0;
-		//		if (opts.storeWordsImplicitly) throw new RuntimeException("Not yet implemented");
 		final int ngramOrder = contextOrder + 1;
-
-		//		int[] ngram = getNgram(combineToKey(firstWord, suffixIndex), ngramOrder);
-		//		hashTimer.start();
-		//		int startPos = 0;
-		//		int endPos = ngram.length;
 		final long key = combineToKey(word, suffixIndex);
 		final HashMap tightHashMap = maps[ngramOrder];
 		final long hash = hash(key, word, ngramOrder, tightHashMap);
 		if (hash < 0) return -1L;
-		//		hashTimer.accumStop();
-		//		indexTimer.start();
 		final long index = tightHashMap.getIndex(key, suffixIndex, word, hash);
-		//		indexTimer.accumStop();
 		return index;
 	}
 

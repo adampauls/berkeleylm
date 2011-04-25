@@ -4,7 +4,6 @@ import java.util.List;
 
 import edu.berkeley.nlp.lm.collections.BoundedList;
 
-
 /**
  * 
  * @author adampauls Top-level interface for an n-gram language model.
@@ -15,9 +14,6 @@ import edu.berkeley.nlp.lm.collections.BoundedList;
  */
 public interface NgramLanguageModel<W> extends NgramLanguageModelBase<W>
 {
-
-	
-
 
 	/**
 	 * Calculate language model score of an n-gram.
@@ -34,10 +30,11 @@ public interface NgramLanguageModel<W> extends NgramLanguageModelBase<W>
 
 	/**
 	 * Equivalent to <code>getLogProb(ngram, 0, ngram.length)</code>
+	 * 
 	 * @see #getLogProb(int[], int, int)
 	 */
 	public float getLogProb(int[] ngram);
-	
+
 	/**
 	 * Convenience method -- the list is first converted to an int[]
 	 * representation. This is general inefficient, and user code should
@@ -49,7 +46,6 @@ public interface NgramLanguageModel<W> extends NgramLanguageModelBase<W>
 	 */
 	public float getLogProb(List<W> ngram);
 
-
 	/**
 	 * Scores sequence possibly containing multiple n-grams, but not a complete
 	 * sentence.
@@ -58,11 +54,8 @@ public interface NgramLanguageModel<W> extends NgramLanguageModelBase<W>
 	 */
 	public float scoreSequence(List<W> sequence);
 
-
-
 	public static class DefaultImplementations
 	{
-
 
 		public static <T> float scoreSentence(final List<T> sentence, final NgramLanguageModel<T> lm) {
 			final List<T> sentenceWithBounds = new BoundedList<T>(sentence, lm.getWordIndexer().getStartSymbol(), lm.getWordIndexer().getEndSymbol());

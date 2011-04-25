@@ -1,10 +1,8 @@
 package edu.berkeley.nlp.lm;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
-import edu.berkeley.nlp.lm.map.AbstractNgramMap;
 import edu.berkeley.nlp.lm.map.ContextEncodedNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.map.NgramMapOpts;
@@ -233,23 +231,23 @@ public class KatzBackoffLm<W> extends AbstractContextEncodedNgramLanguageModel<W
 	}
 
 	@Override
-	public int[] getNgramForContext(long contextOffset, int contextOrder) {
+	public int[] getNgramForContext(final long contextOffset, final int contextOrder) {
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException("Method not yet implemented");
 	}
 
 	@Override
-	public float getLogProb(int[] ngram) {
+	public float getLogProb(final int[] ngram) {
 		return NgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
 	}
 
 	@Override
-	public float getLogProb(List<W> ngram) {
+	public float getLogProb(final List<W> ngram) {
 		return NgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
 	}
 
 	@Override
-	public float scoreSequence(List<W> sequence) {
+	public float scoreSequence(final List<W> sequence) {
 		return NgramLanguageModel.DefaultImplementations.scoreSequence(sequence, this);
 	}
 

@@ -3,7 +3,6 @@ package edu.berkeley.nlp.lm.array;
 import java.io.Serializable;
 import java.util.Arrays;
 
-
 /**
  * An array with a custom word "width" in bits. Only handles arrays with 2^37
  * bits.
@@ -71,6 +70,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 
 	}
 
+	@Override
 	public void trim() {
 		trimToSize(size);
 	}
@@ -78,6 +78,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 	/**
 	 * @param sizeHere
 	 */
+	@Override
 	public void trimToSize(final long sizeHere) {
 		final long numBits = sizeHere * width;
 		//		if (data.length == numLongs(numBits)) return false;
@@ -130,6 +131,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 		return data[startWord] >>> startBit | data[startWord + 1] << Long.SIZE + l - startBit >>> l;
 	}
 
+	@Override
 	public boolean add(final long value) {
 		assert !(width < Long.SIZE && (value & -1L << width) != 0) : "The specified value (" + value
 			+ ") is larger than the maximum value for the given width (" + width + ")";
@@ -149,6 +151,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 		return true;
 	}
 
+	@Override
 	public long get(final long index) {
 		final long start = index * width;
 		return getLong(start, start + width);
@@ -161,6 +164,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 		return num;
 	}
 
+	@Override
 	public void set(final long index, final long value) {
 		rangeCheck(index);
 		if (width == 0) return;
@@ -190,7 +194,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 	}
 
 	@Override
-	public void setAndGrowIfNeeded(long pos, long value) {
+	public void setAndGrowIfNeeded(final long pos, final long value) {
 		if (pos >= size) {
 			ensureCapacity(pos + 2);
 			this.size = pos + 1;
@@ -204,7 +208,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 	}
 
 	@Override
-	public void fill(long l, long initialCapacity) {
+	public void fill(final long l, final long initialCapacity) {
 		final long numBits = initialCapacity * width;
 		//		if (data.length == numLongs(numBits)) return false;
 		Arrays.fill(data, 0, numLongs(numBits), l);

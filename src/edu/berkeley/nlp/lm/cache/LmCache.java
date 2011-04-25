@@ -22,6 +22,7 @@ public interface LmCache extends Serializable
 
 	/**
 	 * How n-grams can be cached (at most).
+	 * 
 	 * @return
 	 */
 	public int capacity();

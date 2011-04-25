@@ -50,7 +50,7 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 	}
 
 	@Override
-	public int[] getNgramForContext(long contextOffset, int contextOrder) {
+	public int[] getNgramForContext(final long contextOffset, final int contextOrder) {
 		return lm.getNgramForContext(contextOffset, contextOrder);
 	}
 
