@@ -286,13 +286,13 @@ public class Counter<E> implements Serializable
 	}
 
 	public Collection<Entry<E, Double>> getEntriesSortedByIncreasingCount() {
-		List<Entry<E, Double>> sorted = new ArrayList<Entry<E, Double>>(entrySet());
+		final List<Entry<E, Double>> sorted = new ArrayList<Entry<E, Double>>(entrySet());
 		Collections.sort(sorted, new EntryValueComparator(false));
 		return sorted;
 	}
 
 	public Collection<Entry<E, Double>> getEntriesSortedByDecreasingCount() {
-		List<Entry<E, Double>> sorted = new ArrayList<Entry<E, Double>>(entrySet());
+		final List<Entry<E, Double>> sorted = new ArrayList<Entry<E, Double>>(entrySet());
 		Collections.sort(sorted, new EntryValueComparator(true));
 		return sorted;
 	}
@@ -564,12 +564,12 @@ public class Counter<E> implements Serializable
 		/**
 		 * @param descending
 		 */
-		public EntryValueComparator(boolean descending) {
+		public EntryValueComparator(final boolean descending) {
 			super();
 			this.descending = descending;
 		}
 
-		private boolean descending;
+		private final boolean descending;
 
 		@Override
 		public int compare(final Entry<E, Double> e1, final Entry<E, Double> e2) {

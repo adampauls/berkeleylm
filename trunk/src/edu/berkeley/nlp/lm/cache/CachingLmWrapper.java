@@ -27,7 +27,7 @@ public class CachingLmWrapper<W> extends AbstractNgramLanguageModel<W>
 		this(lm, new DirectMappedLmCache(24));
 	}
 
-	public CachingLmWrapper(final NgramLanguageModel<W> lm, LmCache cache) {
+	public CachingLmWrapper(final NgramLanguageModel<W> lm, final LmCache cache) {
 		super(lm.getLmOrder(), lm.getWordIndexer());
 		this.cache = cache;
 		this.lm = lm;

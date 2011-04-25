@@ -8,16 +8,16 @@ import java.lang.annotation.Target;
 public class Annotations
 {
 
-	
 	/**
 	 * Just a fancy-pants comment.
+	 * 
 	 * @author adampauls
-	 *
+	 * 
 	 */
 	public @interface OutputParameter
 	{
 	}
-	
+
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.FIELD)
 	/**
@@ -45,7 +45,7 @@ public class Annotations
 	{
 
 	}
-	
+
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.FIELD)
 	/**

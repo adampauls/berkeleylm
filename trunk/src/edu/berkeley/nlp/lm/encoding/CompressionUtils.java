@@ -9,7 +9,7 @@ public class CompressionUtils
 	public static BitList variableCompress(final long n, final int radix) {
 		final int numBits = getNumBits(n);
 		final int bitsPerDigit = radix - 1;
-		int numDigits = getNumDigits(numBits, bitsPerDigit);
+		final int numDigits = getNumDigits(numBits, bitsPerDigit);
 		final BitList bits = writeUnary(numDigits);
 		final int numBitsToOutput = numDigits * bitsPerDigit;
 		writeNormalBinary(n, bits, numBitsToOutput);
@@ -50,7 +50,7 @@ public class CompressionUtils
 	 * @param numDigits
 	 * @return
 	 */
-	private static BitList writeUnary(int numDigits) {
+	private static BitList writeUnary(final int numDigits) {
 		final BitList bits = new BitList();
 		for (int i = 0; i < numDigits; ++i) {
 			bits.add(i == numDigits - 1);

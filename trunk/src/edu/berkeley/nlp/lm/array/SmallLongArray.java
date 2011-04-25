@@ -15,7 +15,7 @@ public final class SmallLongArray implements Serializable, LongArray
 
 	private long[] data;
 
-	public SmallLongArray(long initialCapacity) {
+	public SmallLongArray(final long initialCapacity) {
 		this.size = 0;
 		allocFor(initialCapacity, null);
 	}
@@ -23,7 +23,7 @@ public final class SmallLongArray implements Serializable, LongArray
 	/**
 	 * @param capacity
 	 */
-	private void allocFor(long capacity, long[] old) {
+	private void allocFor(final long capacity, final long[] old) {
 		check(capacity);
 		final int numInner = i(capacity);
 		this.data = old == null ? new long[numInner] : Arrays.copyOf(old, numInner);
@@ -32,11 +32,11 @@ public final class SmallLongArray implements Serializable, LongArray
 	/**
 	 * @param capacity
 	 */
-	private void check(long capacity) {
+	private void check(final long capacity) {
 		if (capacity >= Integer.MAX_VALUE) throw new IllegalArgumentException(capacity + " to big for " + SmallLongArray.class.getSimpleName());
 	}
 
-	private static final int i(long l) {
+	private static final int i(final long l) {
 		return (int) l;
 	}
 
@@ -46,7 +46,7 @@ public final class SmallLongArray implements Serializable, LongArray
 	 * @see edu.berkeley.nlp.mt.lm.util.collections.LongArray#set(long, long)
 	 */
 	@Override
-	public void set(long pos, long val) {
+	public void set(final long pos, final long val) {
 		if (pos >= size) throw new ArrayIndexOutOfBoundsException("" + pos);
 		setHelp(pos, val);
 
@@ -56,7 +56,7 @@ public final class SmallLongArray implements Serializable, LongArray
 	 * @param pos
 	 * @param val
 	 */
-	private void setHelp(long pos, long val) {
+	private void setHelp(final long pos, final long val) {
 		data[i(pos)] = val;
 	}
 
@@ -68,17 +68,17 @@ public final class SmallLongArray implements Serializable, LongArray
 	 * (long, long)
 	 */
 	@Override
-	public void setAndGrowIfNeeded(long pos, long val) {
+	public void setAndGrowIfNeeded(final long pos, final long val) {
 		check(pos);
 		ensureCapacity(pos + 1);
 		size = Math.max(size, pos + 1);
 		setHelp(pos, val);
 	}
 
-	public void ensureCapacity(long minCapacity) {
-		long oldCapacity = sizeOf(data);
+	public void ensureCapacity(final long minCapacity) {
+		final long oldCapacity = sizeOf(data);
 		if (minCapacity > oldCapacity) {
-			long[] oldData = data;
+			final long[] oldData = data;
 			long newCapacity = (oldCapacity * 3) / 2 + 1;
 			if (newCapacity < minCapacity) newCapacity = minCapacity;
 
@@ -92,12 +92,12 @@ public final class SmallLongArray implements Serializable, LongArray
 	 * @see edu.berkeley.nlp.mt.lm.util.collections.LongArray#get(long)
 	 */
 	@Override
-	public long get(long pos) {
+	public long get(final long pos) {
 		if (pos >= size) throw new ArrayIndexOutOfBoundsException("" + pos);
 		return getHelp(pos);
 	}
 
-	private static long sizeOf(long[] a) {
+	private static long sizeOf(final long[] a) {
 		return a.length;
 	}
 
@@ -115,13 +115,13 @@ public final class SmallLongArray implements Serializable, LongArray
 	 * @param pos
 	 * @return
 	 */
-	private long getHelp(long pos) {
+	private long getHelp(final long pos) {
 		return data[i(pos)];
 	}
 
-	public static void main(String[] argv) {
+	public static void main(final String[] argv) {
 
-		LongArray b = new SmallLongArray(5L + Integer.MAX_VALUE / 9);
+		final LongArray b = new SmallLongArray(5L + Integer.MAX_VALUE / 9);
 		final long val = 10000000000000L;
 		b.set(4L + Integer.MAX_VALUE / 9, val);
 		final long z = b.get(4L + Integer.MAX_VALUE / 9);
@@ -144,7 +144,7 @@ public final class SmallLongArray implements Serializable, LongArray
 	 * @see edu.berkeley.nlp.mt.lm.util.collections.LongArray#add(long)
 	 */
 	@Override
-	public boolean add(long val) {
+	public boolean add(final long val) {
 		setAndGrowIfNeeded(size, val);
 		return true;
 	}
@@ -155,7 +155,7 @@ public final class SmallLongArray implements Serializable, LongArray
 	 * @see edu.berkeley.nlp.mt.lm.util.collections.LongArray#trimToSize(long)
 	 */
 	@Override
-	public void trimToSize(long size) {
+	public void trimToSize(final long size) {
 		allocFor(size, data);
 	}
 
@@ -165,7 +165,7 @@ public final class SmallLongArray implements Serializable, LongArray
 	 * @see edu.berkeley.nlp.mt.lm.util.collections.LongArray#fill(long, long)
 	 */
 	@Override
-	public void fill(long l, long initialCapacity) {
+	public void fill(final long l, final long initialCapacity) {
 		for (int i = (int) initialCapacity; i >= 0; --i)
 			setAndGrowIfNeeded(i, l);
 	}

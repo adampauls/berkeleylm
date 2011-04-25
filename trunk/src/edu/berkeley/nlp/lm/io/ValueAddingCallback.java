@@ -1,7 +1,5 @@
 package edu.berkeley.nlp.lm.io;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -43,7 +41,7 @@ public final class ValueAddingCallback<V extends Comparable<V>> implements LmRea
 	public void cleanup() {
 		Logger.startTrack("Cleaning up values");
 		valueIndexer = new Indexer<V>();
-		for (Entry<V, Double> entry : valueCounter.getEntriesSortedByDecreasingCount()) {
+		for (final Entry<V, Double> entry : valueCounter.getEntriesSortedByDecreasingCount()) {
 			valueIndexer.add(entry.getKey());
 		}
 		Logger.logss("Found " + valueIndexer.size() + " unique counts");

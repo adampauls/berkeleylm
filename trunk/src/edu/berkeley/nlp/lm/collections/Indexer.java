@@ -35,7 +35,7 @@ public class Indexer<E extends Comparable> implements Serializable
 	}
 
 	public boolean add(final E elem) {
-		int oldSize = size();
+		final int oldSize = size();
 		return getIndex(elem) >= oldSize;
 	}
 

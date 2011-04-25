@@ -3,7 +3,6 @@ package edu.berkeley.nlp.lm.map;
 import java.util.List;
 
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
-import edu.berkeley.nlp.lm.map.AbstractNgramMap.ValueOffsetPair;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 public interface NgramMap<T>
@@ -20,7 +19,7 @@ public interface NgramMap<T>
 	public T getValue(int[] ngram, int startPos, int endPos, LmContextInfo contextOutput);
 
 	public ValueContainer<T> getValues();
-	
+
 	public boolean isReversed();
 
 }

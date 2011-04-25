@@ -11,14 +11,13 @@ final class ContextEncodedDirectMappedLmCache implements ContextEncodedLmCache
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
-	
+
 	private final int[] cachedWord;
 
 	private final long[] cachedContextOffset;
 
 	private final int[] cachedContextOrder;
-	
+
 	private final long[] cachedOutputContextPrefix;
 
 	private final int[] cachedOutputContextOrder;
@@ -39,9 +38,6 @@ final class ContextEncodedDirectMappedLmCache implements ContextEncodedLmCache
 		Arrays.fill(cachedWord, -1);
 	}
 
-	
-
-	
 	@Override
 	public float getCached(final long contextOffset, final int contextOrder, final int word, final int hash, @OutputParameter final LmContextInfo outputPrefix) {
 
@@ -64,9 +60,9 @@ final class ContextEncodedDirectMappedLmCache implements ContextEncodedLmCache
 		return word == cachedWordHere && contextOrder == cachedOrderHere && contextOffset == cachedOffsetHere;
 	}
 
-
 	@Override
-	public void putCached(final long contextOffset, final int contextOrder, final int word, final float score, final int hash, @OutputParameter final LmContextInfo outputPrefix) {
+	public void putCached(final long contextOffset, final int contextOrder, final int word, final float score, final int hash,
+		@OutputParameter final LmContextInfo outputPrefix) {
 
 		cachedWord[hash] = word;
 		cachedProb[hash] = score;
@@ -78,6 +74,7 @@ final class ContextEncodedDirectMappedLmCache implements ContextEncodedLmCache
 		}
 	}
 
+	@Override
 	@SuppressWarnings("ucd")
 	public int capacity() {
 		return cacheSize;

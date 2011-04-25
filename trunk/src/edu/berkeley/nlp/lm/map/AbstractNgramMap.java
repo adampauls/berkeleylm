@@ -2,9 +2,7 @@ package edu.berkeley.nlp.lm.map;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.List;
 
-import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 public abstract class AbstractNgramMap<T> implements NgramMap<T>, Serializable
@@ -46,38 +44,14 @@ public abstract class AbstractNgramMap<T> implements NgramMap<T>, Serializable
 		return false;
 	}
 
+	@Override
 	public ValueContainer<T> getValues() {
 		return values;
 	}
 
+	@Override
 	public boolean isReversed() {
 		return reversed;
-	}
-
-	public static class ValueOffsetPair<T>
-	{
-
-		public T getValue() {
-			return value;
-		}
-
-		public long getOffset() {
-			return offset;
-		}
-
-		/**
-		 * @param value
-		 * @param offset
-		 */
-		public ValueOffsetPair(T value, long offset) {
-			super();
-			this.value = value;
-			this.offset = offset;
-		}
-
-		T value;
-
-		long offset;
 	}
 
 }

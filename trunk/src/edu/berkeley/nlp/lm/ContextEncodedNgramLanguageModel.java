@@ -53,7 +53,8 @@ public interface ContextEncodedNgramLanguageModel<W> extends NgramLanguageModelB
 	 * @param word
 	 *            Last word of the n-gram
 	 * @param outputContext
-	 *            Offset of the suffix of the input n-gram. If the parameter is <code>null</code> it will be ignored. 
+	 *            Offset of the suffix of the input n-gram. If the parameter is
+	 *            <code>null</code> it will be ignored.
 	 * @return
 	 */
 	public float getLogProb(long contextOffset, int contextOrder, int word, @OutputParameter LmContextInfo outputContext);
@@ -66,7 +67,8 @@ public interface ContextEncodedNgramLanguageModel<W> extends NgramLanguageModelB
 	 * 
 	 * @see #getLogProb(long, int, int,LmContextInfo)
 	 * @param ngram
-	 * @param outputContext  If the parameter is <code>null</code> it will be ignored. 
+	 * @param outputContext
+	 *            If the parameter is <code>null</code> it will be ignored.
 	 * @return
 	 */
 	public float getLogProb(List<W> ngram, @OutputParameter LmContextInfo outputContext);
@@ -102,7 +104,7 @@ public interface ContextEncodedNgramLanguageModel<W> extends NgramLanguageModelB
 			contextOutput.order = -1;
 			final WordIndexer<T> wordIndexer = lm.getWordIndexer();
 			for (int i = 0; i < ngram.size(); ++i) {
-				float score = lm.getLogProb(contextOutput.offset, contextOutput.order, wordIndexer.getOrAddIndex(ngram.get(i)), contextOutput);
+				final float score = lm.getLogProb(contextOutput.offset, contextOutput.order, wordIndexer.getOrAddIndex(ngram.get(i)), contextOutput);
 				if (i == ngram.size() - 1) return score;
 			}
 			throw new RuntimeException("Should not get here");
