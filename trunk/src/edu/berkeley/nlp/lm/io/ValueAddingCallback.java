@@ -3,8 +3,10 @@ package edu.berkeley.nlp.lm.io;
 import java.util.List;
 import java.util.Map.Entry;
 
+import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.collections.Counter;
 import edu.berkeley.nlp.lm.collections.Indexer;
+import edu.berkeley.nlp.lm.map.NgramMapOpts;
 import edu.berkeley.nlp.lm.util.Logger;
 
 /**
@@ -24,13 +26,27 @@ public final class ValueAddingCallback<V extends Comparable<V>> implements LmRea
 
 	private Indexer<V> valueIndexer;
 
-	public ValueAddingCallback() {
+	LongArray[] numNgramsForEachWord;
+
+	private final NgramMapOpts opts;
+
+	public ValueAddingCallback(final NgramMapOpts opts) {
 		this.valueCounter = new Counter<V>();
+		this.opts = opts;
 	}
 
 	@Override
 	public void call(final int[] ngram, final V v, final String words) {
 		valueCounter.incrementCount(v, 1);
+		final LongArray ngramOrderCounts = numNgramsForEachWord[ngram.length - 1];
+		final int word = opts.reverseTrie ? ngram[0] : ngram[ngram.length - 1];
+		if (word >= ngramOrderCounts.size()) {
+
+			ngramOrderCounts.setAndGrowIfNeeded(word, 1);
+		} else {
+			ngramOrderCounts.set(word, ngramOrderCounts.get(word) + 1);
+		}
+
 	}
 
 	@Override
@@ -58,10 +74,19 @@ public final class ValueAddingCallback<V extends Comparable<V>> implements LmRea
 
 	@Override
 	public void initWithLengths(final List<Long> numNGrams) {
+		final long numWords = numNGrams.get(0);
+		numNgramsForEachWord = new LongArray[numNGrams.size()];
+		for (int i = 0; i < numNgramsForEachWord.length; ++i) {
+			numNgramsForEachWord[i] = LongArray.StaticMethods.newLongArray(numNGrams.get(i), numWords, numWords);
+		}
 	}
 
 	@Override
 	public boolean ignoreNgrams() {
 		return true;
+	}
+
+	public LongArray[] getNumNgramsForEachWord() {
+		return numNgramsForEachWord;
 	}
 }

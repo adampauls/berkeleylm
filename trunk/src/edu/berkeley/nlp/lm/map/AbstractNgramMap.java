@@ -16,12 +16,9 @@ public abstract class AbstractNgramMap<T> implements NgramMap<T>, Serializable
 
 	protected final NgramMapOpts opts;
 
-	protected final boolean reversed;
-
-	protected AbstractNgramMap(final ValueContainer<T> values, final NgramMapOpts opts, final boolean reversed) {
+	protected AbstractNgramMap(final ValueContainer<T> values, final NgramMapOpts opts) {
 		this.values = values;
 		this.opts = opts;
-		this.reversed = reversed;
 	}
 
 	protected static boolean equals(final int[] ngram, final int startPos, final int endPos, final int[] cachedNgram) {
@@ -47,11 +44,6 @@ public abstract class AbstractNgramMap<T> implements NgramMap<T>, Serializable
 	@Override
 	public ValueContainer<T> getValues() {
 		return values;
-	}
-
-	@Override
-	public boolean isReversed() {
-		return reversed;
 	}
 
 }

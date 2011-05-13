@@ -20,6 +20,4 @@ public interface NgramMap<T>
 
 	public ValueContainer<T> getValues();
 
-	public boolean isReversed();
-
 }

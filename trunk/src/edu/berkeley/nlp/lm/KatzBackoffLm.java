@@ -49,7 +49,7 @@ public class KatzBackoffLm<W> extends AbstractContextEncodedNgramLanguageModel<W
 
 	@Override
 	public float getLogProb(final int[] ngram, final int startPos, final int endPos) {
-		if (map.isReversed()) { return scoreLog10HelpReversed(ngram, startPos, endPos); }
+		//		if (map.isReversed()) { return scoreLog10HelpReversed(ngram, startPos, endPos); }
 		final float score = scoreLog10Help(ngram, startPos, endPos);
 		return score;
 	}
