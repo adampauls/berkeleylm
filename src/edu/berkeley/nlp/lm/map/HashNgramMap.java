@@ -1,6 +1,5 @@
 package edu.berkeley.nlp.lm.map;
 
-import java.util.Arrays;
 import java.util.List;
 
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
@@ -46,12 +45,15 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 
 	private final boolean useContextEncoding;
 
+	private final boolean storeSuffixOffsets;
+
 	private final boolean reversed = false;
 
 	public HashNgramMap(final ValueContainer<T> values, final HashFunction hashFunction, final NgramMapOpts opts, final LongArray[] numNgramsForEachWord) {
 		super(values, opts);
 		this.cacheSuffixes = opts.cacheSuffixes;
 		this.useContextEncoding = opts.storePrefixIndexes || opts.reverseTrie;
+		this.storeSuffixOffsets = opts.storePrefixIndexes;
 		this.hashFunction = hashFunction;
 		maps = new HashMap[numNgramsForEachWord.length];
 		this.maxLoadFactor = opts.maxLoadFactor;
@@ -63,21 +65,24 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 
 	@Override
 	public long put(final int[] ngram, final T val) {
-		return addHelp(ngram, 0, ngram.length, val, maps[ngram.length - 1]);
-
+		final int endPos = ngram.length;
+		final HashMap map = maps[ngram.length - 1];
+		final long key = getKey(ngram, 0, endPos);
+		final long hash = hash(ngram, 0, endPos, map);
+		final long index = map.put(hash, key);
+		final long suffixIndex = getSuffixOffset(ngram, 0, endPos);
+		values.add(endPos - 0 - 1, index, contextOffsetOf(key), wordOf(key), val, suffixIndex);
+		return index;
 	}
 
 	/**
 	 * @param ngram
-	 * @param val
-	 * @param tightHashMap
+	 * @param endPos
+	 * @return
 	 */
-	private long addHelp(final int[] ngram, final int startPos, final int endPos, final T val, final HashMap map) {
-		final long key = getKey(ngram, startPos, endPos);
-		final long hash = hash(ngram, startPos, endPos, map);
-		final long index = map.put(hash, key);
+	private long getSuffixOffset(final int[] ngram, final int startPos, final int endPos) {
 		long suffixIndex = -1;
-		if (endPos - startPos > 1) {
+		if (storeSuffixOffsets && endPos - startPos > 1) {
 			final int start = reversed ? startPos : (startPos + 1);
 			final int end = reversed ? (endPos - 1) : (endPos);
 			final HashMap suffixMap = maps[end - start - 1];
@@ -87,8 +92,7 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 				suffixIndex = suffixMap.getIndexImplicitly(ngram, suffixHash, start, end, maps);
 			}
 		}
-		values.add(endPos - startPos - 1, index, contextOffsetOf(key), wordOf(key), val, suffixIndex);
-		return index;
+		return suffixIndex;
 	}
 
 	private long getKey(final int[] ngram, final int startPos, final int endPos) {
@@ -101,7 +105,7 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 
 			final HashMap currMap = maps[ngramOrder - 1];
 			final long hash = hash(ngram, currStartPos, currEndPos, currMap);
-			long index = hash < 0 ? -1L : getIndexHelp(ngram, currStartPos, ngramOrder, currEndPos, hash);
+			final long index = hash < 0 ? -1L : getIndexHelp(ngram, currStartPos, ngramOrder, currEndPos, hash);
 			if (index == -1L) { return -1; }
 
 			key = combineToKey(reversed ? ngram[currNgramPos - 1] : ngram[currNgramPos], index);
@@ -140,15 +144,12 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 	@Override
 	public void handleNgramsFinished(final int justFinishedOrder) {
 		final int ngramOrder = justFinishedOrder - 1;
-
 		numWords = Math.max(numWords, maps[ngramOrder].maxWord + 1);
-
 	}
 
 	@Override
 	public long getOffset(final int[] ngram, final int startPos, final int endPos) {
 		if (containsOutOfVocab(ngram, startPos, endPos)) return -1;
-
 		final HashMap tightHashMap = maps[endPos - startPos - 1];
 		final long hash = hash(ngram, startPos, endPos, tightHashMap);
 		if (hash < 0) return -1;
@@ -162,15 +163,43 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 			if (maps[ngramOrder] == null) break;
 			values.trimAfterNgram(ngramOrder, maps[ngramOrder].getCapacity());
 			Logger.logss("Load factor for " + (ngramOrder + 1) + ": " + maps[ngramOrder].getLoadFactor());
-
 		}
-
 	}
 
 	@Override
 	public T getValue(final int[] ngram, final int startPos, final int endPos, final LmContextInfo prefixIndex) {
 		final long index = getOffset(ngram, startPos, endPos);
 		return values.getFromOffset(index, endPos - startPos);
+	}
+
+	@Override
+	public void initWithLengths(final List<Long> numNGrams) {
+	}
+
+	@Override
+	public long getOffset(final long contextOffset_, final int contextOrder, final int word) {
+		final long contextOffset = Math.max(contextOffset_, 0);
+		final int ngramOrder = contextOrder + 1;
+
+		final long key = combineToKey(word, contextOffset);
+		final HashMap map = maps[ngramOrder];
+		final long hash = hash(key, word, ngramOrder, map);
+		if (hash < 0) return -1L;
+		final long index = map.getIndexImplicity(contextOffset, word, hash);
+		return index;
+	}
+
+	@Override
+	public LmContextInfo getOffsetForNgram(final int[] ngram, final int startPos, final int endPos) {
+		final LmContextInfo lmContextInfo = new LmContextInfo();
+		for (int start = endPos - 1; start >= startPos; --start) {
+			final long offset = getOffset(ngram, start, endPos);
+			if (offset < 0) break;
+			lmContextInfo.offset = offset;
+			lmContextInfo.order = endPos - start - 1;
+
+		}
+		return lmContextInfo;
 	}
 
 	/**
@@ -233,35 +262,4 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		return ((long) word << WORD_BIT_OFFSET) | (suffix << INDEX_OFFSET);
 	}
 
-	@Override
-	public void initWithLengths(final List<Long> numNGrams) {
-	}
-
-	@Override
-	public long getOffset(final long contextOffset_, final int contextOrder, final int word) {
-		final long contextOffset = Math.max(contextOffset_, 0);//contextOrder < 0 ? 0 : contextOffset_;
-		final int ngramOrder = contextOrder + 1;
-
-		final long key = combineToKey(word, contextOffset);
-		final HashMap map = maps[ngramOrder];
-		final long hash = hash(key, word, ngramOrder, map);
-		if (hash < 0) return -1L;
-		final long index = map.getIndexImplicity(contextOffset, word, hash);
-		return index;
-	}
-	
-	@Override
-	public LmContextInfo getOffsetForNgram(int[] ngram, int startPos, int endPos) {
-		final LmContextInfo lmContextInfo = new LmContextInfo();
-		for (int start = endPos - 1; start >= startPos; --start) {
-			long offset = getOffset(ngram, start, endPos);
-			if (offset < 0) break;
-			lmContextInfo.offset = offset;
-			lmContextInfo.order = endPos - start - 1;
-
-		}
-		return lmContextInfo;
-	}
-
-	
 }
