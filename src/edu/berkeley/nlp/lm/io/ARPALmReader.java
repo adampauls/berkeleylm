@@ -72,13 +72,11 @@ public class ARPALmReader<W>
 		this.callback = callback_;
 		this.reader = IOUtils.openInHard(file);
 		Logger.startTrack("Parsing ARPA language model file");
-		//		MemoryUsageUtils.logMemoryUsage("before loading LM");
 		final List<Long> numNGrams = parseHeader();
 		callback.initWithLengths(numNGrams);
 		parseNGrams();
 		Logger.endTrack();
 		callback.cleanup();
-		//		MemoryUsageUtils.logMemoryUsage("after loading LM");
 		wordIndexer.setStartSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(START_SYMBOL)));
 		wordIndexer.setEndSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(END_SYMBOL)));
 		wordIndexer.setUnkSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(UNK_SYMBOL)));
