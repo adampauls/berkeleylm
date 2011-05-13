@@ -17,7 +17,7 @@ import edu.berkeley.nlp.lm.util.Logger;
  * @param <V>
  *            Value type
  */
-public final class ValueAddingCallback<V extends Comparable<V>> implements LmReaderCallback<V>
+public final class FirstPassCallback<V extends Comparable<V>> implements LmReaderCallback<V>
 {
 
 	int warnCount = 0;
@@ -30,7 +30,7 @@ public final class ValueAddingCallback<V extends Comparable<V>> implements LmRea
 
 	private final NgramMapOpts opts;
 
-	public ValueAddingCallback(final NgramMapOpts opts) {
+	public FirstPassCallback(final NgramMapOpts opts) {
 		this.valueCounter = new Counter<V>();
 		this.opts = opts;
 	}
