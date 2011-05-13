@@ -78,7 +78,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 		setSizeAtLeast(10, ngramOrder);
 		final int indexOfCounts = countIndexer.getIndex(val);
 
-		if (contextOffsets != null) {
+		if (suffixOffset >= 0 && contextOffsets != null) {
 			if (ngramOrder >= contextOffsets.length)
 				contextOffsets = Arrays.copyOf(contextOffsets, Math.max(ngramOrder + 1, contextOffsets.length * 3 / 2 + 1));
 			contextOffsets[ngramOrder].setAndGrowIfNeeded(offset, suffixOffset);

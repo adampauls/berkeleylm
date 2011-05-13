@@ -180,6 +180,10 @@ public class ARPALmReader<W>
 		}
 		// add the new n-gram
 		assert logProbability != 0;
+		if (line.contains("years . \" over")) {
+			@SuppressWarnings("unused")
+			int x = 5;
+		}
 		callback.call(nGram, new ProbBackoffPair(logProbability, backoff), line);
 
 		currentNGramCount++;

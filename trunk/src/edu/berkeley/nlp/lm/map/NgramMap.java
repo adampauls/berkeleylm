@@ -20,4 +20,6 @@ public interface NgramMap<T>
 
 	public ValueContainer<T> getValues();
 
+	public LmContextInfo getOffsetForNgram(int[] ngram, int startPos, int endPos);
+
 }
