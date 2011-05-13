@@ -76,14 +76,14 @@ public final class ValueAddingCallback<V extends Comparable<V>> implements LmRea
 	public void initWithLengths(final List<Long> numNGrams) {
 		final long numWords = numNGrams.get(0);
 		numNgramsForEachWord = new LongArray[numNGrams.size()];
-		for (int i = 0; i < numNgramsForEachWord.length; ++i) {
-			numNgramsForEachWord[i] = LongArray.StaticMethods.newLongArray(numNGrams.get(i), numWords, numWords);
+		for (int ngramOrder = 0; ngramOrder < numNgramsForEachWord.length; ++ngramOrder) {
+			numNgramsForEachWord[ngramOrder] = LongArray.StaticMethods.newLongArray(numNGrams.get(ngramOrder), numWords, numWords);
 		}
 	}
 
 	@Override
 	public boolean ignoreNgrams() {
-		return true;
+		return false;
 	}
 
 	public LongArray[] getNumNgramsForEachWord() {

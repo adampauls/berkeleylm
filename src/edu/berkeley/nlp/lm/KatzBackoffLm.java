@@ -203,10 +203,15 @@ public class KatzBackoffLm<W> extends AbstractContextEncodedNgramLanguageModel<W
 			if (index >= 0) {
 				final int ngramOrder = contextOrder + 1;
 				final float prob = values.getProb(ngramOrder, index);
-				final long prefixIndexHere = values.getContextOffset(index, ngramOrder);
 				if (outputContext != null) {
-					outputContext.offset = prefixIndexHere;
-					outputContext.order = ngramOrder;
+					if (ngramOrder < lmOrder - 1) {
+						outputContext.offset = index;
+						outputContext.order = ngramOrder;
+					} else {
+						outputContext.offset = values.getContextOffset(index, ngramOrder);
+						outputContext.order = contextOrder;
+					}
+					assert ngramOrder < lmOrder;
 				}
 				return prob;
 			} else if (contextOrder >= 0) {
@@ -249,6 +254,11 @@ public class KatzBackoffLm<W> extends AbstractContextEncodedNgramLanguageModel<W
 	@Override
 	public float scoreSequence(final List<W> sequence) {
 		return NgramLanguageModel.DefaultImplementations.scoreSequence(sequence, this);
+	}
+
+	@Override
+	public LmContextInfo getOffsetForNgram(int[] ngram, int startPos, int endPos) {
+		return map.getOffsetForNgram(ngram, startPos,  endPos);
 	}
 
 }

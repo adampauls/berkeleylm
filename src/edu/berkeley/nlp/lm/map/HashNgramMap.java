@@ -43,51 +43,27 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 
 	private final double maxLoadFactor;
 
-	private final long initialCapacity;
-
 	private long numWords = 0;
 
 	private final boolean useContextEncoding;
-
-	private final LongArray[] numNgramsForEachWord;
 
 	private final boolean reversed = false;
 
 	public HashNgramMap(final ValueContainer<T> values, final HashFunction hashFunction, final NgramMapOpts opts, final LongArray[] numNgramsForEachWord,
 		final long initialCapacity) {
 		super(values, opts);
-		this.numNgramsForEachWord = numNgramsForEachWord;
 		this.cacheSuffixes = opts.cacheSuffixes;
 		this.useContextEncoding = opts.storePrefixIndexes || opts.reverseTrie;
-		maps = new HashNgramMap.HashMap[numNgramsForEachWord.length];
-		for (int ngramOrder = 0; ngramOrder < numNgramsForEachWord.length; ++ngramOrder) {
-			maps[ngramOrder] = new HashMap(numNgramsForEachWord[ngramOrder]);
-			values.setSizeAtLeast(sum(numNgramsForEachWord[ngramOrder]), ngramOrder);
-		}
 		this.hashFunction = hashFunction;
-		this.initialCapacity = initialCapacity;
+		maps = new HashNgramMap.HashMap[numNgramsForEachWord.length];
 		this.maxLoadFactor = opts.maxLoadFactor;
+		for (int ngramOrder = 0; ngramOrder < numNgramsForEachWord.length; ++ngramOrder) {
+			maps[ngramOrder] = new HashMap(numNgramsForEachWord[ngramOrder], maxLoadFactor);
+			values.setSizeAtLeast(maps[ngramOrder].getCapacity(), ngramOrder);
+		}
 	}
 
-	//	/**
-	//	 * For rehashing
-	//	 * 
-	//	 * @param numNgramsForEachWord
-	//	 */
-	//	private HashNgramMap(final ValueContainer<T> values, final HashFunction hashFunction, final NgramMapOpts opts, final long[] capacities,
-	//		final long[][] numNgramsForEachWord) {
-	//		super(values, opts, opts.reverseTrie);
-	//		this.cacheSuffixes = opts.cacheSuffixes;
-	//		this.useContextEncoding = opts.storePrefixIndexes || opts.reverseTrie;
-	//		maps = new HashNgramMap.HashMap[6];
-	//		for (int i = 0; i < capacities.length; ++i) {
-	//			if (capacities[i] < 0) continue;
-	//			maps[i] = new HashMap(capacities[i], numNgramsForEachWord == null ? null : numNgramsForEachWord[i], opts.reverseTrie);
-	//		}
-	//		this.hashFunction = hashFunction;
-	//		this.initialCapacity = -1L;
-	//		this.maxLoadFactor = 0.75;
-	//	}
+
 
 	@Override
 	public long put(final int[] ngram, final T val) {
@@ -127,23 +103,28 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		final long hash = hash(ngram, startPos, endPos, map);
 		final long index = map.put(hash, key);
 		long suffixIndex = -1;
-		if (endPos - startPos > 1) {
-			final int nextStartPos = reversed ? startPos : (startPos + 1);
-			final int nextEndPos = reversed ? (endPos - 1) : (endPos);
-			final HashMap suffixMap = maps[endPos - startPos - 2];
+		int start = startPos;
+		int end = endPos;
+		if (end - start > 1) {
+			start = reversed ? start : (start + 1);
+			end = reversed ? (end - 1) : (end);
+			final HashMap suffixMap = maps[end - start - 1];
 			long suffixHash = -1;
-			suffixHash = hash(ngram, nextStartPos, nextEndPos, suffixMap);
-			suffixIndex = suffixMap.getIndexImplicitly(ngram, suffixHash, nextStartPos, nextEndPos, maps);
-			if (suffixIndex < 0) {
-				suffixIndex = addHelp(ngram, nextStartPos, nextEndPos, null, suffixMap, false);
+			suffixHash = hash(ngram, start, end, suffixMap);
+			if (suffixHash >= 0) {
+				suffixIndex = suffixMap.getIndexImplicitly(ngram, suffixHash, start, end, maps);
 			}
-			assert suffixIndex >= 0;
+			//			if (suffixIndex >= 0) {
+			//				//				suffixIndex = addHelp(ngram, nextStartPos, nextEndPos, null, suffixMap, false);
+			//				return -1;
+			//			}
+			//			break;
 		}
 		values.add(endPos - startPos - 1, index, prefixOffsetOf(key), wordOf(key), val, suffixIndex);
-		if (rehashIfNecessary && map.getLoadFactor() > maxLoadFactor) {
-			assert false;
-			//			rehash(endPos - 1, map.getCapacity() * 3 / 2, false);
-		}
+		//		if (rehashIfNecessary && map.getLoadFactor() > maxLoadFactor) {
+		//			assert false;
+		//			//			rehash(endPos - 1, map.getCapacity() * 3 / 2, false);
+		//		}
 		return index;
 	}
 
@@ -420,8 +401,7 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 
 	@Override
 	public long getOffset(final long contextOffset_, final int contextOrder, final int word) {
-		final long contextOffset = contextOrder < 0 ? 0 : contextOffset_;
-		assert contextOffset >= 0;
+		final long contextOffset = Math.max(contextOffset_, 0);//contextOrder < 0 ? 0 : contextOffset_;
 		final int ngramOrder = contextOrder + 1;
 
 		final long key = combineToKey(word, contextOffset);
@@ -457,14 +437,16 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 
 		private static final int EMPTY_KEY = -1;
 
-		public HashMap(final LongArray numNgramsForEachWord) {
+		public HashMap(final LongArray numNgramsForEachWord, final double maxLoadFactor) {
 			final long numWords = numNgramsForEachWord.size();
 			wordRangesLow = new long[(int) numWords];
 			wordRangesHigh = new long[(int) numWords];
 			long currStart = 0;
 			for (int w = 0; w < numWords; ++w) {
 				wordRangesLow[w] = currStart;
-				currStart += numNgramsForEachWord.get(w);
+				final long numNgrams = numNgramsForEachWord.get(w);
+
+				currStart += numNgrams <= 3 ? numNgrams : Math.round(numNgrams * 1.0 / maxLoadFactor);
 				wordRangesHigh[w] = currStart;
 
 			}
@@ -720,4 +702,16 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		}
 	}
 
+	@Override
+	public LmContextInfo getOffsetForNgram(int[] ngram, int startPos, int endPos) {
+		final LmContextInfo lmContextInfo = new LmContextInfo();
+		for (int start = endPos - 1; start >= startPos; --start) {
+			long offset = getOffset(ngram, start, endPos);
+			if (offset < 0) break;
+			lmContextInfo.offset = offset;
+			lmContextInfo.order = endPos - start - 1;
+
+		}
+		return lmContextInfo;
+	}
 }

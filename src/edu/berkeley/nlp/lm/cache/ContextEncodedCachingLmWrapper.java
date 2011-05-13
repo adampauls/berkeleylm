@@ -59,4 +59,9 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 		return lm.getWordIndexer();
 	}
 
+	@Override
+	public edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo getOffsetForNgram(int[] ngram, int startPos, int endPos) {
+		return lm.getOffsetForNgram(ngram, startPos, endPos);
+	}
+
 }
