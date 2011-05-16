@@ -94,6 +94,9 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		final long index = tightHashMap.getIndexImplicitly(ngram, hash, startPos, endPos, maps);
 		return index;
 	}
+	
+	
+
 
 	@Override
 	public LmContextInfo getOffsetForNgram(final int[] ngram, final int startPos, final int endPos) {
@@ -227,4 +230,5 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		return ((long) word << WORD_BIT_OFFSET) | (suffix << INDEX_OFFSET);
 	}
 
+	
 }

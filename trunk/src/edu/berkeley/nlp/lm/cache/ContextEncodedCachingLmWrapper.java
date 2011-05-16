@@ -50,17 +50,12 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 	}
 
 	@Override
-	public int[] getNgramForContext(final long contextOffset, final int contextOrder) {
-		return lm.getNgramForContext(contextOffset, contextOrder);
-	}
-
-	@Override
 	public WordIndexer<T> getWordIndexer() {
 		return lm.getWordIndexer();
 	}
 
 	@Override
-	public edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo getOffsetForNgram(int[] ngram, int startPos, int endPos) {
+	public LmContextInfo getOffsetForNgram(int[] ngram, int startPos, int endPos) {
 		return lm.getOffsetForNgram(ngram, startPos, endPos);
 	}
 

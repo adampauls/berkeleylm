@@ -73,11 +73,6 @@ public interface ContextEncodedNgramLanguageModel<W> extends NgramLanguageModelB
 	public float getLogProb(List<W> ngram, @OutputParameter LmContextInfo outputContext);
 
 	/**
-	 * Gets the n-gram refered to by a context offSet
-	 */
-	public int[] getNgramForContext(long contextOffset, int contextOrder);
-
-	/**
 	 * Gets the offset which refers to an n-gram. If the n-gram is not in the
 	 * model, then it returns the shortest suffix of the n-gram which is. This
 	 * operation is not necessarily fast.

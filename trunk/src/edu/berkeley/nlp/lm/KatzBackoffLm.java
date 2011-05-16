@@ -48,197 +48,112 @@ public class KatzBackoffLm<W> extends AbstractContextEncodedNgramLanguageModel<W
 	}
 
 	@Override
-	public float getLogProb(final int[] ngram, final int startPos, final int endPos) {
-		//		if (map.isReversed()) { return scoreLog10HelpReversed(ngram, startPos, endPos); }
-		final float score = scoreLog10Help(ngram, startPos, endPos);
-		return score;
-	}
-
-	@Override
-	public float getLogProb(final long context, final int contextOrder, final int word, final LmContextInfo outputPrefixIndex) {
-		final float score = getLogProbContextEncoded(context, contextOrder, word, outputPrefixIndex);
-		final float log10ln = score;//convertLog ? convertFromLogBase10(score) : score;
-		return log10ln;
-	}
-
-	private float scoreLog10Help(final int[] ngram, final int startPos, final int endPos) {
-
+	public float getLogProb(final int[] ngram, final int startPos_, final int endPos_) {
 		if (map instanceof OffsetNgramMap<?>) {
-
-			final OffsetNgramMap<ProbBackoffPair> localMap = (OffsetNgramMap<ProbBackoffPair>) map;
-
-			final long index = localMap.getOffset(ngram, startPos, endPos);
-			if (index >= 0) {
-				final int ngramOrder = endPos - startPos - 1;
-				final float prob = values.getProb(ngramOrder, index);
-				if (!Float.isNaN(prob)) {
-
-				return prob; }
-			}
-			if (endPos - startPos > 1) {
-				final float backoffProb = getLogProb(ngram, startPos + 1, endPos);
-				final long backoffIndex = localMap.getOffset(ngram, startPos, endPos - 1);
-				float backOff = backoffIndex < 0 ? 0.0f : values.getBackoff(endPos - startPos - 2, backoffIndex);
-				backOff = Float.isNaN(backOff) ? 0.0f : backOff;
-				return backOff + backoffProb;
-			} else {
-				return oovWordLogProb;
-			}
-
+			return getLogProbWithOffsets(ngram, startPos_, endPos_);
 		} else {
+			return getLogProbDirectly(ngram, startPos_, endPos_);
+		}
+	}
+
+	/**
+	 * @param ngram
+	 * @param startPos_
+	 * @param endPos_
+	 * @return
+	 */
+	private float getLogProbDirectly(final int[] ngram, final int startPos_, final int endPos_) {
+		int startPos = startPos_;
+		int endPos = endPos_;
+		float sum = 0.0f;
+		while (true) {
 			final ProbBackoffPair pair = map.getValue(ngram, startPos, endPos, null);
 			if (pair != null && !Float.isNaN(pair.prob)) {
-				return pair.prob;
+				return sum + pair.prob;
 			} else {
 				if (endPos - startPos > 1) {
-					final float backoffProb = getLogProb(ngram, startPos + 1, endPos);
 					final ProbBackoffPair backoffPair = map.getValue(ngram, startPos, endPos - 1, null);
 					final float backOff = backoffPair == null ? 0.0f : backoffPair.backoff;
-					return backOff + backoffProb;
+					sum += backOff;
+					startPos += 1;
 				} else {
 					return oovWordLogProb;
 				}
 			}
-
 		}
 	}
 
-	private float scoreLog10HelpReversed(final int[] ngram, final int startPos, final int endPos) {
+	/**
+	 * @param ngram
+	 * @param startPos_
+	 * @param endPos_
+	 * @return
+	 */
+	private float getLogProbWithOffsets(final int[] ngram, final int startPos_, final int endPos_) {
+		int startPos = startPos_;
+		int endPos = endPos_;
+		float sum = 0.0f;
+		while (true) {
+			final OffsetNgramMap<ProbBackoffPair> localMap = (OffsetNgramMap<ProbBackoffPair>) map;
 
-		if (map instanceof ContextEncodedNgramMap<?>) {
-			final ContextEncodedNgramMap<ProbBackoffPair> localMap = (ContextEncodedNgramMap<ProbBackoffPair>) map;
-			float logProb = oovWordLogProb;
-			float backoff = 0.0f;
-
-			long probContext = 0L;
-			int probContextOrder = -1;
-
-			long backoffContext = 0L;
-			int backoffContextOrder = -1;
-
-			for (int i = endPos - 1; i >= startPos; --i) {
-
-				if (probContext >= 0) probContext = localMap.getOffset(probContext, probContextOrder, ngram[i]);
-				if (probContext >= 0) {
-					probContextOrder++;
-					final float currProb = values.getProb(probContextOrder, probContext);
-					if (Float.isNaN(currProb) && i == startPos) {
-						return logProb + backoff;
-					} else if (!Float.isNaN(currProb)) {
-
-						logProb = currProb;
-						backoff = 0.0f;
-					}
-				}
-				if (i == startPos) break;
-
-				backoffContext = localMap.getOffset(backoffContext, backoffContextOrder, ngram[i - 1]);
-				if (backoffContext < 0) break;
-
-				backoffContextOrder++;
-				final float currBackoff = values.getBackoff(backoffContextOrder, backoffContext);
-				backoff += Float.isNaN(currBackoff) ? 0.0f : currBackoff;
-
+			final long offset = localMap.getOffset(ngram, startPos, endPos);
+			if (offset >= 0) {
+				final int ngramOrder = endPos - startPos - 1;
+				final float prob = values.getProb(ngramOrder, offset);
+				if (!Float.isNaN(prob)) return sum + prob;
 			}
-
-			return logProb + backoff;
-		} else {
-			// TODO implement this
-			assert false;
-			return Float.NaN;
-			//			float logProb = oovWordLogProb;
-			//			float backoff = 0.0f;
-			//
-			//			long probContext = 0L;
-			//			int probContextOrder = -1;
-			//
-			//			long backoffContext = 0L;
-			//			int backoffContextOrder = -1;
-			//
-			//			for (int i = endPos - 1; i >= startPos; --i) {
-			//
-			//				ProbBackoffPair currProbVal = null;
-			//				if (probContext >= 0) {
-			//					final ValueOffsetPair<ProbBackoffPair> probValueAndOffset = localMap.getValueAndOffset(probContext, probContextOrder, ngram[i]);
-			//					probContext = probValueAndOffset.getOffset();
-			//					currProbVal = probValueAndOffset.getValue();
-			//				}
-			//				if (probContext >= 0) {
-			//					assert currProbVal != null;
-			//					probContextOrder++;
-			//					final float currProb = currProbVal.prob;
-			//					if (Float.isNaN(currProb) && i == startPos) {
-			//						return logProb + backoff;
-			//					} else if (!Float.isNaN(currProb)) {
-			//
-			//						logProb = currProb;
-			//						backoff = 0.0f;
-			//					}
-			//				}
-			//				if (i == startPos) break;
-			//
-			//				final ValueOffsetPair<ProbBackoffPair> backoffValueAndOffset = localMap.getValueAndOffset(backoffContext, backoffContextOrder, ngram[i - 1]);
-			//				backoffContext = backoffValueAndOffset.getOffset();
-			//				if (backoffContext < 0) break;
-			//
-			//				backoffContextOrder++;
-			//				final float currBackoff = backoffValueAndOffset.getValue().backoff;
-			//				backoff += Float.isNaN(currBackoff) ? 0.0f : currBackoff;
-			//
-			//			}
-			//
-			//			return logProb + backoff;
-
-		}
-
-	}
-
-	private float getLogProbContextEncoded(final long contextOffset, final int contextOrder, final int word, @OutputParameter final LmContextInfo outputContext) {
-
-		if (map instanceof ContextEncodedNgramMap<?>) {
-
-			final ContextEncodedNgramMap<ProbBackoffPair> localMap = (ContextEncodedNgramMap<ProbBackoffPair>) map;
-
-			final long index = localMap.getOffset(contextOffset, contextOrder, word);
-			if (index >= 0) {
-				final int ngramOrder = contextOrder + 1;
-				final float prob = values.getProb(ngramOrder, index);
-				if (outputContext != null) {
-					if (ngramOrder < lmOrder - 1) {
-						outputContext.offset = index;
-						outputContext.order = ngramOrder;
-					} else {
-						outputContext.offset = values.getContextOffset(index, ngramOrder);
-						outputContext.order = contextOrder;
-					}
-					assert ngramOrder < lmOrder;
-				}
-				return prob;
-			} else if (contextOrder >= 0) {
-				final int nextPrefixOrder = contextOrder - 1;
-				final long nextPrefixIndex = nextPrefixOrder < 0 ? 0 : values.getContextOffset(contextOffset, contextOrder);
-				final float nextProb = getLogProb(nextPrefixIndex, nextPrefixOrder, word, outputContext);
-				final long backoffIndex = contextOffset;
-				final float backOff = backoffIndex < 0 ? 0.0f : values.getBackoff(contextOrder, backoffIndex);
-				return backOff + nextProb;
+			if (endPos - startPos > 1) {
+				final long backoffIndex = localMap.getOffset(ngram, startPos, endPos - 1);
+				float backOff = backoffIndex < 0 ? 0.0f : values.getBackoff(endPos - startPos - 2, backoffIndex);
+				backOff = Float.isNaN(backOff) ? 0.0f : backOff;
+				sum += backOff;
+				startPos += 1;
 			} else {
 				return oovWordLogProb;
 			}
-		} else {
-			// TODO set up compressed version for context-encoded querying
-			throw new RuntimeException("Compressed version not set up for context-encoded querying yet");
+
+		}
+	}
+
+	@Override
+	public float getLogProb(final long contextOffset, final int contextOrder, final int word, final LmContextInfo outputPrefixIndex) {
+		final ContextEncodedNgramMap<ProbBackoffPair> localMap = (ContextEncodedNgramMap<ProbBackoffPair>) map;
+		int currContextOrder = contextOrder;
+		long currContextOffset = contextOffset;
+		float sum = 0.0f;
+		while (true) {
+			final long offset = localMap.getOffset(currContextOffset, currContextOrder, word);
+			final int ngramOrder = currContextOrder + 1;
+			final float prob = offset < 0 ? Float.NaN : values.getProb(ngramOrder, offset);
+			if (offset >= 0 && !Float.isNaN(prob)) {
+				if (outputPrefixIndex != null) {
+					if (ngramOrder == lmOrder - 1) {
+						final long prefixIndexHere = values.getContextOffset(offset, ngramOrder);
+						outputPrefixIndex.offset = prefixIndexHere;
+						outputPrefixIndex.order = ngramOrder - 1;
+					} else {
+						outputPrefixIndex.offset = offset;
+						outputPrefixIndex.order = ngramOrder;
+
+					}
+				}
+				assert !Float.isNaN(prob);
+				return sum + prob;
+			} else if (currContextOrder >= 0) {
+				final long backoffIndex = currContextOffset;
+				final float backOff = backoffIndex < 0 ? 0.0f : values.getBackoff(currContextOrder, backoffIndex);
+				sum += (Float.isNaN(backOff) ? 0.0f : backOff);
+				currContextOrder--;
+				currContextOffset = currContextOrder < 0 ? 0 : values.getContextOffset(currContextOffset, currContextOrder + 1);
+			} else {
+				return oovWordLogProb;
+			}
 		}
 	}
 
 	@Override
 	public WordIndexer<W> getWordIndexer() {
 		return wordIndexer;
-	}
-
-	@Override
-	public int[] getNgramForContext(final long contextOffset, final int contextOrder) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Method not yet implemented");
 	}
 
 	@Override
@@ -258,7 +173,7 @@ public class KatzBackoffLm<W> extends AbstractContextEncodedNgramLanguageModel<W
 
 	@Override
 	public LmContextInfo getOffsetForNgram(int[] ngram, int startPos, int endPos) {
-		return map.getOffsetForNgram(ngram, startPos,  endPos);
+		return map.getOffsetForNgram(ngram, startPos, endPos);
 	}
 
 }
