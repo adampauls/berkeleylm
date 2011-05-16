@@ -3,6 +3,8 @@ package edu.berkeley.nlp.lm.map;
 public interface OffsetNgramMap<T> extends NgramMap<T>
 {
 
+	public long getOffset(int[] ngram, int startPos, int endPos);
+
 	public static class ValueOffsetPair<T>
 	{
 
@@ -28,7 +30,5 @@ public interface OffsetNgramMap<T> extends NgramMap<T>
 
 		long offset;
 	}
-
-	public long getOffset(int[] ngram, int startPos, int endPos);
 
 }

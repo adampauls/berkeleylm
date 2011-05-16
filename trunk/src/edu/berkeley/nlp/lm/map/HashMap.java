@@ -208,14 +208,16 @@ final class HashMap implements Serializable
 
 	}
 
-	public long getNumHashPositions(final int word) {
-		if (wordRangesLow == null) return getCapacity();
-		if (word >= wordRangesLow.length) return 0;
-		return wordRangesHigh[word] - wordRangesLow[word];
-	}
+	public long processHash(final long hash_, final int word) {
 
-	public long getStartOfRange(final int word) {
-		if (wordRangesLow == null) return 0;
-		return wordRangesLow[word];
+		long hash = hash_;
+		if (hash < 0) hash = -hash;
+		if (wordRangesLow == null) return (int) (hash % getCapacity());
+		final long startOfRange = wordRangesLow[word];
+		final long numHashPositions = wordRangesHigh[word] - startOfRange;
+		if (numHashPositions == 0) return -1;
+		hash = (hash % numHashPositions);
+		return hash + startOfRange;
+
 	}
 }
