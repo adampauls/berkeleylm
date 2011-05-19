@@ -116,7 +116,7 @@ public class KatzBackoffLm<W> extends AbstractContextEncodedNgramLanguageModel<W
 	}
 
 	@Override
-	public float getLogProb(final long contextOffset, final int contextOrder, final int word, final LmContextInfo outputPrefixIndex) {
+	public float getLogProb(final long contextOffset, final int contextOrder, final int word, @OutputParameter final LmContextInfo outputContext) {
 		final ContextEncodedNgramMap<ProbBackoffPair> localMap = (ContextEncodedNgramMap<ProbBackoffPair>) map;
 		int currContextOrder = contextOrder;
 		long currContextOffset = contextOffset;
@@ -126,14 +126,14 @@ public class KatzBackoffLm<W> extends AbstractContextEncodedNgramLanguageModel<W
 			final int ngramOrder = currContextOrder + 1;
 			final float prob = offset < 0 ? Float.NaN : values.getProb(ngramOrder, offset);
 			if (offset >= 0 && !Float.isNaN(prob)) {
-				if (outputPrefixIndex != null) {
+				if (outputContext != null) {
 					if (ngramOrder == lmOrder - 1) {
-						final long prefixIndexHere = values.getContextOffset(offset, ngramOrder);
-						outputPrefixIndex.offset = prefixIndexHere;
-						outputPrefixIndex.order = ngramOrder - 1;
+						final long suffixOffset = values.getContextOffset(offset, ngramOrder);
+						outputContext.offset = suffixOffset;
+						outputContext.order = ngramOrder - 1;
 					} else {
-						outputPrefixIndex.offset = offset;
-						outputPrefixIndex.order = ngramOrder;
+						outputContext.offset = offset;
+						outputContext.order = ngramOrder;
 
 					}
 				}
