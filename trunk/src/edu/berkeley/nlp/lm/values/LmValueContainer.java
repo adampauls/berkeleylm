@@ -23,22 +23,21 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 	private static final long serialVersionUID = 964277160049236607L;
 
 	@PrintMemoryCount
-	LongArray valueRanksCompressed[];
-
-	protected transient Indexer<V> countIndexer;
+	protected LongArray valueRanksCompressed[];
 
 	@PrintMemoryCount
-	LongArray[] contextOffsets;
+	private LongArray[] contextOffsets;
+
+	protected transient Indexer<V> countIndexer;
 
 	protected final boolean storePrefixIndexes;
 
 	protected final BitCompressor nonHuffmanCoder;
 
-	final int valueRadix;
+	protected final int valueRadix;
 
 	private final int wordWidth;
 
-	@SuppressWarnings("unchecked")
 	public LmValueContainer(final Indexer<V> countIndexer, final int valueRadix, final boolean storePrefixIndexes) {
 		this.valueRadix = valueRadix;
 		nonHuffmanCoder = new VariableLengthBlockCoder(valueRadix);
