@@ -213,6 +213,7 @@ final class HashMap implements Serializable
 		long hash = hash_;
 		if (hash < 0) hash = -hash;
 		if (wordRangesLow == null) return (int) (hash % getCapacity());
+		if (word >= wordRangesLow.length) return -1;
 		final long startOfRange = wordRangesLow[word];
 		final long numHashPositions = wordRangesHigh[word] - startOfRange;
 		if (numHashPositions == 0) return -1;
