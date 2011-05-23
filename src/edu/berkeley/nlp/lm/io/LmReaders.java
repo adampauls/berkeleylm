@@ -1,6 +1,6 @@
 package edu.berkeley.nlp.lm.io;
 
-import edu.berkeley.nlp.lm.KatzBackoffLm;
+import edu.berkeley.nlp.lm.BackoffLm;
 import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.map.HashNgramMap;
@@ -23,7 +23,7 @@ public class LmReaders
 	 * @param wordIndexer
 	 * @return
 	 */
-	public static <W> KatzBackoffLm<W> readArpaLmFile(final NgramMapOpts opts, final String lmFile, final int lmOrder, final WordIndexer<W> wordIndexer) {
+	public static <W> BackoffLm<W> readArpaLmFile(final NgramMapOpts opts, final String lmFile, final int lmOrder, final WordIndexer<W> wordIndexer) {
 
 		final FirstPassCallback<ProbBackoffPair> valueAddingCallback = firstPass(opts, lmFile, lmOrder, wordIndexer);
 		final LongArray[] numNgramsForEachWord = valueAddingCallback.getNumNgramsForEachWord();
@@ -42,7 +42,7 @@ public class LmReaders
 	 * @param numNgramsForEachWord
 	 * @return
 	 */
-	private static <W> KatzBackoffLm<W> secondPass(final NgramMapOpts opts, final String lmFile, final int lmOrder, final WordIndexer<W> wordIndexer,
+	private static <W> BackoffLm<W> secondPass(final NgramMapOpts opts, final String lmFile, final int lmOrder, final WordIndexer<W> wordIndexer,
 		final FirstPassCallback<ProbBackoffPair> valueAddingCallback, final LongArray[] numNgramsForEachWord) {
 		final ProbBackoffValueContainer values = new ProbBackoffValueContainer(valueAddingCallback.getIndexer(), opts.valueRadix, opts.storePrefixIndexes);
 		final NgramMap<ProbBackoffPair> map = new HashNgramMap<ProbBackoffPair>(values, new MurmurHash(), opts, numNgramsForEachWord, opts.storePrefixIndexes);
@@ -50,7 +50,7 @@ public class LmReaders
 		arpaLmReader.parse(new NgramMapAddingCallback<ProbBackoffPair>(map));
 		wordIndexer.trimAndLock();
 
-		return new KatzBackoffLm<W>(lmOrder, wordIndexer, map, opts);
+		return new BackoffLm<W>(lmOrder, wordIndexer, map, opts);
 	}
 
 	/**
