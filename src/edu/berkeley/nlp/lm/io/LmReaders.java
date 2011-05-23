@@ -44,8 +44,8 @@ public class LmReaders
 	 */
 	private static <W> BackoffLm<W> secondPass(final NgramMapOpts opts, final String lmFile, final int lmOrder, final WordIndexer<W> wordIndexer,
 		final FirstPassCallback<ProbBackoffPair> valueAddingCallback, final LongArray[] numNgramsForEachWord) {
-		final ProbBackoffValueContainer values = new ProbBackoffValueContainer(valueAddingCallback.getIndexer(), opts.valueRadix, opts.storePrefixIndexes);
-		final NgramMap<ProbBackoffPair> map = new HashNgramMap<ProbBackoffPair>(values, new MurmurHash(), opts, numNgramsForEachWord, opts.storePrefixIndexes);
+		final ProbBackoffValueContainer values = new ProbBackoffValueContainer(valueAddingCallback.getIndexer(), opts.valueRadix, opts.storeSuffixIndexes);
+		final NgramMap<ProbBackoffPair> map = new HashNgramMap<ProbBackoffPair>(values, new MurmurHash(), opts, numNgramsForEachWord, opts.storeSuffixIndexes);
 		final ARPALmReader<W> arpaLmReader = new ARPALmReader<W>(lmFile, wordIndexer, lmOrder);
 		arpaLmReader.parse(new NgramMapAddingCallback<ProbBackoffPair>(map));
 		wordIndexer.trimAndLock();

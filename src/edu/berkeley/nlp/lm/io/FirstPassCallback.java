@@ -30,6 +30,8 @@ public final class FirstPassCallback<V extends Comparable<V>> implements LmReade
 
 	private final NgramMapOpts opts;
 
+	private final boolean reverseTrie = false;
+	
 	public FirstPassCallback(final NgramMapOpts opts) {
 		this.valueCounter = new Counter<V>();
 		this.opts = opts;
@@ -39,7 +41,7 @@ public final class FirstPassCallback<V extends Comparable<V>> implements LmReade
 	public void call(final int[] ngram, final V v, final String words) {
 		valueCounter.incrementCount(v, 1);
 		final LongArray ngramOrderCounts = numNgramsForEachWord[ngram.length - 1];
-		final int word = opts.reverseTrie ? ngram[0] : ngram[ngram.length - 1];
+		final int word = reverseTrie ? ngram[0] : ngram[ngram.length - 1];
 		if (word >= ngramOrderCounts.size()) {
 
 			ngramOrderCounts.setAndGrowIfNeeded(word, 1);

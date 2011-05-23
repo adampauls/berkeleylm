@@ -46,7 +46,7 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		super(values, opts);
 		this.useContextEncoding = useContextEncoding;
 		this.hashFunction = hashFunction;
-		this.maxLoadFactor = opts.maxLoadFactor;
+		this.maxLoadFactor = opts.hashTableLoadFactor;
 		maps = new HashMap[numNgramsForEachWord.length];
 		for (int ngramOrder = 0; ngramOrder < numNgramsForEachWord.length; ++ngramOrder) {
 			maps[ngramOrder] = new HashMap(numNgramsForEachWord[ngramOrder], maxLoadFactor);
