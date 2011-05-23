@@ -2,7 +2,7 @@ package edu.berkeley.nlp.lm.map;
 
 import edu.berkeley.nlp.lm.util.Annotations.Option;
 
-public class NgramMapOpts
+public class ConfigOptions
 {
 
 	/**

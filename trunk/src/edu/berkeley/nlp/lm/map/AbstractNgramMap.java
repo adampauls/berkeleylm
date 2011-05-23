@@ -14,9 +14,9 @@ public abstract class AbstractNgramMap<T> implements NgramMap<T>, Serializable
 
 	protected final ValueContainer<T> values;
 
-	protected final NgramMapOpts opts;
+	protected final ConfigOptions opts;
 
-	protected AbstractNgramMap(final ValueContainer<T> values, final NgramMapOpts opts) {
+	protected AbstractNgramMap(final ValueContainer<T> values, final ConfigOptions opts) {
 		this.values = values;
 		this.opts = opts;
 	}

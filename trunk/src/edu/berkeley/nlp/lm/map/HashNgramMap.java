@@ -41,7 +41,7 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 
 	private final boolean reversed = false;
 
-	public HashNgramMap(final ValueContainer<T> values, final HashFunction hashFunction, final NgramMapOpts opts, final LongArray[] numNgramsForEachWord,
+	public HashNgramMap(final ValueContainer<T> values, final HashFunction hashFunction, final ConfigOptions opts, final LongArray[] numNgramsForEachWord,
 		final boolean useContextEncoding) {
 		super(values, opts);
 		this.useContextEncoding = useContextEncoding;
