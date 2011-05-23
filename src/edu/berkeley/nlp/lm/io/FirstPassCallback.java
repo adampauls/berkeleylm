@@ -6,7 +6,7 @@ import java.util.Map.Entry;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.collections.Counter;
 import edu.berkeley.nlp.lm.collections.Indexer;
-import edu.berkeley.nlp.lm.map.NgramMapOpts;
+import edu.berkeley.nlp.lm.map.ConfigOptions;
 import edu.berkeley.nlp.lm.util.Logger;
 
 /**
@@ -28,11 +28,11 @@ public final class FirstPassCallback<V extends Comparable<V>> implements LmReade
 
 	LongArray[] numNgramsForEachWord;
 
-	private final NgramMapOpts opts;
+	private final ConfigOptions opts;
 
 	private final boolean reverseTrie = false;
 	
-	public FirstPassCallback(final NgramMapOpts opts) {
+	public FirstPassCallback(final ConfigOptions opts) {
 		this.valueCounter = new Counter<V>();
 		this.opts = opts;
 	}

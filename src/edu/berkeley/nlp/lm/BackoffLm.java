@@ -5,7 +5,7 @@ import java.util.List;
 
 import edu.berkeley.nlp.lm.map.ContextEncodedNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap;
-import edu.berkeley.nlp.lm.map.NgramMapOpts;
+import edu.berkeley.nlp.lm.map.ConfigOptions;
 import edu.berkeley.nlp.lm.map.OffsetNgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
@@ -39,7 +39,7 @@ public class BackoffLm<W> extends AbstractContextEncodedNgramLanguageModel<W> im
 	 */
 	private final float oovWordLogProb;
 
-	public BackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final NgramMap<ProbBackoffPair> map, final NgramMapOpts opts) {
+	public BackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final NgramMap<ProbBackoffPair> map, final ConfigOptions opts) {
 		super(lmOrder, wordIndexer);
 		oovWordLogProb = (float) opts.unknownWordLogProb;
 		this.map = map;
