@@ -18,7 +18,7 @@ import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
  * 
  * @param <W>
  */
-public class KatzBackoffLm<W> extends AbstractContextEncodedNgramLanguageModel<W> implements NgramLanguageModel<W>, ContextEncodedNgramLanguageModel<W>,
+public class BackoffLm<W> extends AbstractContextEncodedNgramLanguageModel<W> implements NgramLanguageModel<W>, ContextEncodedNgramLanguageModel<W>,
 	Serializable
 {
 
@@ -39,7 +39,7 @@ public class KatzBackoffLm<W> extends AbstractContextEncodedNgramLanguageModel<W
 	 */
 	private final float oovWordLogProb;
 
-	public KatzBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final NgramMap<ProbBackoffPair> map, final NgramMapOpts opts) {
+	public BackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final NgramMap<ProbBackoffPair> map, final NgramMapOpts opts) {
 		super(lmOrder, wordIndexer);
 		oovWordLogProb = (float) opts.unknownWordLogProb;
 		this.map = map;
