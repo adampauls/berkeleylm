@@ -104,5 +104,4 @@ public interface WordIndexer<W> extends Serializable
 			return toList(wordIndexer, intNgram, 0, intNgram.length);
 		}
 	}
-
 }

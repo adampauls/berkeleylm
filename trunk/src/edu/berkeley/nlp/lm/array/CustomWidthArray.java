@@ -13,7 +13,6 @@ import java.util.Arrays;
 @SuppressWarnings("ucd")
 public final class CustomWidthArray implements LongArray, Serializable
 {
-	private static final long ALL_ONES = 0xFFFFFFFFFFFFFFFFL;
 
 	private static final long serialVersionUID = 1L;
 
@@ -174,16 +173,13 @@ public final class CustomWidthArray implements LongArray, Serializable
 		final int startWord = word(start);
 		final int endWord = word(start + width - 1);
 		final int startBit = bit(start);
-		final long oldValue;
 
 		if (startWord == endWord) {
-			oldValue = bits[startWord] >>> startBit & fullMask;
 			bits[startWord] &= ~(fullMask << startBit);
 			bits[startWord] |= value << startBit;
 			assert value == (bits[startWord] >>> startBit & fullMask);
 		} else {
 			// Here startBit > 0.
-			oldValue = bits[startWord] >>> startBit | bits[endWord] << (BITS_PER_WORD - startBit) & fullMask;
 			bits[startWord] &= (1L << startBit) - 1;
 			bits[startWord] |= value << startBit;
 			bits[endWord] &= -(1L << width - BITS_PER_WORD + startBit);

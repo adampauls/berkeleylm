@@ -28,13 +28,10 @@ public final class FirstPassCallback<V extends Comparable<V>> implements LmReade
 
 	LongArray[] numNgramsForEachWord;
 
-	private final ConfigOptions opts;
-
 	private final boolean reverseTrie = false;
-	
-	public FirstPassCallback(final ConfigOptions opts) {
+
+	public FirstPassCallback() {
 		this.valueCounter = new Counter<V>();
-		this.opts = opts;
 	}
 
 	@Override

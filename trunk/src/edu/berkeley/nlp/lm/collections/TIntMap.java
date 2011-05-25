@@ -41,6 +41,8 @@ public class TIntMap<T extends Comparable> extends AbstractTMap<T> implements It
 {
 	protected static final long serialVersionUID = 42;
 
+	private int[] values;
+
 	public TIntMap() {
 		this(AbstractTMap.<T> defaultFunctionality(), defaultExpectedSize);
 	}
@@ -239,7 +241,7 @@ public class TIntMap<T extends Comparable> extends AbstractTMap<T> implements It
 		}
 
 		@Override
-		@SuppressWarnings({ "unchecked", "rawtypes" })
+		@SuppressWarnings({ "unchecked" })
 		public int compareTo(final FullEntry e) {
 			final int h1 = hash(key);
 			final int h2 = hash(e.key);
@@ -520,7 +522,7 @@ public class TIntMap<T extends Comparable> extends AbstractTMap<T> implements It
 	 * to key i (00001111). Should insert target key at position i. If target is
 	 * larger than all of the elements, return size().
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "unchecked" })
 	private int binarySearch(final T targetKey) {
 		final int targetHash = hash(targetKey);
 		int l = 0, u = num;
@@ -632,41 +634,6 @@ public class TIntMap<T extends Comparable> extends AbstractTMap<T> implements It
 		System.arraycopy(oldValues, 0, values, 0, num);
 	}
 
-	/**
-	 * Format: mapType, num, (key, value) pairs
-	 */
-	private void writeObject(final ObjectOutputStream out) throws IOException {
-		out.writeObject(mapType);
-		out.writeInt(num);
-		for (final Entry e : this) {
-			out.writeObject(e.getKey());
-			out.writeDouble(e.getValue());
-		}
-	}
-
-	private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
-		this.mapType = (MapType) in.readObject();
-		this.num = 0;
-		this.locked = false;
-
-		final int n = in.readInt();
-		allocate(getCapacity(n, true));
-
-		for (int i = 0; i < n; i++) {
-			@SuppressWarnings("unchecked")
-			final T key = keyFunc.intern((T) in.readObject());
-			final int value = in.readInt();
-			if (mapType == MapType.SORTED_LIST) {
-				// Assume keys and values serialized in sorted order
-				keys[num] = key;
-				values[num] = value;
-				num++;
-			} else if (mapType == MapType.HASH_TABLE) {
-				put(key, value);
-			}
-		}
-	}
-
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder();
@@ -678,5 +645,4 @@ public class TIntMap<T extends Comparable> extends AbstractTMap<T> implements It
 		return sb.toString();
 	}
 
-	private int[] values;
 }

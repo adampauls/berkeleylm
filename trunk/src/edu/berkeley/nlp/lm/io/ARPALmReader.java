@@ -57,10 +57,10 @@ public class ARPALmReader<W>
 	 * 
 	 * @param reader
 	 */
-	public ARPALmReader(final String file, final WordIndexer<W> wordIndexer, final int maxOrder) {
+	public ARPALmReader(final String file, final WordIndexer<W> wordIndexer, final int maxNgramOrder) {
 		this.file = file;
 		this.wordIndexer = wordIndexer;
-		this.maxOrder = maxOrder;
+		this.maxOrder = maxNgramOrder;
 	}
 
 	/**
