@@ -20,7 +20,7 @@ public abstract class AbstractContextEncodedNgramLanguageModel<W> implements Con
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -1047526780579521903L;
+	private static final long serialVersionUID = 1L;
 
 	protected final int lmOrder;
 

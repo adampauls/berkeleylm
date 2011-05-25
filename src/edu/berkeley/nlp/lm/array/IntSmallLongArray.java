@@ -155,7 +155,7 @@ public final class IntSmallLongArray implements Serializable, LongArray
 	 * @see edu.berkeley.nlp.mt.lm.util.collections.LongArray#trimToSize(long)
 	 */
 	@Override
-	public void trimToSize(final long size) {
+	public void trimToSize(@SuppressWarnings("hiding") final long size) {
 		allocFor(size, data);
 	}
 

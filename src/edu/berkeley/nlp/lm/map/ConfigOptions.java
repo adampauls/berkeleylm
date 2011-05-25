@@ -1,9 +1,16 @@
 package edu.berkeley.nlp.lm.map;
 
+import java.io.Serializable;
+
 import edu.berkeley.nlp.lm.util.Annotations.Option;
 
-public class ConfigOptions
+public class ConfigOptions implements Serializable
 {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Number of longs (8 bytes) used as a "block" for variable length

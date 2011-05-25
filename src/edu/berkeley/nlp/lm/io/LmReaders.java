@@ -1,6 +1,7 @@
 package edu.berkeley.nlp.lm.io;
 
 import edu.berkeley.nlp.lm.BackoffLm;
+import edu.berkeley.nlp.lm.StringWordIndexer;
 import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.map.HashNgramMap;
@@ -13,6 +14,14 @@ import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
 public class LmReaders
 {
 
+	public static BackoffLm<String> readArpaLmFile(final String lmFile) {
+		return readArpaLmFile(lmFile, new StringWordIndexer());
+	}
+
+	public static <W> BackoffLm<W> readArpaLmFile(final String lmFile, final WordIndexer<W> wordIndexer) {
+		return readArpaLmFile(lmFile, wordIndexer, new ConfigOptions(), Integer.MAX_VALUE);
+	}
+
 	/**
 	 * Factory method for reading an ARPA lm file.
 	 * 
@@ -23,9 +32,9 @@ public class LmReaders
 	 * @param wordIndexer
 	 * @return
 	 */
-	public static <W> BackoffLm<W> readArpaLmFile(final ConfigOptions opts, final String lmFile, final int lmOrder, final WordIndexer<W> wordIndexer) {
+	public static <W> BackoffLm<W> readArpaLmFile(final String lmFile, final WordIndexer<W> wordIndexer, final ConfigOptions opts, final int lmOrder) {
 
-		final FirstPassCallback<ProbBackoffPair> valueAddingCallback = firstPass(opts, lmFile, lmOrder, wordIndexer);
+		final FirstPassCallback<ProbBackoffPair> valueAddingCallback = firstPass(lmFile, lmOrder, wordIndexer);
 		final LongArray[] numNgramsForEachWord = valueAddingCallback.getNumNgramsForEachWord();
 		return secondPass(opts, lmFile, lmOrder, wordIndexer, valueAddingCallback, numNgramsForEachWord);
 	}
@@ -64,10 +73,9 @@ public class LmReaders
 	 * @param wordIndexer
 	 * @return
 	 */
-	private static <W> FirstPassCallback<ProbBackoffPair> firstPass(final ConfigOptions opts, final String lmFile, final int lmOrder,
-		final WordIndexer<W> wordIndexer) {
+	private static <W> FirstPassCallback<ProbBackoffPair> firstPass(final String lmFile, final int lmOrder, final WordIndexer<W> wordIndexer) {
 		final ARPALmReader<W> arpaLmReader = new ARPALmReader<W>(lmFile, wordIndexer, lmOrder);
-		final FirstPassCallback<ProbBackoffPair> valueAddingCallback = new FirstPassCallback<ProbBackoffPair>(opts);
+		final FirstPassCallback<ProbBackoffPair> valueAddingCallback = new FirstPassCallback<ProbBackoffPair>();
 		arpaLmReader.parse(valueAddingCallback);
 		return valueAddingCallback;
 	}
