@@ -23,6 +23,8 @@ public class MakeLmBinary
 		Logger.startTrack("Writing to file " + argv[1] + " . . . ");
 		IOUtils.writeObjFile(new File(argv[1]), lm);
 		Logger.endTrack();
+
+		//read with IOUtils.readObjFile(new File(argv[1]))
 	}
 
 }
