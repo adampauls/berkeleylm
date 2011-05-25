@@ -15,7 +15,7 @@ import edu.berkeley.nlp.lm.values.ProbBackoffPair;
  * @author Alex Bouchard-Cote
  * @author Adam Pauls
  */
-public class ARPALmReader<W>
+public class ARPALmReader<W> implements LmReader<ProbBackoffPair>
 {
 
 	private static final String START_SYMBOL = "<s>";

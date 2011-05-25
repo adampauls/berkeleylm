@@ -11,7 +11,9 @@ import java.util.Map.Entry;
 import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.collections.Counter;
 import edu.berkeley.nlp.lm.collections.Iterators;
+import edu.berkeley.nlp.lm.map.ConfigOptions;
 import edu.berkeley.nlp.lm.util.Logger;
+import edu.berkeley.nlp.lm.util.LongRef;
 import edu.berkeley.nlp.lm.util.WorkQueue;
 
 /**
@@ -21,7 +23,7 @@ import edu.berkeley.nlp.lm.util.WorkQueue;
  * @author adampauls
  * 
  */
-public class GoogleLmReader<W>
+public class GoogleLmReader<W> implements LmReader<LongRef>
 {
 
 	private static final String START_SYMBOL = "<S>";
@@ -34,18 +36,22 @@ public class GoogleLmReader<W>
 
 	private final WordIndexer<W> wordIndexer;
 
-	public GoogleLmReader(final String rootDir, final WordIndexer<W> wordIndexer) {
+	private ConfigOptions opts;
+
+	public GoogleLmReader(final String rootDir, final WordIndexer<W> wordIndexer, final ConfigOptions opts) {
 		this.rootDir = rootDir;
 
+		this.opts = opts;
 		this.wordIndexer = wordIndexer;
 
 	}
 
-	public void parse(final int numGoogleLoadThreads, final LmReaderCallback<Long> callback) {
+	public void parse(final LmReaderCallback<LongRef> callback) {
 
 		final List<File> listFiles = Arrays.asList(new File(rootDir).listFiles());
 		Collections.sort(listFiles);
 		int ngramOrder_ = 0;
+		final int numGoogleLoadThreads = opts.numGoogleLoadThreads;
 		for (final File ngramDir : listFiles) {
 			final File[] ngramFiles = ngramDir.listFiles(new FilenameFilter()
 			{
@@ -132,7 +138,7 @@ public class GoogleLmReader<W>
 							spaceIndex = nextIndex + 1;
 						}
 						final long count = Long.parseLong(line.substring(tabIndex + 1));
-						callback.call(ngram, count, words);
+						callback.call(ngram, new LongRef(count), words);
 					}
 				});
 			}

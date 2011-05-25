@@ -3,6 +3,8 @@ package edu.berkeley.nlp.lm.map;
 import java.util.List;
 
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
+import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
+import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 public interface NgramMap<T>
@@ -16,7 +18,7 @@ public interface NgramMap<T>
 
 	public void initWithLengths(List<Long> numNGrams);
 
-	public T getValue(int[] ngram, int startPos, int endPos, LmContextInfo contextOutput);
+	public void getValue(int[] ngram, int startPos, int endPos, @OutputParameter LmContextInfo contextOutput, @OutputParameter T outputVal);
 
 	public ValueContainer<T> getValues();
 

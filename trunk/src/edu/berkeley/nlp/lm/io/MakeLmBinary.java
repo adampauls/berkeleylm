@@ -3,7 +3,7 @@ package edu.berkeley.nlp.lm.io;
 import java.io.File;
 import java.io.IOException;
 
-import edu.berkeley.nlp.lm.BackoffLm;
+import edu.berkeley.nlp.lm.ContextEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.StringWordIndexer;
 import edu.berkeley.nlp.lm.map.ConfigOptions;
 import edu.berkeley.nlp.lm.util.Logger;
@@ -18,7 +18,7 @@ public class MakeLmBinary
 		}
 		Logger.setGlobalLogger(new Logger.SystemLogger(System.out, System.err));
 		Logger.startTrack("Reading Lm File " + argv[0] + " . . . ");
-		BackoffLm<String> lm = LmReaders.readArpaLmFile(argv[0]);
+		ContextEncodedProbBackoffLm<String> lm = LmReaders.readContextEncodedLmFromArpa(argv[0]);
 		Logger.endTrack();
 		Logger.startTrack("Writing to file " + argv[1] + " . . . ");
 		IOUtils.writeObjFile(new File(argv[1]), lm);

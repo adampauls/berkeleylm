@@ -2,6 +2,7 @@ package edu.berkeley.nlp.lm.values;
 
 import edu.berkeley.nlp.lm.bits.BitList;
 import edu.berkeley.nlp.lm.bits.BitStream;
+import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 
 /**
  * Manages storage of arbitrary values in an NgramMap
@@ -57,7 +58,7 @@ public interface ValueContainer<V>
 	 * @param ngramOrder
 	 * @return
 	 */
-	public V getFromOffset(long offset, int ngramOrder);
+	public void getFromOffset(long offset, int ngramOrder, @OutputParameter V outputVal);
 
 	/**
 	 * Destructively sets internal storage from another object.
@@ -86,7 +87,7 @@ public interface ValueContainer<V>
 	 * 
 	 * @return
 	 */
-	public V decompress(BitStream bits, int ngramOrder, boolean justConsume);
+	public void decompress(BitStream bits, int ngramOrder, boolean justConsume, @OutputParameter V outputVal);
 
 	public void clearStorageAfterCompression(int ngramOrder);
 
