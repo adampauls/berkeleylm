@@ -18,8 +18,7 @@ import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
  * 
  * @param <W>
  */
-public class BackoffLm<W> extends AbstractContextEncodedNgramLanguageModel<W> implements NgramLanguageModel<W>, ContextEncodedNgramLanguageModel<W>,
-	Serializable
+public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramLanguageModel<W> implements ContextEncodedNgramLanguageModel<W>, Serializable
 {
 
 	/**
@@ -39,80 +38,12 @@ public class BackoffLm<W> extends AbstractContextEncodedNgramLanguageModel<W> im
 	 */
 	private final float oovWordLogProb;
 
-	public BackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final NgramMap<ProbBackoffPair> map, final ConfigOptions opts) {
+	public ContextEncodedProbBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final NgramMap<ProbBackoffPair> map, final ConfigOptions opts) {
 		super(lmOrder, wordIndexer);
 		oovWordLogProb = (float) opts.unknownWordLogProb;
 		this.map = map;
 		this.values = (ProbBackoffValueContainer) map.getValues();
 
-	}
-
-	@Override
-	public float getLogProb(final int[] ngram, final int startPos_, final int endPos_) {
-		if (map instanceof OffsetNgramMap<?>) {
-			return getLogProbWithOffsets(ngram, startPos_, endPos_);
-		} else {
-			return getLogProbDirectly(ngram, startPos_, endPos_);
-		}
-	}
-
-	/**
-	 * @param ngram
-	 * @param startPos_
-	 * @param endPos_
-	 * @return
-	 */
-	private float getLogProbDirectly(final int[] ngram, final int startPos_, final int endPos_) {
-		int startPos = startPos_;
-		int endPos = endPos_;
-		float sum = 0.0f;
-		while (true) {
-			final ProbBackoffPair pair = map.getValue(ngram, startPos, endPos, null);
-			if (pair != null && !Float.isNaN(pair.prob)) {
-				return sum + pair.prob;
-			} else {
-				if (endPos - startPos > 1) {
-					final ProbBackoffPair backoffPair = map.getValue(ngram, startPos, endPos - 1, null);
-					final float backOff = backoffPair == null ? 0.0f : backoffPair.backoff;
-					sum += backOff;
-					startPos += 1;
-				} else {
-					return oovWordLogProb;
-				}
-			}
-		}
-	}
-
-	/**
-	 * @param ngram
-	 * @param startPos_
-	 * @param endPos_
-	 * @return
-	 */
-	private float getLogProbWithOffsets(final int[] ngram, final int startPos_, final int endPos_) {
-		int startPos = startPos_;
-		int endPos = endPos_;
-		float sum = 0.0f;
-		while (true) {
-			final OffsetNgramMap<ProbBackoffPair> localMap = (OffsetNgramMap<ProbBackoffPair>) map;
-
-			final long offset = localMap.getOffset(ngram, startPos, endPos);
-			if (offset >= 0) {
-				final int ngramOrder = endPos - startPos - 1;
-				final float prob = values.getProb(ngramOrder, offset);
-				if (!Float.isNaN(prob)) return sum + prob;
-			}
-			if (endPos - startPos > 1) {
-				final long backoffIndex = localMap.getOffset(ngram, startPos, endPos - 1);
-				float backOff = backoffIndex < 0 ? 0.0f : values.getBackoff(endPos - startPos - 2, backoffIndex);
-				backOff = Float.isNaN(backOff) ? 0.0f : backOff;
-				sum += backOff;
-				startPos += 1;
-			} else {
-				return oovWordLogProb;
-			}
-
-		}
 	}
 
 	@Override
@@ -154,21 +85,6 @@ public class BackoffLm<W> extends AbstractContextEncodedNgramLanguageModel<W> im
 	@Override
 	public WordIndexer<W> getWordIndexer() {
 		return wordIndexer;
-	}
-
-	@Override
-	public float getLogProb(final int[] ngram) {
-		return NgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
-	}
-
-	@Override
-	public float getLogProb(final List<W> ngram) {
-		return NgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
-	}
-
-	@Override
-	public float scoreSequence(final List<W> sequence) {
-		return NgramLanguageModel.DefaultImplementations.scoreSequence(sequence, this);
 	}
 
 	@Override

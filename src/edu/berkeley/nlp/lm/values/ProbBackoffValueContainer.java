@@ -1,6 +1,8 @@
 package edu.berkeley.nlp.lm.values;
 
 import edu.berkeley.nlp.lm.collections.Indexer;
+import edu.berkeley.nlp.lm.util.LongRef;
+import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 
 public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackoffPair>
@@ -27,6 +29,13 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 		return getCount(ngramOrder, index, probsForRank);
 	}
 
+	@Override
+	public void getFromOffset(final long index, final int ngramOrder, @OutputParameter ProbBackoffPair outputVal) {
+		final int rank = (int) valueRanksCompressed[ngramOrder].get(index);
+		outputVal.prob = probsForRank[rank];
+		outputVal.backoff = backoffsForRank[rank];
+	}
+
 	/**
 	 * @param ngramOrder
 	 * @param index
@@ -34,8 +43,8 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 	 * @return
 	 */
 	private float getCount(final int ngramOrder, final long index, final float[] array) {
-		final int countIndex = (int) valueRanksCompressed[ngramOrder].get(index);
-		return array[countIndex];
+		final int rank = (int) valueRanksCompressed[ngramOrder].get(index);
+		return array[rank];
 	}
 
 	public final float getBackoff(final int ngramOrder, final long index) {
@@ -63,8 +72,10 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 	}
 
 	@Override
-	protected ProbBackoffPair getCount(final int index, final int ngramOrder) {
-		return new ProbBackoffPair(probsForRank[index], backoffsForRank[index]);
+	protected void getFromRank(final int rank, @OutputParameter ProbBackoffPair outputVal) {
+
+		outputVal.prob = probsForRank[rank];
+		outputVal.backoff = backoffsForRank[rank];
 	}
 
 }

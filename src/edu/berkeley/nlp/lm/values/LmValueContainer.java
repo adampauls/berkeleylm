@@ -11,8 +11,10 @@ import edu.berkeley.nlp.lm.bits.BitStream;
 import edu.berkeley.nlp.lm.collections.Indexer;
 import edu.berkeley.nlp.lm.encoding.BitCompressor;
 import edu.berkeley.nlp.lm.encoding.VariableLengthBlockCoder;
+import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
+import edu.berkeley.nlp.lm.util.LongRef;
 
 abstract class LmValueContainer<V extends Comparable<V>> implements ValueContainer<V>, Serializable
 {
@@ -90,6 +92,8 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 
 	abstract protected void storeCounts();
 
+	abstract protected void getFromRank(final int rank, @OutputParameter V outputVal);
+
 	@Override
 	public void setSizeAtLeast(final long size, final int ngramOrder) {
 		if (ngramOrder >= valueRanksCompressed.length) {
@@ -107,13 +111,6 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 	}
 
 	@Override
-	public V getFromOffset(final long index, final int ngramOrder) {
-
-		final int countRank = (int) valueRanksCompressed[ngramOrder].get(index);
-		return getCount(countRank, ngramOrder);
-	}
-
-	@Override
 	public long getContextOffset(final long index, final int ngramOrder) {
 		return contextOffsets == null ? -1L : contextOffsets[ngramOrder].get(index);
 	}
@@ -127,12 +124,11 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 	}
 
 	@Override
-	public final V decompress(final BitStream bits, final int ngramOrder, final boolean justConsume) {
+	public final void decompress(final BitStream bits, final int ngramOrder, final boolean justConsume, @OutputParameter V outputVal) {
 		final long longIndex = doDecode(bits);
-		if (justConsume) return null;
+		if (justConsume) return;
 		final int rank = (int) longIndex;
-		final V count = getCount(rank, ngramOrder);
-		return count;
+		getFromRank(rank, outputVal);
 	}
 
 	/**
@@ -143,8 +139,6 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 	private long doDecode(final BitStream bits) {
 		return nonHuffmanCoder.decompress(bits);
 	}
-
-	abstract protected V getCount(int rank, int ngramOrder);
 
 	@Override
 	public void clearStorageAfterCompression(final int ngramOrder) {

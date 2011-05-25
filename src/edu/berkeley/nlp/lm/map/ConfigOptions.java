@@ -28,10 +28,13 @@ public class ConfigOptions implements Serializable
 	@Option(gloss = "Fraction of hash table array actually used for entries (lower means more memory/more speed)")
 	public double hashTableLoadFactor = 0.7;
 
-	@Option(gloss = "Whether or not to store suffix indexes (necessary when using context-encoded calls to the LM")
-	public boolean storeSuffixIndexes = true;
-
 	@Option
 	public double unknownWordLogProb = -100.0f;
+
+	@Option
+	public double stupidBackoffAlpha = 0.4;
+
+	@Option(gloss = "Number of threads to use while reading directories in the format used by Google N-grams. 0 means no threading is used")
+	public int numGoogleLoadThreads = 0;
 
 }

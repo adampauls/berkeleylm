@@ -4,10 +4,12 @@ import java.util.List;
 
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 import edu.berkeley.nlp.lm.array.LongArray;
+import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.hash.HashFunction;
 import edu.berkeley.nlp.lm.util.hash.MurmurHash;
+import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncodedNgramMap<T>
@@ -37,14 +39,12 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 
 	private long numWords = 0;
 
-	private final boolean useContextEncoding;
-
-	private final boolean reversed = false;
+	private final boolean reversed;
 
 	public HashNgramMap(final ValueContainer<T> values, final HashFunction hashFunction, final ConfigOptions opts, final LongArray[] numNgramsForEachWord,
-		final boolean useContextEncoding) {
+		final boolean reversed) {
 		super(values, opts);
-		this.useContextEncoding = useContextEncoding;
+		this.reversed = reversed;
 		this.hashFunction = hashFunction;
 		this.maxLoadFactor = opts.hashTableLoadFactor;
 		maps = new HashMap[numNgramsForEachWord.length];
@@ -67,13 +67,29 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 	}
 
 	@Override
-	public T getValue(final int[] ngram, final int startPos, final int endPos, final LmContextInfo prefixIndex) {
+	public void getValue(final int[] ngram, final int startPos, final int endPos, final @OutputParameter LmContextInfo contextOutput,
+		final @OutputParameter T outputVal) {
 		final long index = getOffset(ngram, startPos, endPos);
-		return values.getFromOffset(index, endPos - startPos);
+		values.getFromOffset(index, endPos - startPos, outputVal);
+	}
+
+	@Override
+	public long getValueAndOffset(long contextOffset, int contextOrder, int word, @OutputParameter T outputVal) {
+		return getOffsetHelp(contextOffset, contextOrder, word, outputVal);
 	}
 
 	@Override
 	public long getOffset(final long contextOffset_, final int contextOrder, final int word) {
+		return getOffsetHelp(contextOffset_, contextOrder, word, null);
+	}
+
+	/**
+	 * @param contextOffset_
+	 * @param contextOrder
+	 * @param word
+	 * @return
+	 */
+	private long getOffsetHelp(final long contextOffset_, final int contextOrder, final int word, @OutputParameter T outputVal) {
 		final long contextOffset = Math.max(contextOffset_, 0);
 		final int ngramOrder = contextOrder + 1;
 
@@ -82,6 +98,9 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		final long hash = hash(key, word, ngramOrder, map);
 		if (hash < 0) return -1L;
 		final long index = map.getIndexImplicity(contextOffset, word, hash);
+		if (outputVal != null) {
+			values.getFromOffset(contextOffset, ngramOrder, outputVal);
+		}
 		return index;
 	}
 
@@ -94,9 +113,6 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		final long index = tightHashMap.getIndexImplicitly(ngram, hash, startPos, endPos, maps);
 		return index;
 	}
-	
-	
-
 
 	@Override
 	public LmContextInfo getOffsetForNgram(final int[] ngram, final int startPos, final int endPos) {
@@ -136,7 +152,7 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 	 */
 	private long getSuffixOffset(final int[] ngram, final int startPos, final int endPos) {
 		long suffixIndex = -1;
-		if (useContextEncoding && endPos - startPos > 1) {
+		if (endPos - startPos > 1) {
 			final int start = reversed ? startPos : (startPos + 1);
 			final int end = reversed ? (endPos - 1) : (endPos);
 			final HashMap suffixMap = maps[end - start - 1];
@@ -168,7 +184,6 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 	}
 
 	private long hash(final long key, final int firstWord, final int ngramOrder, final HashMap currMap) {
-		assert useContextEncoding;
 		final long hashed = (MurmurHash.hashOneLong(key, 31)) + ngramOrder;
 		return currMap.processHash(hashed, firstWord);
 	}
@@ -194,14 +209,13 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 	 */
 	private long hash(final int[] ngram, final int startPos, final int endPos, final HashMap currMap) {
 		final int firstWord = firstWord(ngram, startPos, endPos);
-		if (useContextEncoding) {
-			final long key = getKey(ngram, startPos, endPos);
-			if (key < 0) return -1;
-			return hash(key, firstWord, endPos - startPos - 1, currMap);
-		}
-		int l = (int) hashFunction.hash(ngram, startPos, endPos, PRIME);
-		if (l < 0) l = -l;
-		return currMap.processHash(l, firstWord);
+		final long key = getKey(ngram, startPos, endPos);
+		if (key < 0) return -1;
+		return hash(key, firstWord, endPos - startPos - 1, currMap);
+		//		}
+		//		int l = (int) hashFunction.hash(ngram, startPos, endPos, PRIME);
+		//		if (l < 0) l = -l;
+		//		return currMap.processHash(l, firstWord);
 	}
 
 	/**
@@ -230,5 +244,4 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		return ((long) word << WORD_BIT_OFFSET) | (suffix << INDEX_OFFSET);
 	}
 
-	
 }
