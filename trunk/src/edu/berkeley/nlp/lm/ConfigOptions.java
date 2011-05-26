@@ -1,4 +1,4 @@
-package edu.berkeley.nlp.lm.map;
+package edu.berkeley.nlp.lm;
 
 import java.io.Serializable;
 

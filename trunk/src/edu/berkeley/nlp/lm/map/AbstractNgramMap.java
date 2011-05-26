@@ -3,6 +3,7 @@ package edu.berkeley.nlp.lm.map;
 import java.io.Serializable;
 import java.util.Arrays;
 
+import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 public abstract class AbstractNgramMap<T> implements NgramMap<T>, Serializable

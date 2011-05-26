@@ -2,6 +2,7 @@ package edu.berkeley.nlp.lm.map;
 
 import java.io.Serializable;
 
+import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.bits.BitList;
 import edu.berkeley.nlp.lm.bits.BitStream;

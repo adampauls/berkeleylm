@@ -8,10 +8,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 
+import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.collections.Counter;
 import edu.berkeley.nlp.lm.collections.Iterators;
-import edu.berkeley.nlp.lm.map.ConfigOptions;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.LongRef;
 import edu.berkeley.nlp.lm.util.WorkQueue;

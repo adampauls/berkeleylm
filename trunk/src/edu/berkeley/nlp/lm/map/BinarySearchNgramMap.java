@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
+import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.values.ValueContainer;

@@ -2,6 +2,7 @@ package edu.berkeley.nlp.lm.map;
 
 import java.util.List;
 
+import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;

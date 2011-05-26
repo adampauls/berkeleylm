@@ -2,7 +2,6 @@ package edu.berkeley.nlp.lm;
 
 import java.io.Serializable;
 
-import edu.berkeley.nlp.lm.map.ConfigOptions;
 import edu.berkeley.nlp.lm.map.ContextEncodedNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
