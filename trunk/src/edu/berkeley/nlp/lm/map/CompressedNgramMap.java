@@ -1,6 +1,7 @@
 package edu.berkeley.nlp.lm.map;
 
 import java.io.Serializable;
+import java.util.List;
 
 import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.array.LongArray;
@@ -9,11 +10,10 @@ import edu.berkeley.nlp.lm.bits.BitStream;
 import edu.berkeley.nlp.lm.encoding.BitCompressor;
 import edu.berkeley.nlp.lm.encoding.VariableLengthBlockCoder;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
-import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
-public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Serializable
+public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serializable
 {
 
 	/**
@@ -33,8 +33,6 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 
 	private final BitCompressor suffixCoder;
 
-	private long numDecompressQueries = 0;
-
 	private double totalKeyBitsFinal = 0;
 
 	private double totalValueBitsFinal = 0;
@@ -45,9 +43,12 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 
 	private final int offsetDeltaRadix;
 
-	public CompressedNgramMap(final ValueContainer<T> values, final ConfigOptions opts, final LongArray[] numNgramsForEachWord) {
-		super(values, opts, true);
-		maps = new CompressedSortedMap[numNgramsForEachWord.length];
+	protected CompressedMap[] maps;
+
+	protected final boolean reverseTrie = true;
+
+	public CompressedNgramMap(final ValueContainer<T> values, final ConfigOptions opts) {
+		super(values, opts);
 		offsetCoder = new VariableLengthBlockCoder(OFFSET_RADIX);
 		wordCoder = new VariableLengthBlockCoder(WORD_RADIX);
 		this.offsetDeltaRadix = opts.offsetDeltaRadix;
@@ -61,7 +62,7 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 
 		final long hash = combineToKey(word, contextOffset);
 		final int ngramOrder = contextNgramOrder + 1;
-		final LongArray compressedKeys = ((CompressedSortedMap) maps[ngramOrder]).compressedKeys;
+		final LongArray compressedKeys = (maps[ngramOrder]).compressedKeys;
 		final long currIndex = decompressSearch(compressedKeys, compressedKeys.size(), hash, ngramOrder, outputVal);
 		return currIndex;
 
@@ -70,16 +71,25 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see edu.berkeley.nlp.mt.lm.NgramMap#handleNgramsFinished(int)
+	 * @see edu.berkeley.nlp.mt.lm.NgramMap#add(java.util.List, T)
 	 */
 	@Override
-	public void handleNgramsFinished(final int justFinishedOrder) {
-		super.handleNgramsFinished(justFinishedOrder);
-		compress(justFinishedOrder - 1);
+	public long put(final int[] ngram, final T val) {
+
+		final int ngramOrder = ngram.length - 1;
+		final int word = reverseTrie ? ngram[0] : ngram[ngram.length - 1];
+
+		final long contextOffset = reverseTrie ? getContextOffset(ngram, 1, ngram.length) : getContextOffset(ngram, 0, ngram.length - 1);
+		if (contextOffset < 0) return -1;
+		final long newOffset = maps[ngramOrder].add(combineToKey(word, contextOffset));
+		values.add(ngramOrder, maps[ngramOrder].size() - 1, contextOffset, word, val, (-1));
+
+		return newOffset;
+
 	}
 
-	@Override
-	protected long getPrefixOffsetHelp(final int[] ngram, final int startPos, final int endPos) {
+	private long getContextOffset(final int[] ngram, final int startPos, final int endPos) {
+		if (endPos == startPos) return 0;
 		long hasValueSuffixIndex = 0;
 		if (endPos > startPos) {
 			long lastSuffix = 0L;
@@ -87,7 +97,7 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 				final int firstWord = reverseTrie ? ngram[endPos - ngramOrder - 1] : ngram[startPos + ngramOrder];
 				final long hash = combineToKey(firstWord, lastSuffix);
 
-				final LongArray compressedKeys = ((CompressedSortedMap) maps[ngramOrder]).compressedKeys;
+				final LongArray compressedKeys = (maps[ngramOrder]).compressedKeys;
 				final long currIndex = decompressSearch(compressedKeys, compressedKeys.size(), hash, ngramOrder, null);
 				if (currIndex < 0) return -1;
 				lastSuffix = currIndex;
@@ -97,21 +107,19 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 		return hasValueSuffixIndex;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.berkeley.nlp.mt.lm.NgramMap#handleNgramsFinished(int)
+	 */
 	@Override
-	protected BinarySearchNgramMap.InternalSortedMap newInternalSortedMap() {
-		return new CompressedSortedMap();
-	}
-
-	private static class CompressedSortedMap extends BinarySearchNgramMap.InternalSortedMap
-	{
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-
-		@PrintMemoryCount
-		LongArray compressedKeys;
-
+	public void handleNgramsFinished(final int justFinishedOrder) {
+		final LongArray currKeys = maps[justFinishedOrder - 1].keys;
+		final long currSize = currKeys.size();
+		sort(currKeys, 0, currSize - 1, justFinishedOrder - 1);
+		maps[justFinishedOrder - 1].trim();
+		values.trimAfterNgram(justFinishedOrder - 1, currSize);
+		compress(justFinishedOrder - 1);
 	}
 
 	protected static int compareLongsRaw(final long a, final long b) {
@@ -124,7 +132,7 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 	}
 
 	private void compress(final int ngramOrder) {
-		((CompressedSortedMap) maps[ngramOrder]).compressedKeys = compress(maps[ngramOrder].keys, maps[ngramOrder].keys.size(), ngramOrder);
+		(maps[ngramOrder]).compressedKeys = compress(maps[ngramOrder].keys, maps[ngramOrder].keys.size(), ngramOrder);
 		values.clearStorageAfterCompression(ngramOrder);
 		maps[ngramOrder].keys = null;
 	}
@@ -246,18 +254,18 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 	/**
 	 * @param uncompressedSize
 	 * @param compressedLongArray
-	 * @param kBits
-	 * @param vBits
+	 * @param keyBits
+	 * @param valueBits
 	 */
-	private void logCompressionInfo(final long uncompressedSize, final LongArray compressedLongArray, final long kBits, final long vBits) {
-		final double keyAvg = (double) kBits / uncompressedSize;
+	private void logCompressionInfo(final long uncompressedSize, final LongArray compressedLongArray, final long keyBits, final long valueBits) {
+		final double keyAvg = (double) keyBits / uncompressedSize;
 		Logger.logss("Key bits " + keyAvg);
-		final double valueAvg = (double) vBits / uncompressedSize;
+		final double valueAvg = (double) valueBits / uncompressedSize;
 		Logger.logss("Value bits " + valueAvg);
 		final double avg = 64 * (double) compressedLongArray.size() / uncompressedSize;
 		Logger.logss("Compressed bits " + avg);
-		totalKeyBitsFinal += kBits;
-		totalValueBitsFinal += vBits;
+		totalKeyBitsFinal += keyBits;
+		totalValueBitsFinal += valueBits;
 		totalBitsFinal += compressedLongArray.size();
 		totalSizeFinal += uncompressedSize;
 		Logger.logss("Total key bits " + totalKeyBitsFinal / totalSizeFinal);
@@ -308,7 +316,6 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 	}
 
 	private long decompressLinearSearch(final LongArray compressed, final long pos, final long searchKey, final int ngramOrder, final T outputVal) {
-		numDecompressQueries++;
 		final long firstKey = compressed.get(pos);
 		final short bitLength = readShort(compressed.get((pos + 1)));
 		final BitStream bits = new BitStream(compressed, pos + 1, Short.SIZE, bitLength);
@@ -395,6 +402,70 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 		if (low <= 0) return -1;
 		final long i = (low - 1) * compressedBlockSize;
 		return i;
+	}
+
+	protected void sort(final LongArray array, final long left0, final long right0, final int ngramOrder) {
+
+		long left, right;
+		long pivot;
+		left = left0;
+		right = right0 + 1;
+
+		final long pivotIndex = (left0 + right0) >>> 1;
+
+		pivot = array.get(pivotIndex);//[outerArrayPart(pivotIndex)][innerArrayPart(pivotIndex)];
+		swap(pivotIndex, left0, array, ngramOrder);
+
+		do {
+
+			do
+				left++;
+			while (left <= right0 && compareLongsRaw(array.get(left), pivot) < 0);
+
+			do
+				right--;
+			while (compareLongsRaw(array.get(right), pivot) > 0);
+
+			if (left < right) {
+				swap(left, right, array, ngramOrder);
+			}
+
+		} while (left <= right);
+
+		swap(left0, right, array, ngramOrder);
+
+		if (left0 < right) sort(array, left0, right, ngramOrder);
+		if (left < right0) sort(array, left, right0, ngramOrder);
+
+	}
+
+	protected void swap(final long a, final long b, final LongArray array, final int ngramOrder) {
+		swap(array, a, b);
+		values.swap(a, b, ngramOrder);
+	}
+
+	protected void swap(final LongArray array, final long a, final long b) {
+		final long temp = array.get(a);
+		array.set(a, array.get(b));
+		array.set(b, temp);
+	}
+
+	@Override
+	public void trim() {
+		values.trim();
+
+	}
+
+	@Override
+	public void initWithLengths(final List<Long> numNGrams) {
+		maps = new CompressedMap[numNGrams.size()];
+		for (int i = 0; i < numNGrams.size(); ++i) {
+			maps[i] = new CompressedMap();
+			final long l = numNGrams.get(i);
+			maps[i].init(l);
+			values.setSizeAtLeast(l, i);
+
+		}
 	}
 
 }
