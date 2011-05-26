@@ -6,7 +6,6 @@ import java.util.List;
 import edu.berkeley.nlp.lm.map.ContextEncodedNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.map.ConfigOptions;
-import edu.berkeley.nlp.lm.map.OffsetNgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
@@ -87,9 +86,10 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 		return wordIndexer;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public LmContextInfo getOffsetForNgram(int[] ngram, int startPos, int endPos) {
-		return map.getOffsetForNgram(ngram, startPos, endPos);
+		return ((ContextEncodedNgramLanguageModel<W>) map).getOffsetForNgram(ngram, startPos, endPos);
 	}
 
 }

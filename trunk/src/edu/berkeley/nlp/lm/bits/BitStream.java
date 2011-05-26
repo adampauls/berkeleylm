@@ -1,5 +1,7 @@
 package edu.berkeley.nlp.lm.bits;
 
+import edu.berkeley.nlp.lm.array.LongArray;
+
 /**
  * Wraps a portion of a long[] array with iterator-like functionality over a
  * stream of bits.
@@ -16,7 +18,7 @@ public final class BitStream
 
 	private static final long HIGH_BIT_MASK = (1L << (Long.SIZE - 1));
 
-	final long[] data;
+	final LongArray data;
 
 	final long start;
 
@@ -34,13 +36,13 @@ public final class BitStream
 
 	private final int startBit;
 
-	public BitStream(final long[] data, final long start, final int startBit, final int numBits) {
+	public BitStream(final LongArray data, final long start, final int startBit, final int numBits) {
 		this.data = data;
 		this.start = start;
 		this.currPos = 0;
 		this.numBits = numBits;
 		this.startBit = startBit;
-		currLong = data[(int) start] << startBit;
+		currLong = data.get(start) << startBit;
 		this.relBit = startBit;
 	}
 
@@ -114,7 +116,7 @@ public final class BitStream
 	private void advanceToNextLong() {
 		currPos++;
 		relBit = 0;
-		currLong = data[(int) (start + currPos)];
+		currLong = data.get(start + currPos);
 	}
 
 	public boolean finished() {
@@ -136,7 +138,7 @@ public final class BitStream
 	private void reset(final int newRelBit, final long newPos) {
 		relBit = newRelBit;
 		currPos = newPos;
-		currLong = data[(int) (start + currPos)] << relBit;
+		currLong = data.get((int) (start + currPos)) << relBit;
 	}
 
 	public int numBitsLeft() {
