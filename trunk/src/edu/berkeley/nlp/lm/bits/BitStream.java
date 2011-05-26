@@ -138,7 +138,7 @@ public final class BitStream
 	private void reset(final int newRelBit, final long newPos) {
 		relBit = newRelBit;
 		currPos = newPos;
-		currLong = data.get((int) (start + currPos)) << relBit;
+		currLong = data.get(start + currPos) << relBit;
 	}
 
 	public int numBitsLeft() {

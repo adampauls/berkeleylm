@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
+import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
@@ -23,9 +24,7 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 		private static final long serialVersionUID = 1L;
 
 		@PrintMemoryCount
-		protected long[] keys = new long[10];
-
-		protected long keySize;
+		protected LongArray keys;
 
 		@PrintMemoryCount
 		protected int[] wordRangesLow;
@@ -39,15 +38,12 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 
 		public long add(final long key) {
 			final InternalSortedMap map = this;
-			if (map.keySize >= map.keys.length) {
-				map.keys = Arrays.copyOf(map.keys, (int) Math.min(Integer.MAX_VALUE, map.keys.length * 3L / 2));
-			}
-			map.keys[(int) map.keySize] = key;
-			return map.keySize++;
+			map.keys.add(key);
+			return map.keys.size();
 		}
 
 		public long size() {
-			return keySize;
+			return keys.size();
 		}
 
 		/**
@@ -61,8 +57,9 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 			wordRangesHigh = new int[numWords];
 			final int[] highs = wordRangesHigh;
 			long lastWord = -1;
-			for (long i = 0; i <= keySize; ++i) {
-				final long currWord = i == keySize ? -1L : firstWord(keys[(int) i]);
+			long keySize = keys.size();
+			for (long i = 0; i <= keys.size(); ++i) {
+				final long currWord = i == keySize ? -1L : firstWord(keys.get(i));
 				if (currWord < 0 || currWord != lastWord) {
 					if (lastWord >= 0) highs[(int) lastWord] = (int) i;
 					if (currWord >= 0) lows[(int) currWord] = (int) i;
@@ -72,8 +69,7 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 		}
 
 		public void init(final long l) {
-			keySize = 0;
-			keys = new long[(int) l];
+			keys = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, l);
 		}
 	}
 
@@ -137,7 +133,7 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 		return (exactHash & WORD_BIT_MASK) >>> (NUM_SUFFIX_BITS);
 	}
 
-	protected void sort(final long[] array, final long left0, final long right0, final int ngramOrder) {
+	protected void sort(final LongArray array, final long left0, final long right0, final int ngramOrder) {
 
 		long left, right;
 		long pivot;
@@ -146,18 +142,18 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 
 		final long pivotIndex = (left0 + right0) >>> 1;
 
-		pivot = array[(int) pivotIndex];//[outerArrayPart(pivotIndex)][innerArrayPart(pivotIndex)];
+		pivot = array.get(pivotIndex);//[outerArrayPart(pivotIndex)][innerArrayPart(pivotIndex)];
 		swap(pivotIndex, left0, array, ngramOrder);
 
 		do {
 
 			do
 				left++;
-			while (left <= right0 && compareLongsRaw(array[(int) left], pivot) < 0);
+			while (left <= right0 && compareLongsRaw(array.get(left), pivot) < 0);
 
 			do
 				right--;
-			while (compareLongsRaw(array[(int) right], pivot) > 0);
+			while (compareLongsRaw(array.get(right), pivot) > 0);
 
 			if (left < right) {
 				swap(left, right, array, ngramOrder);
@@ -172,15 +168,15 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 
 	}
 
-	protected void swap(final long a, final long b, final long[] array, final int ngramOrder) {
+	protected void swap(final long a, final long b, final LongArray array, final int ngramOrder) {
 		swap(array, a, b);
 		values.swap(a, b, ngramOrder);
 	}
 
-	protected void swap(final long[] array, final long a, final long b) {
-		final long temp = array[(int) a];
-		array[(int) a] = array[(int) b];
-		array[(int) b] = temp;
+	protected void swap(final LongArray array, final long a, final long b) {
+		final long temp = array.get(a);
+		array.set(a, array.get(b));
+		array.set(b, temp);
 	}
 
 	/*
@@ -251,11 +247,10 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 	 */
 	@Override
 	public void handleNgramsFinished(final int justFinishedOrder) {
-		final long[] currKeys = maps[justFinishedOrder - 1].keys;
-		final long currSize = maps[justFinishedOrder - 1].keySize;
+		final LongArray currKeys = maps[justFinishedOrder - 1].keys;
+		final long currSize = currKeys.size();
 		sort(currKeys, 0, currSize - 1, justFinishedOrder - 1);
-		maps[justFinishedOrder - 1].keys = Arrays.copyOf(maps[justFinishedOrder - 1].keys, (int) currSize);
-
+		maps[justFinishedOrder - 1].keys.trim();
 		if (justFinishedOrder == 1) numWords = currSize;
 		values.trimAfterNgram(justFinishedOrder - 1, currSize);
 	}
@@ -269,7 +264,7 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 				final long suffixIndex = suffixIndex(key);
 				final int ngramOrder = endPos - pos - 1;
 				if (ngramOrder == 0 || firstWordInHash != firstWordId) return compareLongsRaw(firstWordInHash, firstWordId);
-				key = maps[ngramOrder - 1].keys[(int) suffixIndex];//[outerArrayPart(suffixIndex)][innerArrayPart(suffixIndex)];
+				key = maps[ngramOrder - 1].keys.get(suffixIndex);//[outerArrayPart(suffixIndex)][innerArrayPart(suffixIndex)];
 			}
 		} else {
 			for (int pos = endPos - 1; pos >= startPos; --pos) {
@@ -278,7 +273,7 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 				final long suffixIndex = suffixIndex(key);
 				final int ngramOrder = endPos - pos - 1;
 				if (ngramOrder == 0 || firstWordInHash != firstWordId) return compareLongsRaw(firstWordInHash, firstWordId);
-				key = maps[ngramOrder - 1].keys[(int) suffixIndex];//[outerArrayPart(suffixIndex)][innerArrayPart(suffixIndex)];
+				key = maps[ngramOrder - 1].keys.get(suffixIndex);//[outerArrayPart(suffixIndex)][innerArrayPart(suffixIndex)];
 			}
 		}
 		return 0;
