@@ -14,7 +14,6 @@ import edu.berkeley.nlp.lm.encoding.VariableLengthBlockCoder;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
-import edu.berkeley.nlp.lm.util.LongRef;
 
 abstract class LmValueContainer<V extends Comparable<V>> implements ValueContainer<V>, Serializable
 {
@@ -124,7 +123,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 	}
 
 	@Override
-	public final void decompress(final BitStream bits, final int ngramOrder, final boolean justConsume, @OutputParameter V outputVal) {
+	public final void decompress(final BitStream bits, final int ngramOrder, final boolean justConsume, @OutputParameter final V outputVal) {
 		final long longIndex = doDecode(bits);
 		if (justConsume) return;
 		final int rank = (int) longIndex;

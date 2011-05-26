@@ -68,6 +68,7 @@ public class ARPALmReader<W> implements LmReader<ProbBackoffPair>
 	 * ICSILanguageModel
 	 * 
 	 */
+	@Override
 	public void parse(final LmReaderCallback<ProbBackoffPair> callback_) {
 		this.callback = callback_;
 		this.reader = IOUtils.openInHard(file);
@@ -180,7 +181,7 @@ public class ARPALmReader<W> implements LmReader<ProbBackoffPair>
 		assert logProbability != 0;
 		if (line.contains("years . \" over")) {
 			@SuppressWarnings("unused")
-			int x = 5;
+			final int x = 5;
 		}
 		callback.call(nGram, new ProbBackoffPair(logProbability, backoff), line);
 

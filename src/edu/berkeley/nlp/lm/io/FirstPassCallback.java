@@ -6,7 +6,6 @@ import java.util.Map.Entry;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.collections.Counter;
 import edu.berkeley.nlp.lm.collections.Indexer;
-import edu.berkeley.nlp.lm.map.ConfigOptions;
 import edu.berkeley.nlp.lm.util.Logger;
 
 /**
@@ -17,8 +16,8 @@ import edu.berkeley.nlp.lm.util.Logger;
  * @param <V>
  *            Value type
  */
-public final class FirstPassCallback<V extends Comparable<V>> implements LmReaderCallback<V> {
-
+public final class FirstPassCallback<V extends Comparable<V>> implements LmReaderCallback<V>
+{
 
 	private Counter<V> valueCounter;
 
@@ -28,7 +27,7 @@ public final class FirstPassCallback<V extends Comparable<V>> implements LmReade
 
 	private final boolean reverse;
 
-	public FirstPassCallback(boolean reverse) {
+	public FirstPassCallback(final boolean reverse) {
 		this.reverse = reverse;
 		this.valueCounter = new Counter<V>();
 	}

@@ -3,13 +3,10 @@ package edu.berkeley.nlp.lm;
 import java.io.Serializable;
 import java.util.List;
 
-import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.map.ConfigOptions;
-import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
+import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.LongRef;
 import edu.berkeley.nlp.lm.values.CountValueContainer;
-import edu.berkeley.nlp.lm.values.ProbBackoffPair;
-import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
 
 /**
  * Language model implementation which uses Kneser-Ney-style backoff
@@ -69,7 +66,7 @@ public class StupidBackoffLm<W> extends AbstractNgramLanguageModel<W> implements
 		int probContextOrder = -1;
 
 		long lastCount = ((CountValueContainer) map.getValues()).getUnigramSum();
-		LongRef scratch = new LongRef(-1L);
+		final LongRef scratch = new LongRef(-1L);
 		for (int i = endPos - 1; i >= startPos; --i) {
 			assert (probContext >= 0);
 			probContext = localMap.getValueAndOffset(probContext, probContextOrder, ngram[i], scratch);
@@ -130,7 +127,7 @@ public class StupidBackoffLm<W> extends AbstractNgramLanguageModel<W> implements
 	//		return logProb + backoff;
 	//	}
 
-	private static float pow(float alpha, int n) {
+	private static float pow(final float alpha, final int n) {
 		float ret = 1.0f;
 		for (int i = 0; i < n; ++i)
 			ret *= alpha;

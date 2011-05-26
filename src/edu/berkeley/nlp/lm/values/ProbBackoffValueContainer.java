@@ -1,7 +1,6 @@
 package edu.berkeley.nlp.lm.values;
 
 import edu.berkeley.nlp.lm.collections.Indexer;
-import edu.berkeley.nlp.lm.util.LongRef;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 
@@ -30,7 +29,7 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 	}
 
 	@Override
-	public void getFromOffset(final long index, final int ngramOrder, @OutputParameter ProbBackoffPair outputVal) {
+	public void getFromOffset(final long index, final int ngramOrder, @OutputParameter final ProbBackoffPair outputVal) {
 		final int rank = (int) valueRanksCompressed[ngramOrder].get(index);
 		outputVal.prob = probsForRank[rank];
 		outputVal.backoff = backoffsForRank[rank];
@@ -72,7 +71,7 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 	}
 
 	@Override
-	protected void getFromRank(final int rank, @OutputParameter ProbBackoffPair outputVal) {
+	protected void getFromRank(final int rank, @OutputParameter final ProbBackoffPair outputVal) {
 
 		outputVal.prob = probsForRank[rank];
 		outputVal.backoff = backoffsForRank[rank];

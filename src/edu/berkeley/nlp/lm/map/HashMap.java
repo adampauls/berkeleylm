@@ -3,8 +3,8 @@ package edu.berkeley.nlp.lm.map;
 import java.io.Serializable;
 
 import edu.berkeley.nlp.lm.array.LongArray;
-import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
+import edu.berkeley.nlp.lm.util.Logger;
 
 /**
  * Low-level hash map which stored context-encoded parent pointers in a trie.
@@ -41,7 +41,7 @@ final class HashMap implements Serializable
 		final long numWords = numNgramsForEachWord.size();
 		wordRangesLow = new long[(int) numWords];
 		wordRangesHigh = new long[(int) numWords];
-		long totalNumNgrams = setWordRanges(numNgramsForEachWord, maxLoadFactor, numWords);
+		final long totalNumNgrams = setWordRanges(numNgramsForEachWord, maxLoadFactor, numWords);
 		keys = LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
 		Logger.logss("No word key size " + totalNumNgrams);
 		keys.fill(EMPTY_KEY, totalNumNgrams);
@@ -50,7 +50,7 @@ final class HashMap implements Serializable
 	}
 
 	public long put(final long index, final long putKey) {
-		final int firstWordOfNgram = HashNgramMap.wordOf(putKey);
+		final int firstWordOfNgram = AbstractNgramMap.wordOf(putKey);
 		final long rangeStart = wordRangesLow[firstWordOfNgram];
 		final long rangeEnd = wordRangesHigh[firstWordOfNgram];
 		long searchKey = getKey(index);
@@ -97,7 +97,7 @@ final class HashMap implements Serializable
 
 	private void setKey(final long index, final long putKey) {
 		assert keys.get(index) == EMPTY_KEY;
-		final long contextOffset = HashNgramMap.contextOffsetOf(putKey);
+		final long contextOffset = AbstractNgramMap.contextOffsetOf(putKey);
 		assert contextOffset >= 0;
 		keys.set(index, contextOffset);
 
@@ -183,7 +183,7 @@ final class HashMap implements Serializable
 			if (contextOffset >= rangeEnd) return false;
 			if (pos == startPos) return true;
 			final long currKey = suffixMap.getKey(contextOffset);
-			contextOffset = HashNgramMap.contextOffsetOf(currKey);
+			contextOffset = AbstractNgramMap.contextOffsetOf(currKey);
 		}
 		return true;
 
@@ -202,7 +202,7 @@ final class HashMap implements Serializable
 			if (contextOffset >= rangeEnd) return false;
 			if (pos == endPos - 1) return true;
 			final long currKey = suffixMap.getKey(contextOffset);
-			contextOffset = HashNgramMap.contextOffsetOf(currKey);
+			contextOffset = AbstractNgramMap.contextOffsetOf(currKey);
 		}
 		return true;
 

@@ -1,6 +1,5 @@
 package edu.berkeley.nlp.lm.io;
 
-import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 
 public interface LmReader<V>
 {

@@ -2,9 +2,7 @@ package edu.berkeley.nlp.lm.map;
 
 import java.util.List;
 
-import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
-import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 public interface NgramMap<T>
@@ -19,10 +17,6 @@ public interface NgramMap<T>
 	public void initWithLengths(List<Long> numNGrams);
 
 	public ValueContainer<T> getValues();
-
-
-
-	
 
 	public long getValueAndOffset(final long contextOffset, final int contextOrder, int word, @OutputParameter T currProbVal);
 

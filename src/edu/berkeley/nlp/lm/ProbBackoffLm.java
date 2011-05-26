@@ -3,11 +3,9 @@ package edu.berkeley.nlp.lm;
 import java.io.Serializable;
 import java.util.List;
 
-import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.map.ConfigOptions;
-import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
+import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
-import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
 
 /**
  * Language model implementation which uses Kneser-Ney-style backoff
@@ -67,7 +65,7 @@ public class ProbBackoffLm<W> extends AbstractNgramLanguageModel<W> implements N
 
 		long backoffContext = 0L;
 		int backoffContextOrder = -1;
-		ProbBackoffPair scratch = new ProbBackoffPair(Float.NaN, Float.NaN);
+		final ProbBackoffPair scratch = new ProbBackoffPair(Float.NaN, Float.NaN);
 		for (int i = endPos - 1; i >= startPos; --i) {
 			if (probContext >= 0) {
 				probContext = localMap.getValueAndOffset(probContext, probContextOrder, ngram[i], scratch);

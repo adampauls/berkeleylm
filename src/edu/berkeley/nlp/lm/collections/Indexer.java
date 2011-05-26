@@ -1,6 +1,5 @@
 package edu.berkeley.nlp.lm.collections;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -106,5 +105,4 @@ public class Indexer<E extends Comparable> implements Serializable
 		return Collections.unmodifiableList(objects);
 	}
 
-	
 }
