@@ -1,9 +1,7 @@
 package edu.berkeley.nlp.lm.map;
 
 import java.io.Serializable;
-import java.util.Arrays;
 
-import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.bits.BitList;
 import edu.berkeley.nlp.lm.bits.BitStream;
@@ -46,7 +44,7 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 
 	private final int offsetDeltaRadix;
 
-	public CompressedNgramMap(final ValueContainer<T> values, final ConfigOptions opts, LongArray[] numNgramsForEachWord) {
+	public CompressedNgramMap(final ValueContainer<T> values, final ConfigOptions opts, final LongArray[] numNgramsForEachWord) {
 		super(values, opts, true);
 		maps = new CompressedSortedMap[numNgramsForEachWord.length];
 		offsetCoder = new VariableLengthBlockCoder(OFFSET_RADIX);
@@ -58,12 +56,12 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 	}
 
 	@Override
-	public long getValueAndOffset(long contextOffset, int contextNgramOrder, int word, @OutputParameter T outputVal) {
+	public long getValueAndOffset(final long contextOffset, final int contextNgramOrder, final int word, @OutputParameter final T outputVal) {
 
 		final long hash = getKey(word, contextOffset);
 		final int ngramOrder = contextNgramOrder + 1;
 		final LongArray compressedKeys = ((CompressedSortedMap) maps[ngramOrder]).compressedKeys;
-		long currIndex = decompressSearch(compressedKeys, compressedKeys.size(), hash, ngramOrder, outputVal);
+		final long currIndex = decompressSearch(compressedKeys, compressedKeys.size(), hash, ngramOrder, outputVal);
 		return currIndex;
 
 	}
@@ -132,7 +130,7 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 
 	private LongArray compress(final LongArray uncompressed, final long uncompressedSize, final int ngramOrder) {
 		Logger.startTrack("Compressing");
-		LongArray compressedLongArray = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, uncompressedSize >>> 2);
+		final LongArray compressedLongArray = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, uncompressedSize >>> 2);
 
 		long uncompressedPos = 0;
 		long totalNumKeyBits = 0;
@@ -231,7 +229,7 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 	 * @param blockBits
 	 * @param array
 	 */
-	private void writeBlockToArray(final BitList blockBits, LongArray array) {
+	private void writeBlockToArray(final BitList blockBits, final LongArray array) {
 		long curr = 0L;
 		for (int i = 0; i <= Long.SIZE * compressedBlockSize; ++i) {
 			if (i % Long.SIZE == 0 && i > 0) {
@@ -250,7 +248,7 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 	 * @param kBits
 	 * @param vBits
 	 */
-	private void logCompressionInfo(final long uncompressedSize, LongArray compressedLongArray, long kBits, long vBits) {
+	private void logCompressionInfo(final long uncompressedSize, final LongArray compressedLongArray, final long kBits, final long vBits) {
 		final double keyAvg = (double) kBits / uncompressedSize;
 		Logger.logss("Key bits " + keyAvg);
 		final double valueAvg = (double) vBits / uncompressedSize;
@@ -273,7 +271,7 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 	 * @param newBits
 	 * @return
 	 */
-	private boolean blockFull(final BitList currBits, BitList restBits, BitList headerBits, final BitList newBits) {
+	private boolean blockFull(final BitList currBits, final BitList restBits, final BitList headerBits, final BitList newBits) {
 		final int numTotalBitsSize = Short.SIZE;
 		final int lengthSoFar = currBits.size() + numTotalBitsSize + headerBits.size() + restBits.size() + newBits.size();
 		return lengthSoFar >= Long.SIZE * compressedBlockSize;
@@ -286,7 +284,7 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 	 * @param newBits
 	 * @return
 	 */
-	private long compressValue(final int ngramOrder, long currPos, final BitList newBits) {
+	private long compressValue(final int ngramOrder, final long currPos, final BitList newBits) {
 		final BitList valueBits = values.getCompressed(currPos, ngramOrder);
 		newBits.addAll(valueBits);
 		return valueBits.size();
@@ -298,7 +296,7 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 	 * @param wordBitOn
 	 * @return
 	 */
-	private BitList makeHeader(final BitList offsetBits, final BitList firstValueBits, boolean wordBitOn) {
+	private BitList makeHeader(final BitList offsetBits, final BitList firstValueBits, final boolean wordBitOn) {
 		BitList headerBits;
 		headerBits = new BitList();
 

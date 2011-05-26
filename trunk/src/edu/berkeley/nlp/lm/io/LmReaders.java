@@ -7,12 +7,11 @@ import edu.berkeley.nlp.lm.StupidBackoffLm;
 import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.map.CompressedNgramMap;
+import edu.berkeley.nlp.lm.map.ConfigOptions;
 import edu.berkeley.nlp.lm.map.HashNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap;
-import edu.berkeley.nlp.lm.map.ConfigOptions;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.LongRef;
-import edu.berkeley.nlp.lm.util.hash.MurmurHash;
 import edu.berkeley.nlp.lm.values.CountValueContainer;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
@@ -181,13 +180,13 @@ public class LmReaders
 	}
 
 	private static <W> FirstPassCallback<ProbBackoffPair> firstPassArpa(final String lmFile, final int lmOrder, final WordIndexer<W> wordIndexer,
-		boolean reverse) {
+		final boolean reverse) {
 		final ARPALmReader<W> arpaLmReader = new ARPALmReader<W>(lmFile, wordIndexer, lmOrder);
 		final FirstPassCallback<ProbBackoffPair> valueAddingCallback = firstPassCommon(arpaLmReader, reverse);
 		return valueAddingCallback;
 	}
 
-	private static <W> FirstPassCallback<LongRef> firstPassGoogle(final String rootDir, final WordIndexer<W> wordIndexer, ConfigOptions opts) {
+	private static <W> FirstPassCallback<LongRef> firstPassGoogle(final String rootDir, final WordIndexer<W> wordIndexer, final ConfigOptions opts) {
 		final GoogleLmReader<W> arpaLmReader = new GoogleLmReader<W>(rootDir, wordIndexer, opts);
 		final boolean reverse = true;
 		final FirstPassCallback<LongRef> valueAddingCallback = firstPassCommon(arpaLmReader, reverse);

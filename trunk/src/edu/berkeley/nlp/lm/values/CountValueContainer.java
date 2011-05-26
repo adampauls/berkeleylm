@@ -25,13 +25,13 @@ public final class CountValueContainer extends LmValueContainer<LongRef>
 	}
 
 	@Override
-	public void getFromOffset(final long index, final int ngramOrder, @OutputParameter LongRef outputVal) {
+	public void getFromOffset(final long index, final int ngramOrder, @OutputParameter final LongRef outputVal) {
 
 		outputVal.value = getCount(ngramOrder, index, countsForRank);
 	}
 
 	@Override
-	protected void getFromRank(final int rank, @OutputParameter LongRef outputVal) {
+	protected void getFromRank(final int rank, @OutputParameter final LongRef outputVal) {
 
 		outputVal.value = countsForRank[rank];
 	}

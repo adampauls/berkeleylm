@@ -8,7 +8,6 @@ import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.hash.MurmurHash;
-import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncodedNgramMap<T>
@@ -52,15 +51,8 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		return index;
 	}
 
-	//	@Override
-	//	public void getValue(final int[] ngram, final int startPos, final int endPos, final @OutputParameter LmContextInfo contextOutput,
-	//		final @OutputParameter T outputVal) {
-	//		final long index = getOffset(ngram, startPos, endPos);
-	//		values.getFromOffset(index, endPos - startPos, outputVal);
-	//	}
-
 	@Override
-	public long getValueAndOffset(long contextOffset, int contextOrder, int word, @OutputParameter T outputVal) {
+	public long getValueAndOffset(final long contextOffset, final int contextOrder, final int word, @OutputParameter final T outputVal) {
 		return getOffsetHelp(contextOffset, contextOrder, word, outputVal);
 	}
 
@@ -75,7 +67,7 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 	 * @param word
 	 * @return
 	 */
-	private long getOffsetHelp(final long contextOffset_, final int contextOrder, final int word, @OutputParameter T outputVal) {
+	private long getOffsetHelp(final long contextOffset_, final int contextOrder, final int word, @OutputParameter final T outputVal) {
 		final long contextOffset = Math.max(contextOffset_, 0);
 		final int ngramOrder = contextOrder + 1;
 

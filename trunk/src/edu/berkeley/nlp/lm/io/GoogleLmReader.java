@@ -36,7 +36,7 @@ public class GoogleLmReader<W> implements LmReader<LongRef>
 
 	private final WordIndexer<W> wordIndexer;
 
-	private ConfigOptions opts;
+	private final ConfigOptions opts;
 
 	public GoogleLmReader(final String rootDir, final WordIndexer<W> wordIndexer, final ConfigOptions opts) {
 		this.rootDir = rootDir;
@@ -46,6 +46,7 @@ public class GoogleLmReader<W> implements LmReader<LongRef>
 
 	}
 
+	@Override
 	public void parse(final LmReaderCallback<LongRef> callback) {
 
 		final List<File> listFiles = Arrays.asList(new File(rootDir).listFiles());

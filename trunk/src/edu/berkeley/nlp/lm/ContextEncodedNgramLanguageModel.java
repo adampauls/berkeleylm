@@ -103,7 +103,7 @@ public interface ContextEncodedNgramLanguageModel<W> extends NgramLanguageModelB
 		}
 
 		public static <T> float getLogProb(final List<T> ngram, final LmContextInfo contextOutput_, final ContextEncodedNgramLanguageModel<T> lm) {
-			LmContextInfo contextOutput = contextOutput_ == null ? null : new LmContextInfo();
+			final LmContextInfo contextOutput = contextOutput_ == null ? null : new LmContextInfo();
 			contextOutput.offset = 0;
 			contextOutput.order = -1;
 			final WordIndexer<T> wordIndexer = lm.getWordIndexer();

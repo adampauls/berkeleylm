@@ -9,6 +9,7 @@ public class VariableLengthBlockCoder implements BitCompressor
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+
 	private final int radix;
 
 	public VariableLengthBlockCoder(final int radix) {

@@ -57,7 +57,7 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 			wordRangesHigh = new int[numWords];
 			final int[] highs = wordRangesHigh;
 			long lastWord = -1;
-			long keySize = keys.size();
+			final long keySize = keys.size();
 			for (long i = 0; i <= keys.size(); ++i) {
 				final long currWord = i == keySize ? -1L : wordOf(keys.get(i));
 				if (currWord < 0 || currWord != lastWord) {
