@@ -156,9 +156,7 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 		final int word = reverseTrie ? ngram[0] : ngram[ngram.length - 1];
 
 		final long prefixOffset = reverseTrie ? getPrefixOffset(ngram, 1, ngram.length) : getPrefixOffset(ngram, 0, ngram.length - 1);
-		if (prefixOffset < 0) {
-
-		return -1; }
+		if (prefixOffset < 0) return -1;
 
 		long newOffset = -1;
 		if (synchronize) {
@@ -185,7 +183,7 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 			//			noWordKeys = Arrays.copyOf(noWordKeys, noWordKeys.length * 3 / 2);
 		}
 		if (maps[ngramOrder] == null) maps[ngramOrder] = newInternalSortedMap();
-		final long newOffset = maps[ngramOrder].add(getKey(word, contextOffset));
+		final long newOffset = maps[ngramOrder].add(combineToKey(word, contextOffset));
 		values.add(ngramOrder, maps[ngramOrder].size() - 1, contextOffset, word, val, suffixOffset);
 		return newOffset;
 	}

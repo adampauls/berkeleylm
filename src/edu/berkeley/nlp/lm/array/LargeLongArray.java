@@ -202,5 +202,34 @@ public final class LargeLongArray implements Serializable, LongArray
 		for (int i = 0; i < initialCapacity; ++i)
 			setAndGrowIfNeeded(i, l);
 	}
+	
+	@Override
+	public long linearSearch(long key, long rangeStart, long rangeEnd, long startIndex, long emptyKey, boolean returnFirstEmptyIndex) {
+		long i = startIndex;
+		boolean goneAroundOnce = false;
+		int outerIndex = o(i);
+		int innerIndex = i(i);
+		long[] currArray = data[outerIndex];
+		while (true) {
+			if (i == rangeEnd) {
+				if (goneAroundOnce) return -1L;
+				i = rangeStart;
+				outerIndex = o(i);
+				innerIndex = o(i);
+				currArray = data[outerIndex];
+				goneAroundOnce = true;
+			}
+			if (innerIndex == currArray.length) {
+				outerIndex++;
+				innerIndex = 0;
+				currArray = data[outerIndex];
+			}
+			final long searchKey = currArray[innerIndex];
+			if (searchKey == key) return i;
+			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i :-1L;
+			++i;
+			++innerIndex;
+		}
+	}
 
 }

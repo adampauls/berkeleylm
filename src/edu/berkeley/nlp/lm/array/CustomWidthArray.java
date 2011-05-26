@@ -206,8 +206,12 @@ public final class CustomWidthArray implements LongArray, Serializable
 	@Override
 	public void fill(final long l, final long initialCapacity) {
 		final long numBits = initialCapacity * width;
-		//		if (data.length == numLongs(numBits)) return false;
 		Arrays.fill(data, 0, numLongs(numBits), l);
+	}
+
+	@Override
+	public long linearSearch(long key, long rangeStart, long rangeEnd, long startIndex, long emptyKey, boolean returnFirstEmptyIndex) {
+		return LongArray.StaticMethods.linearSearch(this, key, rangeStart, rangeEnd, startIndex, emptyKey, returnFirstEmptyIndex);
 	}
 
 }

@@ -43,7 +43,7 @@ public abstract class AbstractNgramMap<T> implements NgramMap<T>, Serializable
 	 * @param suffixIndex
 	 * @return
 	 */
-	protected static long getKey(final int word, final long suffixIndex) {
+	protected static long combineToKey(final int word, final long suffixIndex) {
 		return (((long) word) << (NUM_SUFFIX_BITS)) | suffixIndex;
 	}
 
