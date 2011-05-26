@@ -62,9 +62,18 @@ public final class BitList
 	@Override
 	public String toString() {
 		final StringBuilder s = new StringBuilder("");
-		for (int i = 0; i < numBits; ++i)
-			s.append(data.get(i) ? "1" : "0");
-		return s.toString();
+		long l = 0L;
+		String hex = "";
+		for (int i = 0; i < numBits; ++i) {
+			final boolean curr = data.get(i);
+			if (i % Long.SIZE == 0 && i > 0) {
+				hex += String.format("%x", l);
+				l = 0;
+			}
+			l = (l << 1) | (curr ? 1 : 0);
+			s.append(curr ? "1" : "0");
+		}
+		return s.toString() + "(" + hex + ")";
 	}
 
 	public void addAll(final BitList bits) {

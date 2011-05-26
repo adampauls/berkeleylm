@@ -137,13 +137,13 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 	}
 
 	private void compress(final int ngramOrder) {
-		((CompressedSortedMap) maps[ngramOrder]).compressedKeys = compress(maps[ngramOrder].keys, maps[ngramOrder].keySize, ngramOrder);
+		((CompressedSortedMap) maps[ngramOrder]).compressedKeys = compress(maps[ngramOrder].keys, maps[ngramOrder].keys.size(), ngramOrder);
 		values.clearStorageAfterCompression(ngramOrder);
 		maps[ngramOrder].keys = null;
 	}
 
 	@SuppressWarnings("unused")
-	private LongArray compress(final long[] uncompressed, final long uncompressedSize, final int ngramOrder) {
+	private LongArray compress(final LongArray uncompressed, final long uncompressedSize, final int ngramOrder) {
 		Logger.startTrack("Compressing");
 		LongArray compressedLongArray = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, uncompressedSize >>> 2);
 
@@ -151,11 +151,10 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 		long kBits = 0;
 		long vBits = 0;
 		long currBlock = 0;
-		long currSize = 0L;
 
 		while (pos < uncompressedSize) {
 			final BitList currBits = new BitList();
-			final long firstKey = uncompressed[(int) pos];
+			final long firstKey = uncompressed.get(pos);
 
 			if (currBlock % 1000 == 0) Logger.logs("On block " + currBlock + " starting at pos " + pos);
 			currBlock++;
@@ -184,10 +183,10 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 				currPos = pos + 1;
 				final BitList newBits = new BitList();
 				for (; currPos < uncompressedSize; ++currPos) {
-					final long currKey = uncompressed[(int) currPos];
+					final long currKey = uncompressed.get(currPos);
 					final long currFirstWord = firstWord(currKey);
 					final long currSuffixPart = suffixIndex(currKey);
-					
+
 					final long wordDelta = currFirstWord - lastFirstWord;
 					final long suffixDelta = currSuffixPart - lastSuffixPart;
 					newBits.clear();
@@ -213,9 +212,9 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 					final long posDiff = currPos - pos - 1;
 
 					//					if (!skipCompressingVals) {
-					//						final BitList valueBits = values.getCompressed(currPos, ngramOrder);
-					//						valBits += valueBits.size();
-					//						newBits.addAll(valueBits);
+					final BitList valueBits = values.getCompressed(currPos, ngramOrder);
+					valBits += valueBits.size();
+					newBits.addAll(valueBits);
 					//					}
 					//					if (finishedMiniIndexSection) {
 					//						lastSuffixPart = lastMiniSuffixPart;
@@ -245,7 +244,7 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 			vBits += valBits;
 			assert restBits != null;
 			assert headerBits != null;
-			final int bitLength = restBits.size() + +headerBits.size();
+			final int bitLength = restBits.size() + headerBits.size();
 			assert bitLength <= Short.MAX_VALUE;
 			currBits.addShort((short) bitLength);
 			currBits.addAll(headerBits);
@@ -256,25 +255,24 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 			for (int i = 0; i <= Long.SIZE * compressedBlockSize; ++i) {
 				if (i % Long.SIZE == 0 && i > 0) {
 					//					if (currSize >= compressedLongArray.length) compressedLongArray = Arrays.copyOf(compressedLongArray, compressedLongArray.length * 3 / 2);
-					compressedLongArray.setAndGrowIfNeeded(currSize, curr);
-					currSize++;
+					compressedLongArray.add(curr);
 					curr = 0;
 
 				}
 				curr = (curr << 1) | ((i >= currBits.size() || !currBits.get(i)) ? 0 : 1);
 			}
-			assert currSize % compressedBlockSize == 0;
+			assert compressedLongArray.size() % compressedBlockSize == 0;
 		}
 		compressedLongArray.trim();// = Arrays.copyOf(compressedLongArray, (int) currSize);
 		final double keyAvg = (double) kBits / uncompressedSize;
 		Logger.logss("Key bits " + keyAvg);
 		final double valueAvg = (double) vBits / uncompressedSize;
 		Logger.logss("Value bits " + valueAvg);
-		final double avg = 64 * (double) currSize / uncompressedSize;
+		final double avg = 64 * (double) compressedLongArray.size() / uncompressedSize;
 		Logger.logss("Compressed bits " + avg);
 		totalKeyBitsFinal += kBits;
 		totalValueBitsFinal += vBits;
-		totalBitsFinal += currSize;
+		totalBitsFinal += compressedLongArray.size();
 		totalSizeFinal += uncompressedSize;
 		Logger.logss("Total key bits " + totalKeyBitsFinal / totalSizeFinal);
 		Logger.logss("Total value bits " + totalValueBitsFinal / totalSizeFinal);
@@ -300,7 +298,7 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 		//					@SuppressWarnings("unused")
 		//					int x = 5;
 		//				}
-		final short bitLength = readShort(compressed.get((int) (pos + 1)));
+		final short bitLength = readShort(compressed.get((pos + 1)));
 		final BitStream bits = new BitStream(compressed, pos + 1, Short.SIZE, bitLength);
 		final long offset = offsetCoder.decompress(bits);
 		final boolean wordBitOn = bits.nextBit();
@@ -400,7 +398,7 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 			currKey = joinWordSuffix(newWord, nextSuffix);
 
 			currWord = newWord;
-			if (currWord != newWord) currSuffix = nextSuffix;
+			currSuffix = nextSuffix;
 			//			suffixDecompressTimer.accumStop();
 			final boolean foundKey = currKey == searchKey;
 			//			valueDecompressTimer.start();

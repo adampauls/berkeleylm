@@ -128,7 +128,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 		final long longIndex = doDecode(bits);
 		if (justConsume) return;
 		final int rank = (int) longIndex;
-		getFromRank(rank, outputVal);
+		if (outputVal != null) getFromRank(rank, outputVal);
 	}
 
 	/**
