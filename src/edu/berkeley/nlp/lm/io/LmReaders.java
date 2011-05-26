@@ -1,5 +1,6 @@
 package edu.berkeley.nlp.lm.io;
 
+import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.ContextEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.ProbBackoffLm;
 import edu.berkeley.nlp.lm.StringWordIndexer;
@@ -7,7 +8,6 @@ import edu.berkeley.nlp.lm.StupidBackoffLm;
 import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.map.CompressedNgramMap;
-import edu.berkeley.nlp.lm.map.ConfigOptions;
 import edu.berkeley.nlp.lm.map.HashNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Logger;

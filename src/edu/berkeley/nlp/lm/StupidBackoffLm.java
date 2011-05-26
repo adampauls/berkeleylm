@@ -3,7 +3,6 @@ package edu.berkeley.nlp.lm;
 import java.io.Serializable;
 import java.util.List;
 
-import edu.berkeley.nlp.lm.map.ConfigOptions;
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.LongRef;
 import edu.berkeley.nlp.lm.values.CountValueContainer;
