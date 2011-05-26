@@ -7,7 +7,7 @@ import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
-import edu.berkeley.nlp.lm.util.hash.MurmurHash;
+import edu.berkeley.nlp.lm.util.MurmurHash;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncodedNgramMap<T>

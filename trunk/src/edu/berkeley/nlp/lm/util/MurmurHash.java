@@ -1,4 +1,4 @@
-package edu.berkeley.nlp.lm.util.hash;
+package edu.berkeley.nlp.lm.util;
 
 /**
  * Taken from http://d3s.mff.cuni.cz/~holub/sw/javamurmurhash/MurmurHash.java
