@@ -170,8 +170,7 @@ public class LmReaders
 	private static <W, V extends Comparable<V>> NgramMap<V> buildMapCommon(final ConfigOptions opts, final WordIndexer<W> wordIndexer,
 		final LongArray[] numNgramsForEachWord, final boolean reversed, final LmReader<V> lmReader, final ValueContainer<V> values) {
 		Logger.startTrack("Pass 2 of 2");
-		final NgramMap<V> map = opts.compress ? new CompressedNgramMap<V>(values, opts, numNgramsForEachWord) : new HashNgramMap<V>(values, opts,
-			numNgramsForEachWord, reversed);
+		final NgramMap<V> map = opts.compress ? new CompressedNgramMap<V>(values, opts) : new HashNgramMap<V>(values, opts, numNgramsForEachWord, reversed);
 
 		lmReader.parse(new NgramMapAddingCallback<V>(map));
 		wordIndexer.trimAndLock();
