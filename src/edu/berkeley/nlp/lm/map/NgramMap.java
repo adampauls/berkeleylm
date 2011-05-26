@@ -18,10 +18,12 @@ public interface NgramMap<T>
 
 	public void initWithLengths(List<Long> numNGrams);
 
-	public void getValue(int[] ngram, int startPos, int endPos, @OutputParameter LmContextInfo contextOutput, @OutputParameter T outputVal);
-
 	public ValueContainer<T> getValues();
 
-	public LmContextInfo getOffsetForNgram(int[] ngram, int startPos, int endPos);
+
+
+	
+
+	public long getValueAndOffset(final long contextOffset, final int contextOrder, int word, @OutputParameter T currProbVal);
 
 }

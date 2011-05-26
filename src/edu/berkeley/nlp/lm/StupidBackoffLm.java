@@ -3,10 +3,8 @@ package edu.berkeley.nlp.lm;
 import java.io.Serializable;
 import java.util.List;
 
-import edu.berkeley.nlp.lm.map.ContextEncodedNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.map.ConfigOptions;
-import edu.berkeley.nlp.lm.map.OffsetNgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.LongRef;
 import edu.berkeley.nlp.lm.values.CountValueContainer;
@@ -65,7 +63,7 @@ public class StupidBackoffLm<W> extends AbstractNgramLanguageModel<W> implements
 	 * @return
 	 */
 	private float getLogProbDirectly(final int[] ngram, final int startPos, final int endPos) {
-		final ContextEncodedNgramMap<LongRef> localMap = (ContextEncodedNgramMap<LongRef>) map;
+		final NgramMap<LongRef> localMap = map;
 		float logProb = oovWordLogProb;
 		long probContext = 0L;
 		int probContextOrder = -1;

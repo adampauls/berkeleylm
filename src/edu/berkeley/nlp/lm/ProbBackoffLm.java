@@ -3,10 +3,8 @@ package edu.berkeley.nlp.lm;
 import java.io.Serializable;
 import java.util.List;
 
-import edu.berkeley.nlp.lm.map.ContextEncodedNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.map.ConfigOptions;
-import edu.berkeley.nlp.lm.map.OffsetNgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
@@ -28,7 +26,6 @@ public class ProbBackoffLm<W> extends AbstractNgramLanguageModel<W> implements N
 	private static final long serialVersionUID = 1L;
 
 	protected final NgramMap<ProbBackoffPair> map;
-
 
 	/**
 	 * Fixed constant returned when computing the log probability for an n-gram
@@ -61,7 +58,7 @@ public class ProbBackoffLm<W> extends AbstractNgramLanguageModel<W> implements N
 	 * @return
 	 */
 	private float getLogProbDirectly(final int[] ngram, final int startPos, final int endPos) {
-		final ContextEncodedNgramMap<ProbBackoffPair> localMap = (ContextEncodedNgramMap<ProbBackoffPair>) map;
+		final NgramMap<ProbBackoffPair> localMap = map;
 		float logProb = oovWordLogProb;
 		float backoff = 0.0f;
 

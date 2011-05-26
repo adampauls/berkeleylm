@@ -17,20 +17,19 @@ import edu.berkeley.nlp.lm.util.Logger;
  * @param <V>
  *            Value type
  */
-public final class FirstPassCallback<V extends Comparable<V>> implements LmReaderCallback<V>
-{
+public final class FirstPassCallback<V extends Comparable<V>> implements LmReaderCallback<V> {
 
-	int warnCount = 0;
 
-	Counter<V> valueCounter;
+	private Counter<V> valueCounter;
 
 	private Indexer<V> valueIndexer;
 
-	LongArray[] numNgramsForEachWord;
+	private LongArray[] numNgramsForEachWord;
 
-	private final boolean reverseTrie = false;
+	private final boolean reverse;
 
-	public FirstPassCallback() {
+	public FirstPassCallback(boolean reverse) {
+		this.reverse = reverse;
 		this.valueCounter = new Counter<V>();
 	}
 
@@ -38,7 +37,7 @@ public final class FirstPassCallback<V extends Comparable<V>> implements LmReade
 	public void call(final int[] ngram, final V v, final String words) {
 		valueCounter.incrementCount(v, 1);
 		final LongArray ngramOrderCounts = numNgramsForEachWord[ngram.length - 1];
-		final int word = reverseTrie ? ngram[0] : ngram[ngram.length - 1];
+		final int word = reverse ? ngram[0] : ngram[ngram.length - 1];
 		if (word >= ngramOrderCounts.size()) {
 
 			ngramOrderCounts.setAndGrowIfNeeded(word, 1);

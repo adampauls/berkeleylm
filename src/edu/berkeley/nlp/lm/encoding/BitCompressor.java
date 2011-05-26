@@ -8,7 +8,7 @@ import edu.berkeley.nlp.lm.bits.BitStream;
 public interface BitCompressor extends Serializable
 {
 
-	public BitList compress(long n);
+	public BitList compress(long bits);
 
 	public long decompress(BitStream bits);
 

@@ -33,11 +33,11 @@ final class HashMap implements Serializable
 
 	long maxWord = 0;
 
-	private final boolean reverseTrie;
+	private final boolean reverse;
 
 	private static final int EMPTY_KEY = -1;
 
-	public HashMap(final LongArray numNgramsForEachWord, final double maxLoadFactor) {
+	public HashMap(final LongArray numNgramsForEachWord, final double maxLoadFactor, final boolean reverse) {
 		final long numWords = numNgramsForEachWord.size();
 		wordRangesLow = new long[(int) numWords];
 		wordRangesHigh = new long[(int) numWords];
@@ -45,7 +45,7 @@ final class HashMap implements Serializable
 		keys = LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
 		Logger.logss("No word key size " + totalNumNgrams);
 		keys.fill(EMPTY_KEY, totalNumNgrams);
-		reverseTrie = false;
+		this.reverse = reverse;
 		numFilled = 0;
 	}
 
@@ -131,7 +131,7 @@ final class HashMap implements Serializable
 
 	public final long getIndexImplicitly(final int[] ngram, final long index, final int startPos, final int endPos, final HashMap[] maps) {
 		final LongArray localKeys = keys;
-		final int firstWordOfNgram = reverseTrie ? ngram[startPos] : ngram[endPos - 1];
+		final int firstWordOfNgram = reverse ? ngram[startPos] : ngram[endPos - 1];
 		final long rangeStart = wordRangesLow[firstWordOfNgram];
 		final long rangeEnd = wordRangesHigh[firstWordOfNgram];
 		assert index >= rangeStart;
@@ -148,7 +148,7 @@ final class HashMap implements Serializable
 			if (searchKey == EMPTY_KEY) {//
 				return -1L;
 			}
-			if (implicitSuffixEquals(searchKey, ngram, startPos, endPos, maps, reverseTrie)) { //
+			if (implicitSuffixEquals(searchKey, ngram, startPos, endPos, maps, reverse)) { //
 				return i;
 			}
 			++i;
