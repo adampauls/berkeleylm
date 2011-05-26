@@ -59,7 +59,7 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 			long lastWord = -1;
 			long keySize = keys.size();
 			for (long i = 0; i <= keys.size(); ++i) {
-				final long currWord = i == keySize ? -1L : firstWord(keys.get(i));
+				final long currWord = i == keySize ? -1L : wordOf(keys.get(i));
 				if (currWord < 0 || currWord != lastWord) {
 					if (lastWord >= 0) highs[(int) lastWord] = (int) i;
 					if (currWord >= 0) lows[(int) currWord] = (int) i;
@@ -72,16 +72,6 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 			keys = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, l);
 		}
 	}
-
-	protected static final byte NUM_BITS_PER_BYTE = Byte.SIZE;
-
-	protected static final int NUM_WORD_BITS = 26;
-
-	protected static final int NUM_SUFFIX_BITS = (64 - NUM_WORD_BITS);
-
-	protected static final long WORD_BIT_MASK = ((1L << NUM_WORD_BITS) - 1) << (NUM_SUFFIX_BITS);
-
-	protected static final long SUFFIX_BIT_MASK = ((1L << NUM_SUFFIX_BITS) - 1);
 
 	InternalSortedMap[] maps;
 
@@ -99,15 +89,6 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 
 	}
 
-	/**
-	 * @param word
-	 * @param suffixIndex
-	 * @return
-	 */
-	protected static long getKey(final int word, final long suffixIndex) {
-		return (((long) word) << (NUM_SUFFIX_BITS)) | suffixIndex;
-	}
-
 	protected static int compareLongsRaw(final long a, final long b) {
 		assert a >= 0;
 		assert b >= 0;
@@ -115,22 +96,6 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 		if (a < b) return -1;
 		if (a == b) return 0;
 		throw new RuntimeException();
-	}
-
-	/**
-	 * @param a
-	 * @return
-	 */
-	protected static long suffixIndex(final long a) {
-		return (a & SUFFIX_BIT_MASK);
-	}
-
-	/**
-	 * @param exactHash
-	 * @return
-	 */
-	protected static long firstWord(final long exactHash) {
-		return (exactHash & WORD_BIT_MASK) >>> (NUM_SUFFIX_BITS);
 	}
 
 	protected void sort(final LongArray array, final long left0, final long right0, final int ngramOrder) {
@@ -213,29 +178,23 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 	 * @param ngramOrder
 	 * @param newKey
 	 */
-	private long doAdd(final int[] ngram, final T val, final int ngramOrder, final long prefixOffset, final int word, final long suffixOffset) {
+	private long doAdd(final int[] ngram, final T val, final int ngramOrder, final long contextOffset, final int word, final long suffixOffset) {
 		if (ngram.length > maps.length) {
 			//			handleNgramsFinished(currNgramOrder);
 			maps = Arrays.copyOf(maps, maps.length * 3 / 2);
 			//			noWordKeys = Arrays.copyOf(noWordKeys, noWordKeys.length * 3 / 2);
 		}
 		if (maps[ngramOrder] == null) maps[ngramOrder] = newInternalSortedMap();
-		final long newOffset = maps[ngramOrder].add(joinWordSuffix(word, prefixOffset));
-		values.add(ngramOrder, maps[ngramOrder].size() - 1, prefixOffset, word, val, suffixOffset);
+		final long newOffset = maps[ngramOrder].add(getKey(word, contextOffset));
+		values.add(ngramOrder, maps[ngramOrder].size() - 1, contextOffset, word, val, suffixOffset);
 		return newOffset;
 	}
 
 	abstract protected InternalSortedMap newInternalSortedMap();
 
-	private long getPrefixOffset(final int[] ngram, final int startPos, final int endPos)
-
-	{
+	private long getPrefixOffset(final int[] ngram, final int startPos, final int endPos) {
 		if (endPos == startPos) return 0;
-		final InternalSortedMap map = maps[endPos - startPos - 1];
-
-		final long index = getPrefixOffsetHelp(ngram, startPos, endPos);
-
-		return index;
+		return getPrefixOffsetHelp(ngram, startPos, endPos);
 	}
 
 	abstract protected long getPrefixOffsetHelp(int[] ngram, int startPos, int endPos);
@@ -260,8 +219,8 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 		if (reverseTrie) {
 			for (int pos = startPos; pos < endPos; ++pos) {
 				final long firstWordId = phrase[pos];
-				final long firstWordInHash = firstWord(key);
-				final long suffixIndex = suffixIndex(key);
+				final long firstWordInHash = wordOf(key);
+				final long suffixIndex = contextOffsetOf(key);
 				final int ngramOrder = endPos - pos - 1;
 				if (ngramOrder == 0 || firstWordInHash != firstWordId) return compareLongsRaw(firstWordInHash, firstWordId);
 				key = maps[ngramOrder - 1].keys.get(suffixIndex);//[outerArrayPart(suffixIndex)][innerArrayPart(suffixIndex)];
@@ -269,8 +228,8 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 		} else {
 			for (int pos = endPos - 1; pos >= startPos; --pos) {
 				final long firstWordId = phrase[pos];
-				final long firstWordInHash = firstWord(key);
-				final long suffixIndex = suffixIndex(key);
+				final long firstWordInHash = wordOf(key);
+				final long suffixIndex = wordOf(key);
 				final int ngramOrder = endPos - pos - 1;
 				if (ngramOrder == 0 || firstWordInHash != firstWordId) return compareLongsRaw(firstWordInHash, firstWordId);
 				key = maps[ngramOrder - 1].keys.get(suffixIndex);//[outerArrayPart(suffixIndex)][innerArrayPart(suffixIndex)];
@@ -289,10 +248,6 @@ public abstract class BinarySearchNgramMap<T> extends AbstractNgramMap<T> implem
 	public void trim() {
 		values.trim();
 
-	}
-
-	protected static long joinWordSuffix(final long word, final long suffixPart) {
-		return getKey((int) word, suffixPart);
 	}
 
 	@Override
