@@ -36,6 +36,24 @@ public interface LongArray
 				return new LargeLongArray(initCapacity);
 			}
 		}
+
+		public static long linearSearch(LongArray array, long key, long rangeStart, long rangeEnd, long startIndex, long emptyKey, boolean returnFirstEmptyIndex) {
+			long i = startIndex;
+			boolean goneAroundOnce = false;
+			while (true) {
+				if (i == rangeEnd) {
+					if (goneAroundOnce) return -1L;
+					i = rangeStart;
+					goneAroundOnce = true;
+				}
+				final long searchKey = array.get(i);
+				if (searchKey == key) return i;
+				if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
+				++i;
+			}
+		}
 	}
+
+	public abstract long linearSearch(long key, long rangeStart, long rangeEnd, long startIndex, long emptyKey, boolean returnFirstEmptyIndex);
 
 }

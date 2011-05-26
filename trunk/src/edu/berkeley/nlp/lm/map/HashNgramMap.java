@@ -33,7 +33,7 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		this.maxLoadFactor = opts.hashTableLoadFactor;
 		maps = new HashMap[numNgramsForEachWord.length];
 		for (int ngramOrder = 0; ngramOrder < numNgramsForEachWord.length; ++ngramOrder) {
-			maps[ngramOrder] = new HashMap(numNgramsForEachWord[ngramOrder], maxLoadFactor, reversed);
+			maps[ngramOrder] = new HashMap(numNgramsForEachWord[ngramOrder], maxLoadFactor);
 			values.setSizeAtLeast(maps[ngramOrder].getCapacity(), ngramOrder);
 		}
 	}
@@ -44,8 +44,7 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		final HashMap map = maps[ngram.length - 1];
 		final long key = getKey(ngram, 0, endPos);
 		if (key < 0) return -1L;
-		final long hash = hash(ngram, 0, endPos, map);
-		final long index = map.put(hash, key);
+		final long index = map.put(key);
 		final long suffixIndex = getSuffixOffset(ngram, 0, endPos);
 		values.add(endPos - 0 - 1, index, contextOffsetOf(key), wordOf(key), val, suffixIndex);
 		return index;
@@ -53,12 +52,12 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 
 	@Override
 	public long getValueAndOffset(final long contextOffset, final int contextOrder, final int word, @OutputParameter final T outputVal) {
-		return getOffsetHelp(contextOffset, contextOrder, word, outputVal);
+		return getOffsetForContextEncoding(contextOffset, contextOrder, word, outputVal);
 	}
 
 	@Override
 	public long getOffset(final long contextOffset, final int contextOrder, final int word) {
-		return getOffsetHelp(contextOffset, contextOrder, word, null);
+		return getOffsetForContextEncoding(contextOffset, contextOrder, word, null);
 	}
 
 	/**
@@ -67,15 +66,15 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 	 * @param word
 	 * @return
 	 */
-	private long getOffsetHelp(final long contextOffset_, final int contextOrder, final int word, @OutputParameter final T outputVal) {
+	private long getOffsetForContextEncoding(final long contextOffset_, final int contextOrder, final int word, @OutputParameter final T outputVal) {
 		final long contextOffset = Math.max(contextOffset_, 0);
 		final int ngramOrder = contextOrder + 1;
 
-		final long key = getKey(word, contextOffset);
+		final long key = combineToKey(word, contextOffset);
 		final HashMap map = maps[ngramOrder];
-		final long hash = hash(key, word, ngramOrder, map);
-		if (hash < 0) return -1L;
-		final long offset = map.getIndexImplicity(contextOffset, word, hash);
+		//		final long hash = hash(key, word, ngramOrder, map);
+		//		if (hash < 0) return -1L;
+		final long offset = map.getIndexImplicity(key);
 		if (offset >= 0 && outputVal != null) {
 			values.getFromOffset(offset, ngramOrder, outputVal);
 		}
@@ -84,11 +83,23 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 
 	@Override
 	public long getOffset(final int[] ngram, final int startPos, final int endPos) {
+		return getOffsetFromRawNgram(ngram, startPos, endPos);
+	}
+
+	/**
+	 * @param ngram
+	 * @param startPos
+	 * @param endPos
+	 * @return
+	 */
+	private long getOffsetFromRawNgram(final int[] ngram, final int startPos, final int endPos) {
 		if (containsOutOfVocab(ngram, startPos, endPos)) return -1;
-		final HashMap tightHashMap = maps[endPos - startPos - 1];
-		final long hash = hash(ngram, startPos, endPos, tightHashMap);
-		if (hash < 0) return -1;
-		final long index = tightHashMap.getIndexImplicitly(ngram, hash, startPos, endPos, maps);
+		final int ngramOrder = endPos - startPos - 1;
+		final HashMap currMap = maps[ngramOrder];
+		final long key = getKey(ngram, startPos, endPos);
+		//		final long hash = hash(key, wordOf(key), ngramOrder, currMap);
+		//		if (hash < 0) return -1;
+		final long index = currMap.getIndexImplicity(key);
 		return index;
 	}
 
@@ -129,77 +140,22 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 	 * @return
 	 */
 	private long getSuffixOffset(final int[] ngram, final int startPos, final int endPos) {
-		long suffixIndex = -1;
-		if (endPos - startPos > 1) {
-			final int start = reversed ? startPos : (startPos + 1);
-			final int end = reversed ? (endPos - 1) : (endPos);
-			final HashMap suffixMap = maps[end - start - 1];
-			long suffixHash = -1;
-			suffixHash = hash(ngram, start, end, suffixMap);
-			if (suffixHash >= 0) {
-				suffixIndex = suffixMap.getIndexImplicitly(ngram, suffixHash, start, end, maps);
-			}
-		}
-		return suffixIndex;
+		if (endPos - startPos == 1) return -1;
+		return getOffsetFromRawNgram(ngram, reversed ? startPos : (startPos + 1), reversed ? (endPos - 1) : endPos);
 	}
 
 	private long getKey(final int[] ngram, final int startPos, final int endPos) {
-		long key = getKey(reversed ? ngram[endPos - 1] : ngram[startPos], 0);
-		if (endPos - startPos == 1) return key;
-		for (int ngramOrder = 1; ngramOrder < endPos - startPos; ++ngramOrder) {
-			final int currNgramPos = reversed ? (endPos - ngramOrder) : (startPos + ngramOrder);
-			final int currStartPos = reversed ? currNgramPos : startPos;
-			final int currEndPos = reversed ? endPos : currNgramPos;
+		long contextOffset = 0;
+		for (int ngramOrder = 0; ngramOrder < endPos - startPos - 1; ++ngramOrder) {
+			final int currNgramPos = reversed ? (endPos - ngramOrder - 1) : (startPos + ngramOrder);
+			contextOffset = getOffsetForContextEncoding(contextOffset, ngramOrder - 1, ngram[currNgramPos], null);//hash < 0 ? -1L : getOffsetHelp(hash, currEndPos, ngramOrder, null)getIndexHelp(ngram, currStartPos, ngramOrder, currEndPos, hash);
+			if (contextOffset == -1L) { return -1; }
 
-			final HashMap currMap = maps[ngramOrder - 1];
-			final long hash = hash(ngram, currStartPos, currEndPos, currMap);
-			final long index = hash < 0 ? -1L : getIndexHelp(ngram, currStartPos, ngramOrder, currEndPos, hash);
-			if (index == -1L) { return -1; }
-
-			key = getKey(reversed ? ngram[currNgramPos - 1] : ngram[currNgramPos], index);
 		}
-		return key;
+		return combineToKey(headWord(ngram, startPos, endPos), contextOffset);
 	}
 
-	private long hash(final long key, final int firstWord, final int ngramOrder, final HashMap currMap) {
-		final long hashed = (MurmurHash.hashOneLong(key, 31)) + ngramOrder;
-		return currMap.processHash(hashed, firstWord);
-	}
-
-	/**
-	 * @param ngram
-	 * @param startPos
-	 * @param ngramOrder
-	 * @param currEndPos
-	 * @param hash
-	 * @return
-	 */
-	private long getIndexHelp(final int[] ngram, final int startPos, final int ngramOrder, final int endPos, final long hash) {
-		final long index = maps[ngramOrder - 1].getIndexImplicitly(ngram, hash, startPos, endPos, maps);
-		return index;
-	}
-
-	/**
-	 * @param ngram
-	 * @param endPos
-	 * @param startPos
-	 * @return
-	 */
-	private long hash(final int[] ngram, final int startPos, final int endPos, final HashMap currMap) {
-		final int firstWord = firstWord(ngram, startPos, endPos);
-		final long key = getKey(ngram, startPos, endPos);
-		if (key < 0) return -1;
-		return hash(key, firstWord, endPos - startPos - 1, currMap);
-
-	}
-
-	/**
-	 * @param ngram
-	 * @param startPos
-	 * @param endPos
-	 * @return
-	 */
-	private int firstWord(final int[] ngram, final int startPos, final int endPos) {
+	private int headWord(final int[] ngram, final int startPos, final int endPos) {
 		return reversed ? ngram[startPos] : ngram[endPos - 1];
 	}
 

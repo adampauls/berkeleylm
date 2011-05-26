@@ -88,7 +88,7 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 	@SuppressWarnings("unchecked")
 	@Override
 	public LmContextInfo getOffsetForNgram(final int[] ngram, final int startPos, final int endPos) {
-		return ((ContextEncodedNgramLanguageModel<W>) map).getOffsetForNgram(ngram, startPos, endPos);
+		return ((ContextEncodedNgramMap<W>) map).getOffsetForNgram(ngram, startPos, endPos);
 	}
 
 }

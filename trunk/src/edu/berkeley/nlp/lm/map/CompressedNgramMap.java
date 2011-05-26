@@ -58,7 +58,7 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 	@Override
 	public long getValueAndOffset(final long contextOffset, final int contextNgramOrder, final int word, @OutputParameter final T outputVal) {
 
-		final long hash = getKey(word, contextOffset);
+		final long hash = combineToKey(word, contextOffset);
 		final int ngramOrder = contextNgramOrder + 1;
 		final LongArray compressedKeys = ((CompressedSortedMap) maps[ngramOrder]).compressedKeys;
 		final long currIndex = decompressSearch(compressedKeys, compressedKeys.size(), hash, ngramOrder, outputVal);
@@ -84,7 +84,7 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 			long lastSuffix = 0L;
 			for (int ngramOrder = 0; ngramOrder < endPos - startPos; ++ngramOrder) {
 				final int firstWord = reverseTrie ? ngram[endPos - ngramOrder - 1] : ngram[startPos + ngramOrder];
-				final long hash = getKey(firstWord, lastSuffix);
+				final long hash = combineToKey(firstWord, lastSuffix);
 
 				final LongArray compressedKeys = ((CompressedSortedMap) maps[ngramOrder]).compressedKeys;
 				final long currIndex = decompressSearch(compressedKeys, compressedKeys.size(), hash, ngramOrder, null);
@@ -338,7 +338,7 @@ public class CompressedNgramMap<T> extends BinarySearchNgramMap<T> implements Se
 				newWord = currWord;
 				nextSuffix = (currSuffix + suffixDelta);
 			}
-			currKey = getKey(newWord, nextSuffix);
+			currKey = combineToKey(newWord, nextSuffix);
 			currWord = newWord;
 			currSuffix = nextSuffix;
 			final boolean foundKey = currKey == searchKey;
