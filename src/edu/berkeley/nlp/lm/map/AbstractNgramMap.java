@@ -12,6 +12,41 @@ public abstract class AbstractNgramMap<T> implements NgramMap<T>, Serializable
 	 */
 	private static final long serialVersionUID = 1L;
 
+	protected static final byte NUM_BITS_PER_BYTE = Byte.SIZE;
+
+	protected static final int NUM_WORD_BITS = 26;
+
+	protected static final int NUM_SUFFIX_BITS = (64 - NUM_WORD_BITS);
+
+	protected static final long WORD_BIT_MASK = ((1L << NUM_WORD_BITS) - 1) << (NUM_SUFFIX_BITS);
+
+	protected static final long SUFFIX_BIT_MASK = ((1L << NUM_SUFFIX_BITS) - 1);
+
+	/**
+	 * @param key
+	 * @return
+	 */
+	protected static long contextOffsetOf(final long key) {
+		return (key & SUFFIX_BIT_MASK);
+	}
+
+	/**
+	 * @param key
+	 * @return
+	 */
+	protected static int wordOf(final long key) {
+		return (int) ((key & WORD_BIT_MASK) >>> (NUM_SUFFIX_BITS));
+	}
+
+	/**
+	 * @param word
+	 * @param suffixIndex
+	 * @return
+	 */
+	protected static long getKey(final int word, final long suffixIndex) {
+		return (((long) word) << (NUM_SUFFIX_BITS)) | suffixIndex;
+	}
+
 	protected final ValueContainer<T> values;
 
 	protected final ConfigOptions opts;
