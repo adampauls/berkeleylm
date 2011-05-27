@@ -22,7 +22,7 @@ public class ProbBackoffLm<W> extends AbstractNgramLanguageModel<W> implements N
 	 */
 	private static final long serialVersionUID = 1L;
 
-	protected final NgramMap<ProbBackoffPair> map;
+	private final NgramMap<ProbBackoffPair> map;
 
 	/**
 	 * Fixed constant returned when computing the log probability for an n-gram

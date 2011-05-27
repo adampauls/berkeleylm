@@ -5,7 +5,6 @@ import java.util.Arrays;
 
 import edu.berkeley.nlp.lm.array.CustomWidthArray;
 import edu.berkeley.nlp.lm.array.LongArray;
-import edu.berkeley.nlp.lm.array.SmallLongArray;
 import edu.berkeley.nlp.lm.bits.BitList;
 import edu.berkeley.nlp.lm.bits.BitStream;
 import edu.berkeley.nlp.lm.collections.Indexer;
@@ -104,7 +103,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 		}
 
 		if (contextOffsets != null) {
-			if (contextOffsets[ngramOrder] == null) contextOffsets[ngramOrder] = new SmallLongArray(size + 1);
+			if (contextOffsets[ngramOrder] == null) contextOffsets[ngramOrder] = LongArray.StaticMethods.newLongArray(Integer.MAX_VALUE, size + 1);
 
 		}
 	}

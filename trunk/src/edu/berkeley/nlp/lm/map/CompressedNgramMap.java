@@ -43,9 +43,9 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	private final int offsetDeltaRadix;
 
-	protected CompressedMap[] maps;
+	private CompressedMap[] maps;
 
-	protected final boolean reverseTrie = true;
+	private final boolean reverseTrie = true;
 
 	public CompressedNgramMap(final ValueContainer<T> values, final ConfigOptions opts) {
 		super(values, opts);

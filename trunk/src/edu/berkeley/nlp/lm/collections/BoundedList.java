@@ -12,11 +12,11 @@ import java.util.List;
  */
 public class BoundedList<E> extends AbstractList<E>
 {
-	private E leftBoundary;
+	private final E leftBoundary;
 
-	private E rightBoundary;
+	private final E rightBoundary;
 
-	private List<E> list;
+	private final List<E> list;
 
 	/**
 	 * Returns the object at the given index, provided the index is between 0
@@ -41,10 +41,6 @@ public class BoundedList<E> extends AbstractList<E>
 		this.list = list;
 		this.leftBoundary = leftBoundary;
 		this.rightBoundary = rightBoundary;
-	}
-
-	public BoundedList(final List<E> list, final E boundary) {
-		this(list, boundary, boundary);
 	}
 
 	@Override

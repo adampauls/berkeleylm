@@ -21,9 +21,9 @@ public abstract class AbstractNgramLanguageModel<W> implements NgramLanguageMode
 	 */
 	private static final long serialVersionUID = 1L;
 
-	protected final int lmOrder;
+	private final int lmOrder;
 
-	protected final WordIndexer<W> wordIndexer;
+	private final WordIndexer<W> wordIndexer;
 
 	public AbstractNgramLanguageModel(final int lmOrder, final WordIndexer<W> wordIndexer) {
 		this.lmOrder = lmOrder;

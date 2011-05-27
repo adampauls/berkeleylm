@@ -27,13 +27,13 @@ public class Counter<E> implements Serializable
 {
 	private static final long serialVersionUID = 1L;
 
-	Map<E, Double> entries;
+	private final Map<E, Double> entries;
 
-	boolean dirty = true;
+	private boolean dirty = true;
 
-	double cacheTotal = 0.0;
+	private double cacheTotal = 0.0;
 
-	double defaultCount = 0.0;
+	private double defaultCount = 0.0;
 
 	public double getDefaultCount() {
 		return defaultCount;

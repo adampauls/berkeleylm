@@ -13,7 +13,7 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private ContextEncodedLmCache contextCache;
+	private final ContextEncodedLmCache contextCache;
 
 	private final ContextEncodedNgramLanguageModel<T> lm;
 
