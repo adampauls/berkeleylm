@@ -38,6 +38,11 @@ public abstract class AbstractContextEncodedNgramLanguageModel<W> implements Con
 	public int getLmOrder() {
 		return lmOrder;
 	}
+	
+	@Override
+	public WordIndexer<W> getWordIndexer() {
+		return wordIndexer;
+	}
 
 	@Override
 	public float scoreSentence(final List<W> sentence) {
