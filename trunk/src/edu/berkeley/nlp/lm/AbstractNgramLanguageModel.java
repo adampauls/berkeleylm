@@ -4,8 +4,10 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * Default implementation of all NGramLanguageModel functionality except the
- * getLogProb(int[] ngram, int startPos, int endPos) function.
+ * Default implementation of all NGramLanguageModel functionality except
+ * getLogProb(int[] ngram, int startPos, int endPos)
+ * 
+ * @see getLogProb(int[] , int , int ) function.
  * 
  * @author adampauls
  * 
@@ -31,11 +33,6 @@ public abstract class AbstractNgramLanguageModel<W> implements NgramLanguageMode
 	@Override
 	public int getLmOrder() {
 		return lmOrder;
-	}
-
-	@Override
-	public float scoreSequence(final List<W> sequence) {
-		return NgramLanguageModel.DefaultImplementations.scoreSequence(sequence, this);
 	}
 
 	@Override

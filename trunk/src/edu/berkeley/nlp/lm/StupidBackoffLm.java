@@ -84,48 +84,6 @@ public class StupidBackoffLm<W> extends AbstractNgramLanguageModel<W> implements
 		return logProb;
 	}
 
-	//	/**
-	//	 * @param ngram
-	//	 * @param startPos_
-	//	 * @param endPos_
-	//	 * @return
-	//	 */
-	//	private float getLogProbWithOffsets(final int[] ngram, final int startPos, final int endPos) {
-	//		float logProb = oovWordLogProb;
-	//		float backoff = 0.0f;
-	//
-	//		ContextEncodedNgramMap<ProbBackoffPair> localMap = (ContextEncodedNgramMap<ProbBackoffPair>) map;
-	//		long probContext = 0L;
-	//		int probContextOrder = -1;
-	//
-	//		long backoffContext = 0L;
-	//		int backoffContextOrder = -1;
-	//
-	//		for (int i = endPos - 1; i >= startPos; --i) {
-	//			if (probContext >= 0) probContext = localMap.getOffset(probContext, probContextOrder, ngram[i]);
-	//			if (probContext >= 0) {
-	//				probContextOrder++;
-	//				final float currProb = values.getProb(probContextOrder, probContext);
-	//				if (Float.isNaN(currProb) && i == startPos) {
-	//					return logProb + backoff;
-	//				} else if (!Float.isNaN(currProb)) {
-	//
-	//					logProb = currProb;
-	//					backoff = 0.0f;
-	//				}
-	//			}
-	//			if (i == startPos) break;
-	//
-	//			backoffContext = localMap.getOffset(backoffContext, backoffContextOrder, ngram[i - 1]);
-	//			if (backoffContext < 0) break;
-	//
-	//			backoffContextOrder++;
-	//			final float currBackoff = values.getBackoff(backoffContextOrder, backoffContext);
-	//			backoff += Float.isNaN(currBackoff) ? 0.0f : currBackoff;
-	//		}
-	//		return logProb + backoff;
-	//	}
-
 	private static float pow(final float alpha, final int n) {
 		float ret = 1.0f;
 		for (int i = 0; i < n; ++i)
@@ -146,11 +104,6 @@ public class StupidBackoffLm<W> extends AbstractNgramLanguageModel<W> implements
 	@Override
 	public float getLogProb(final List<W> ngram) {
 		return NgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
-	}
-
-	@Override
-	public float scoreSequence(final List<W> sequence) {
-		return NgramLanguageModel.DefaultImplementations.scoreSequence(sequence, this);
 	}
 
 }

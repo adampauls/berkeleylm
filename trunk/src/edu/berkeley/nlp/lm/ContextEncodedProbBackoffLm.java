@@ -3,7 +3,6 @@ package edu.berkeley.nlp.lm;
 import java.io.Serializable;
 
 import edu.berkeley.nlp.lm.map.ContextEncodedNgramMap;
-import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
@@ -23,7 +22,7 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 	 */
 	private static final long serialVersionUID = 1L;
 
-	protected final NgramMap<ProbBackoffPair> map;
+	protected final ContextEncodedNgramMap<ProbBackoffPair> map;
 
 	private final ProbBackoffValueContainer values;
 
@@ -35,7 +34,8 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 	 */
 	private final float oovWordLogProb;
 
-	public ContextEncodedProbBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final NgramMap<ProbBackoffPair> map, final ConfigOptions opts) {
+	public ContextEncodedProbBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final ContextEncodedNgramMap<ProbBackoffPair> map,
+		final ConfigOptions opts) {
 		super(lmOrder, wordIndexer);
 		oovWordLogProb = (float) opts.unknownWordLogProb;
 		this.map = map;
@@ -45,7 +45,7 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 
 	@Override
 	public float getLogProb(final long contextOffset, final int contextOrder, final int word, @OutputParameter final LmContextInfo outputContext) {
-		final ContextEncodedNgramMap<ProbBackoffPair> localMap = (ContextEncodedNgramMap<ProbBackoffPair>) map;
+		final ContextEncodedNgramMap<ProbBackoffPair> localMap = map;
 		int currContextOrder = contextOrder;
 		long currContextOffset = contextOffset;
 		float sum = 0.0f;
@@ -84,10 +84,14 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 		return wordIndexer;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public LmContextInfo getOffsetForNgram(final int[] ngram, final int startPos, final int endPos) {
-		return ((ContextEncodedNgramMap<W>) map).getOffsetForNgram(ngram, startPos, endPos);
+		return map.getOffsetForNgram(ngram, startPos, endPos);
+	}
+
+	@Override
+	public int[] getNgramForOffset(final long contextOffset, final int contextOrder, final int word) {
+		return map.getNgramForOffset(contextOffset, contextOrder, word);
 	}
 
 }

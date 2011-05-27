@@ -1,6 +1,9 @@
 package edu.berkeley.nlp.lm;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 
 /**
  * 
@@ -32,10 +35,41 @@ public interface NgramLanguageModelBase<W>
 
 	/**
 	 * Scores a complete sentence, taking appropriate care with the start- and
-	 * end-of-sentence symbols.
+	 * end-of-sentence symbols. This is a convenience method and will generally
+	 * be very inefficient.
 	 * 
 	 * @return
 	 */
 	public float scoreSentence(List<W> sentence);
+
+	/**
+	 * 
+	 * Scores an n-gram. This is a convenience method and will generally be very
+	 * inefficient.
+	 */
+	public float getLogProb(List<W> ngram);
+
+	public static class StaticMethods
+	{
+
+		public static <T> int[] toIntArray(final List<T> ngram, final NgramLanguageModel<T> lm) {
+			final int[] ints = new int[ngram.size()];
+			final WordIndexer<T> wordIndexer = lm.getWordIndexer();
+			for (int i = 0; i < ngram.size(); ++i) {
+				ints[i] = wordIndexer.getOrAddIndex(ngram.get(i));
+			}
+			return ints;
+		}
+
+		public static <T> List<T> toObjectList(int[] ngram, final NgramLanguageModel<T> lm) {
+			final List<T> ret = new ArrayList<T>(ngram.length);
+			final WordIndexer<T> wordIndexer = lm.getWordIndexer();
+			for (int i = 0; i < ngram.length; ++i) {
+				ret.add(wordIndexer.getWord(ngram[i]));
+			}
+			return ret;
+		}
+
+	}
 
 }
