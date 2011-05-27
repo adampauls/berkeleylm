@@ -1,0 +1,101 @@
+package edu.berkeley.nlp.lm.map;
+
+import java.io.Serializable;
+import java.util.Arrays;
+
+import edu.berkeley.nlp.lm.array.LongArray;
+import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
+import edu.berkeley.nlp.lm.util.Logger;
+import edu.berkeley.nlp.lm.util.MurmurHash;
+
+/**
+ * Low-level hash map which stored context-encoded parent pointers in a trie.
+ * 
+ * @author adampauls
+ * 
+ */
+final class ExplicitWordHashMap implements Serializable, HashMap
+{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	@PrintMemoryCount
+	private final LongArray keys;
+
+	private long numFilled = 0;
+
+	private final double maxLoadFactor;
+
+	private static final int EMPTY_KEY = -1;
+
+	public ExplicitWordHashMap(final double maxLoadFactor) {
+		this.maxLoadFactor = maxLoadFactor;
+		final long totalNumNgrams = 10;
+		keys = LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
+		keys.fill(EMPTY_KEY, totalNumNgrams);
+		numFilled = 0;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.berkeley.nlp.lm.map.HashMap#put(long)
+	 */
+	@Override
+	public long put(final long key) {
+		final long hash = hash(key);
+		if (hash < 0) return -1L;
+		final long rangeStart = 0;
+		final long rangeEnd = keys.size();
+		long i = keys.linearSearch(key, rangeStart, rangeEnd, hash, EMPTY_KEY, true);
+		if (keys.get(i) == EMPTY_KEY) setKey(i, key);
+		numFilled++;
+
+		return i;
+	}
+
+	private void setKey(final long index, final long putKey) {
+		keys.set(index, putKey);
+
+	}
+
+	public final long getOffset(final long key) {
+		final long hash = hash(key);
+		if (hash < 0) return -1L;
+		final long rangeStart = 0;
+		final long rangeEnd = keys.size();
+		final long startIndex = hash;
+		assert startIndex >= rangeStart;
+		assert startIndex < rangeEnd;
+		return keys.linearSearch(AbstractNgramMap.contextOffsetOf(key), rangeStart, rangeEnd, startIndex, EMPTY_KEY, false);
+	}
+
+	public long getCapacity() {
+		return keys.size();
+	}
+
+	public double getLoadFactor() {
+		return (double) numFilled / getCapacity();
+	}
+
+	private long hash(final long key) {
+		final long hashed = (MurmurHash.hashOneLong(key, 31));
+		long hash1 = hashed;
+		if (hash1 < 0) hash1 = -hash1;
+
+		final long startOfRange = 0;
+		final long numHashPositions = keys.size() - startOfRange;
+		if (numHashPositions == 0) return -1;
+		hash1 = (hash1 % numHashPositions);
+		return hash1 + startOfRange;
+	}
+
+	@Override
+	public long getKey(long contextOffset) {
+		return keys.get(contextOffset);
+	}
+
+}
