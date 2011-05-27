@@ -75,7 +75,7 @@ final class IntSmallLongArray implements Serializable, LongArray
 		setHelp(pos, val);
 	}
 
-	private void ensureCapacity(final long minCapacity) {
+	public void ensureCapacity(final long minCapacity) {
 		final int oldCapacity = sizeOf(data);
 		if (minCapacity > oldCapacity) {
 			final int[] oldData = data;

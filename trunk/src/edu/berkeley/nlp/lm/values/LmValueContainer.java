@@ -32,7 +32,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 
 	protected final boolean storePrefixIndexes;
 
-	protected final BitCompressor nonHuffmanCoder;
+	protected final BitCompressor valueCoder;
 
 	protected final int valueRadix;
 
@@ -40,7 +40,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 
 	public LmValueContainer(final Indexer<V> countIndexer, final int valueRadix, final boolean storePrefixIndexes) {
 		this.valueRadix = valueRadix;
-		nonHuffmanCoder = new VariableLengthBlockCoder(valueRadix);
+		valueCoder = new VariableLengthBlockCoder(valueRadix);
 		this.countIndexer = countIndexer;
 		this.storePrefixIndexes = storePrefixIndexes;
 		if (storePrefixIndexes) contextOffsets = new LongArray[6];
@@ -70,7 +70,6 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 
 	@Override
 	public void add(final int ngramOrder, final long offset, final long prefixOffset, final int word, final V val_, final long suffixOffset) {
-
 		V val = val_;
 		if (val == null) val = getDefaultVal();
 
@@ -135,7 +134,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 	 * @return
 	 */
 	private long doDecode(final BitStream bits) {
-		return nonHuffmanCoder.decompress(bits);
+		return valueCoder.decompress(bits);
 	}
 
 	@Override
@@ -146,7 +145,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 	@Override
 	public BitList getCompressed(final long offset, final int ngramOrder) {
 		final int l = (int) valueRanksCompressed[ngramOrder].get(offset);
-		return nonHuffmanCoder.compress(l);
+		return valueCoder.compress(l);
 	}
 
 	@Override

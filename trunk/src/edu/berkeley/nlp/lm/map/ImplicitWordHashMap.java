@@ -35,11 +35,11 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 
 	private static final int EMPTY_KEY = -1;
 
-	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final double maxLoadFactor) {
+	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final double loadFactor) {
 		final long numWords = numNgramsForEachWord.size();
 		wordRangesLow = new long[(int) numWords];
 		wordRangesHigh = new long[(int) numWords];
-		final long totalNumNgrams = setWordRanges(numNgramsForEachWord, maxLoadFactor, numWords);
+		final long totalNumNgrams = setWordRanges(numNgramsForEachWord, loadFactor, numWords);
 		keys = LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
 		Logger.logss("No word key size " + totalNumNgrams);
 		keys.fill(EMPTY_KEY, totalNumNgrams);
@@ -145,6 +145,11 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	@Override
 	public long getKey(long contextOffset) {
 		return AbstractNgramMap.combineToKey(getWordForContext(contextOffset), getNextOffset(contextOffset));
+	}
+
+	@Override
+	public boolean isEmptyKey(long key) {
+		return key == EMPTY_KEY;
 	}
 
 }

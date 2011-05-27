@@ -83,7 +83,7 @@ final class LargeLongArray implements Serializable, LongArray
 		setHelp(pos, val);
 	}
 
-	private void ensureCapacity(final long minCapacity) {
+	public void ensureCapacity(final long minCapacity) {
 		final long oldCapacity = sizeOf(data);
 		if (minCapacity > oldCapacity) {
 			final long[][] oldData = data;

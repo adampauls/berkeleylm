@@ -13,4 +13,6 @@ interface HashMap
 
 	public long getKey(long contextOffset);
 
+	public boolean isEmptyKey(long key);
+
 }

@@ -12,7 +12,7 @@ import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.MurmurHash;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
-public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncodedNgramMap<T>
+public final class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncodedNgramMap<T>
 {
 
 	/**
@@ -27,7 +27,12 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 
 	private final boolean reversed;
 
-	public HashNgramMap(final ValueContainer<T> values, final ConfigOptions opts, final LongArray[] numNgramsForEachWord, final boolean reversed) {
+	public static <T> HashNgramMap<T> createImplicitWordHashNgramMap(ValueContainer<T> values, ConfigOptions opts, LongArray[] numNgramsForEachWord,
+		boolean reversed) {
+		return new HashNgramMap<T>(values, opts, numNgramsForEachWord, reversed);
+	}
+
+	private HashNgramMap(final ValueContainer<T> values, final ConfigOptions opts, final LongArray[] numNgramsForEachWord, final boolean reversed) {
 		super(values, opts);
 		this.reversed = reversed;
 		this.maxLoadFactor = opts.hashTableLoadFactor;
@@ -38,10 +43,39 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		}
 	}
 
+	public static <T> HashNgramMap<T> createExplicitWordHashNgramMap(ValueContainer<T> values, ConfigOptions opts, final int maxNgramOrder, boolean reversed) {
+		return new HashNgramMap<T>(values, opts, maxNgramOrder, reversed);
+	}
+
+	private HashNgramMap(final ValueContainer<T> values, final ConfigOptions opts, final int maxNgramOrder, final boolean reversed) {
+		super(values, opts);
+		this.reversed = reversed;
+		this.maxLoadFactor = opts.hashTableLoadFactor;
+		maps = new ExplicitWordHashMap[maxNgramOrder];
+		for (int ngramOrder = 0; ngramOrder < maxNgramOrder; ++ngramOrder) {
+			maps[ngramOrder] = new ExplicitWordHashMap(10);
+			values.setSizeAtLeast(maps[ngramOrder].getCapacity(), ngramOrder);
+		}
+	}
+
+	private HashNgramMap(ValueContainer<T> values, ConfigOptions opts, long[] newCapacities, boolean reversed) {
+		super(values, opts);
+		this.reversed = reversed;
+		this.maxLoadFactor = opts.hashTableLoadFactor;
+		maps = new ExplicitWordHashMap[newCapacities.length];
+		for (int ngramOrder = 0; ngramOrder < maps.length; ++ngramOrder) {
+			maps[ngramOrder] = new ExplicitWordHashMap(newCapacities[ngramOrder]);
+			values.setSizeAtLeast(maps[ngramOrder].getCapacity(), ngramOrder);
+		}
+	}
+
 	@Override
 	public long put(final int[] ngram, final T val) {
 		final int endPos = ngram.length;
 		final HashMap map = maps[ngram.length - 1];
+		if (map.getLoadFactor() >= maxLoadFactor) {
+			rehash(endPos - 1, map.getCapacity() * 3 / 2);
+		}
 		final long key = getKey(ngram, 0, endPos);
 		if (key < 0) return -1L;
 		final long index = map.put(key);
@@ -95,6 +129,37 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		return offset;
 	}
 
+	private void rehash(final int changedNgramOrder, final long newCapacity) {
+		final ValueContainer<T> newValues = values.createFreshValues();
+		final long[] newCapacities = new long[maps.length];
+		Arrays.fill(newCapacities, -1L);
+
+		for (int ngramOrder = 0; ngramOrder < maps.length; ++ngramOrder) {
+			if (maps[ngramOrder] == null) break;
+			newCapacities[ngramOrder] = ngramOrder == changedNgramOrder ? newCapacity : maps[ngramOrder].getCapacity();
+		}
+		final HashNgramMap<T> newMap = new HashNgramMap<T>(newValues, opts, newCapacities, reversed);
+
+		for (int ngramOrder = 0; ngramOrder < maps.length; ++ngramOrder) {
+			final HashMap currMap = maps[ngramOrder];
+			if (currMap == null) continue;
+			for (long actualIndex = 0; actualIndex < currMap.getCapacity(); ++actualIndex) {
+				final long key = currMap.getKey(actualIndex);
+				if (currMap.isEmptyKey(key)) continue;
+				final int[] ngram = getNgramForOffset(AbstractNgramMap.contextOffsetOf(key), ngramOrder - 1, AbstractNgramMap.wordOf(key));
+
+				final T val = values.getScratchValue();
+				values.getFromOffset(actualIndex, ngramOrder, val);
+
+				newMap.put(ngram, val);
+
+			}
+		}
+		System.arraycopy(newMap.maps, 0, maps, 0, newMap.maps.length);
+		values.setFromOtherValues(newValues);
+
+	}
+
 	/**
 	 * @param ngram
 	 * @param startPos
@@ -124,7 +189,6 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 
 	@Override
 	public void handleNgramsFinished(final int justFinishedOrder) {
-		final int ngramOrder = justFinishedOrder - 1;
 	}
 
 	@Override

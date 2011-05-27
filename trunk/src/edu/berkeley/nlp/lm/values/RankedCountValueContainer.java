@@ -5,7 +5,7 @@ import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.LongRef;
 
-public final class CountValueContainer extends LmValueContainer<LongRef>
+public final class RankedCountValueContainer extends LmValueContainer<LongRef>
 {
 
 	private static final long serialVersionUID = 964277160049236607L;
@@ -15,13 +15,13 @@ public final class CountValueContainer extends LmValueContainer<LongRef>
 
 	private long unigramSum = 0L;
 
-	public CountValueContainer(final Indexer<LongRef> countIndexer, final int valueRadix, final boolean storePrefixes) {
+	public RankedCountValueContainer(final Indexer<LongRef> countIndexer, final int valueRadix, final boolean storePrefixes) {
 		super(countIndexer, valueRadix, storePrefixes);
 	}
 
 	@Override
-	public CountValueContainer createFreshValues() {
-		return new CountValueContainer(countIndexer, valueRadix, storePrefixIndexes);
+	public RankedCountValueContainer createFreshValues() {
+		return new RankedCountValueContainer(countIndexer, valueRadix, storePrefixIndexes);
 	}
 
 	@Override
@@ -61,11 +61,7 @@ public final class CountValueContainer extends LmValueContainer<LongRef>
 		countsForRank = new long[countIndexer.size()];
 		int k = 0;
 		for (final LongRef pair : countIndexer.getObjects()) {
-
-			final int i = k;
-			k++;
-
-			countsForRank[i] = pair.value;
+			countsForRank[k++] = pair.value;
 		}
 	}
 
@@ -81,6 +77,11 @@ public final class CountValueContainer extends LmValueContainer<LongRef>
 
 	public long getUnigramSum() {
 		return unigramSum;
+	}
+
+	@Override
+	public LongRef getScratchValue() {
+		return new LongRef(-1);
 	}
 
 }

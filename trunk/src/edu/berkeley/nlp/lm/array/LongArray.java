@@ -56,4 +56,6 @@ public interface LongArray
 
 	public abstract long linearSearch(long key, long rangeStart, long rangeEnd, long startIndex, long emptyKey, boolean returnFirstEmptyIndex);
 
+	public abstract void ensureCapacity(long l);
+
 }

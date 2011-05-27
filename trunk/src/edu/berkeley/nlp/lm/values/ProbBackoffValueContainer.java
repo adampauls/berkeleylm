@@ -77,4 +77,9 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 		outputVal.backoff = backoffsForRank[rank];
 	}
 
+	@Override
+	public ProbBackoffPair getScratchValue() {
+		return new ProbBackoffPair(Float.NaN, Float.NaN);
+	}
+
 }
