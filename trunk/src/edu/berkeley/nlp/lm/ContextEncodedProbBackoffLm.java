@@ -22,7 +22,7 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 	 */
 	private static final long serialVersionUID = 1L;
 
-	protected final ContextEncodedNgramMap<ProbBackoffPair> map;
+	private final ContextEncodedNgramMap<ProbBackoffPair> map;
 
 	private final ProbBackoffValueContainer values;
 
@@ -42,46 +42,32 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 		this.values = (ProbBackoffValueContainer) map.getValues();
 
 	}
+	
+	
 
 	@Override
 	public float getLogProb(final long contextOffset, final int contextOrder, final int word, @OutputParameter final LmContextInfo outputContext) {
 		final ContextEncodedNgramMap<ProbBackoffPair> localMap = map;
 		int currContextOrder = contextOrder;
 		long currContextOffset = contextOffset;
-		float sum = 0.0f;
+		float backoffSum = 0.0f;
 		while (true) {
 			final long offset = localMap.getOffset(currContextOffset, currContextOrder, word);
 			final int ngramOrder = currContextOrder + 1;
 			final float prob = offset < 0 ? Float.NaN : values.getProb(ngramOrder, offset);
 			if (offset >= 0 && !Float.isNaN(prob)) {
-				if (outputContext != null) {
-					if (ngramOrder == lmOrder - 1) {
-						final long suffixOffset = values.getContextOffset(offset, ngramOrder);
-						outputContext.offset = suffixOffset;
-						outputContext.order = ngramOrder - 1;
-					} else {
-						outputContext.offset = offset;
-						outputContext.order = ngramOrder;
-
-					}
-				}
-				assert !Float.isNaN(prob);
-				return sum + prob;
+				setOutputContext(outputContext, offset, ngramOrder);
+				return backoffSum + prob;
 			} else if (currContextOrder >= 0) {
 				final long backoffIndex = currContextOffset;
 				final float backOff = backoffIndex < 0 ? 0.0f : values.getBackoff(currContextOrder, backoffIndex);
-				sum += (Float.isNaN(backOff) ? 0.0f : backOff);
+				backoffSum += (Float.isNaN(backOff) ? 0.0f : backOff);
 				currContextOrder--;
 				currContextOffset = currContextOrder < 0 ? 0 : values.getContextOffset(currContextOffset, currContextOrder + 1);
 			} else {
 				return oovWordLogProb;
 			}
 		}
-	}
-
-	@Override
-	public WordIndexer<W> getWordIndexer() {
-		return wordIndexer;
 	}
 
 	@Override
@@ -93,5 +79,26 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 	public int[] getNgramForOffset(final long contextOffset, final int contextOrder, final int word) {
 		return map.getNgramForOffset(contextOffset, contextOrder, word);
 	}
+
+	/**
+	 * @param outputContext
+	 * @param offset
+	 * @param ngramOrder
+	 */
+	private void setOutputContext(final LmContextInfo outputContext, final long offset, final int ngramOrder) {
+		if (outputContext != null) {
+			if (ngramOrder == lmOrder - 1) {
+				final long suffixOffset = values.getContextOffset(offset, ngramOrder);
+				outputContext.offset = suffixOffset;
+				outputContext.order = ngramOrder - 1;
+			} else {
+				outputContext.offset = offset;
+				outputContext.order = ngramOrder;
+
+			}
+		}
+	}
+
+	
 
 }

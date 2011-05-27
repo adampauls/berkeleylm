@@ -61,7 +61,6 @@ public class ProbBackoffLm<W> extends AbstractNgramLanguageModel<W> implements N
 				if (Float.isNaN(currProb) && i == startPos_) {
 					return logProb + backoff;
 				} else if (!Float.isNaN(currProb)) {
-
 					logProb = currProb;
 					backoff = 0.0f;
 				}
@@ -77,10 +76,6 @@ public class ProbBackoffLm<W> extends AbstractNgramLanguageModel<W> implements N
 		return logProb + backoff;
 	}
 
-	@Override
-	public WordIndexer<W> getWordIndexer() {
-		return wordIndexer;
-	}
 
 	@Override
 	public float getLogProb(final int[] ngram) {
