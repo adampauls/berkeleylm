@@ -113,4 +113,12 @@ public interface ValueContainer<V>
 	 */
 	public long getContextOffset(long offset, int ngramOrder);
 
+	/**
+	 * Creates a fresh value of object (useful for passing as an output
+	 * parameter)
+	 * 
+	 * @return
+	 */
+	public V getScratchValue();
+
 }

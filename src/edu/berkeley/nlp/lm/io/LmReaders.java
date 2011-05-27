@@ -13,7 +13,7 @@ import edu.berkeley.nlp.lm.map.HashNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.LongRef;
-import edu.berkeley.nlp.lm.values.CountValueContainer;
+import edu.berkeley.nlp.lm.values.RankedCountValueContainer;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
 import edu.berkeley.nlp.lm.values.ValueContainer;
@@ -131,7 +131,7 @@ public class LmReaders
 		final FirstPassCallback<LongRef> valueAddingCallback, final LongArray[] numNgramsForEachWord, boolean compress) {
 		final boolean contextEncoded = false;
 		final boolean reversed = true;
-		final CountValueContainer values = new CountValueContainer(valueAddingCallback.getIndexer(), opts.valueRadix, contextEncoded);
+		final RankedCountValueContainer values = new RankedCountValueContainer(valueAddingCallback.getIndexer(), opts.valueRadix, contextEncoded);
 		final GoogleLmReader<W> lmReader = new GoogleLmReader<W>(dir, wordIndexer, opts);
 		final NgramMap<LongRef> map = buildMapCommon(opts, wordIndexer, numNgramsForEachWord, reversed, lmReader, values, compress);
 		return new StupidBackoffLm<W>(numNgramsForEachWord.length, wordIndexer, map, opts);
@@ -174,7 +174,7 @@ public class LmReaders
 	private static <W, V extends Comparable<V>> NgramMap<V> buildMapCommon(final ConfigOptions opts, final WordIndexer<W> wordIndexer,
 		final LongArray[] numNgramsForEachWord, final boolean reversed, final LmReader<V> lmReader, final ValueContainer<V> values, final boolean compress) {
 		Logger.startTrack("Pass 2 of 2");
-		final NgramMap<V> map = compress ? new CompressedNgramMap<V>(values, opts) : new HashNgramMap<V>(values, opts, numNgramsForEachWord, reversed);
+		final NgramMap<V> map = compress ? new CompressedNgramMap<V>(values, opts) : HashNgramMap.createImplicitWordHashNgramMap(values, opts, numNgramsForEachWord, reversed);
 
 		lmReader.parse(new NgramMapAddingCallback<V>(map));
 		wordIndexer.trimAndLock();

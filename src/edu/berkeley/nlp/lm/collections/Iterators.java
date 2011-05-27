@@ -32,4 +32,80 @@ public class Iterators
 		};
 	}
 
+	public static <T> Iterable<T> flatten(final Iterator<Iterator<T>> iters) {
+		return Iterators.able(new IteratorIterator<T>(iters));
+	}
+
+	/**
+	 * Wraps a two-level iteration scenario in an iterator. Each key of the keys
+	 * iterator returns an iterator (via the factory) over T's.
+	 * 
+	 * The IteratorIterator loops through the iterator associated with each key
+	 * until all the keys are used up.
+	 */
+	private static class IteratorIterator<T> implements Iterator<T>
+	{
+		Iterator<T> current = null;
+
+		private Iterator<Iterator<T>> iters;
+
+		public IteratorIterator(Iterator<Iterator<T>> iters) {
+			this.iters = iters;
+			current = getNextIterator();
+		}
+
+		private Iterator<T> getNextIterator() {
+			Iterator<T> next = null;
+			while (next == null) {
+				if (!iters.hasNext()) break;
+				next = iters.next();
+				if (!next.hasNext()) next = null;
+			}
+			return next;
+		}
+
+		public boolean hasNext() {
+			return current != null;
+		}
+
+		public T next() {
+			T next = current.next();
+			if (!current.hasNext()) current = getNextIterator();
+			return next;
+		}
+
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
+	}
+
+	/**
+	 * Wraps a base iterator with a transformation function.
+	 */
+	public static abstract class Transform<S, T> implements Iterator<T>
+	{
+
+		private Iterator<S> base;
+
+		public Transform(Iterator<S> base) {
+			this.base = base;
+		}
+
+		public boolean hasNext() {
+			return base.hasNext();
+		}
+
+		public T next() {
+			return transform(base.next());
+		}
+
+		protected abstract T transform(S next);
+
+		public void remove() {
+			base.remove();
+		}
+
+	}
+
 }

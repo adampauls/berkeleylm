@@ -27,15 +27,12 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 
 	private long numFilled = 0;
 
-	private final double maxLoadFactor;
 
 	private static final int EMPTY_KEY = -1;
 
-	public ExplicitWordHashMap(final double maxLoadFactor) {
-		this.maxLoadFactor = maxLoadFactor;
-		final long totalNumNgrams = 10;
-		keys = LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
-		keys.fill(EMPTY_KEY, totalNumNgrams);
+	public ExplicitWordHashMap(long capacity) {
+		keys = LongArray.StaticMethods.newLongArray(capacity, capacity, capacity);
+		keys.fill(EMPTY_KEY, capacity);
 		numFilled = 0;
 	}
 
@@ -96,6 +93,11 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 	@Override
 	public long getKey(long contextOffset) {
 		return keys.get(contextOffset);
+	}
+
+	@Override
+	public boolean isEmptyKey(long key) {
+		return key == EMPTY_KEY;
 	}
 
 }
