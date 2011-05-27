@@ -25,17 +25,15 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 
 	private final double maxLoadFactor;
 
-	private long numWords = 0;
-
 	private final boolean reversed;
 
 	public HashNgramMap(final ValueContainer<T> values, final ConfigOptions opts, final LongArray[] numNgramsForEachWord, final boolean reversed) {
 		super(values, opts);
 		this.reversed = reversed;
 		this.maxLoadFactor = opts.hashTableLoadFactor;
-		maps = new HashMap[numNgramsForEachWord.length];
+		maps = new ImplicitWordHashMap[numNgramsForEachWord.length];
 		for (int ngramOrder = 0; ngramOrder < numNgramsForEachWord.length; ++ngramOrder) {
-			maps[ngramOrder] = new HashMap(numNgramsForEachWord[ngramOrder], maxLoadFactor);
+			maps[ngramOrder] = new ImplicitWordHashMap(numNgramsForEachWord[ngramOrder], maxLoadFactor);
 			values.setSizeAtLeast(maps[ngramOrder].getCapacity(), ngramOrder);
 		}
 	}
@@ -69,8 +67,9 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		int word_ = word;
 		ret[reversed ? 0 : (ret.length - 1)] = word_;
 		for (int i = 0; i < contextOrder; ++i) {
-			contextOffset_ = maps[i].getNextOffset(contextOffset_);
-			word_ = maps[i].getWordForContext(contextOffset_);
+			long key = maps[i].getKey(contextOffset_);
+			contextOffset_ = AbstractNgramMap.contextOffsetOf(key);
+			word_ = AbstractNgramMap.wordOf(key);
 
 			ret[reversed ? (i + 1) : (ret.length - i - 2)] = word_;
 		}
@@ -89,7 +88,7 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 
 		final long key = combineToKey(word, contextOffset);
 		final HashMap map = maps[ngramOrder];
-		final long offset = map.getIndexImplicity(key);
+		final long offset = map.getOffset(key);
 		if (offset >= 0 && outputVal != null) {
 			values.getFromOffset(offset, ngramOrder, outputVal);
 		}
@@ -107,7 +106,7 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		final int ngramOrder = endPos - startPos - 1;
 		final HashMap currMap = maps[ngramOrder];
 		final long key = getKey(ngram, startPos, endPos);
-		final long index = currMap.getIndexImplicity(key);
+		final long index = currMap.getOffset(key);
 		return index;
 	}
 
@@ -126,7 +125,6 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 	@Override
 	public void handleNgramsFinished(final int justFinishedOrder) {
 		final int ngramOrder = justFinishedOrder - 1;
-		numWords = Math.max(numWords, maps[ngramOrder].maxWord + 1);
 	}
 
 	@Override
