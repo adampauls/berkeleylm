@@ -4,6 +4,12 @@ import java.io.Serializable;
 
 import edu.berkeley.nlp.lm.util.Annotations.Option;
 
+/**
+ * Stores some configuration options, with useful defaults.
+ * 
+ * @author adampauls
+ * 
+ */
 public class ConfigOptions implements Serializable
 {
 
@@ -36,8 +42,5 @@ public class ConfigOptions implements Serializable
 
 	@Option(gloss = "Number of threads to use while reading directories in the format used by Google N-grams. 0 means no threading is used")
 	public int numGoogleLoadThreads = 0;
-
-	@Option(gloss = "Whether to use compression. This should reduce memory usage significantly, but also incur a performance penalty. Context-encoded lookups are not supported with compression.")
-	public boolean compress = false;
 
 }

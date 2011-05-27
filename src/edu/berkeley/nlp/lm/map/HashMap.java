@@ -1,6 +1,7 @@
 package edu.berkeley.nlp.lm.map;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
@@ -118,4 +119,14 @@ final class HashMap implements Serializable
 		hash1 = (hash1 % numHashPositions);
 		return hash1 + startOfRange;
 	}
+
+	public long getNextOffset(long offset) {
+		return keys.get(offset);
+	}
+
+	public int getWordForContext(long contextOffset) {
+		int binarySearch = Arrays.binarySearch(wordRangesLow, contextOffset);
+		return binarySearch >= 0 ? binarySearch : (-binarySearch - 2);
+	}
+
 }

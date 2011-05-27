@@ -3,11 +3,14 @@ package edu.berkeley.nlp.lm;
 import java.io.Serializable;
 import java.util.List;
 
+import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
+import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
+
 /**
  * 
  * Default implementation of all ContextEncodedNgramLanguageModel functionality
- * except @see #getLogProb(long , int , int , LmStateOutput ) and @see
- * #getNgramForContext(long , int)
+ * except @see #getLogProb(long , int , int , LmStateOutput ), @see
+ * #getOffsetForNgram(long , int) and @see #getNgramForOffset(long , int , int )
  * 
  * 
  * @author adampauls
@@ -42,8 +45,17 @@ public abstract class AbstractContextEncodedNgramLanguageModel<W> implements Con
 	}
 
 	@Override
-	public float getLogProb(final List<W> phrase, final LmContextInfo contextOutput) {
-		return ContextEncodedNgramLanguageModel.DefaultImplementations.getLogProb(phrase, contextOutput, this);
+	public float getLogProb(final List<W> phrase) {
+		return ContextEncodedNgramLanguageModel.DefaultImplementations.getLogProb(phrase, this);
 	}
+
+	@Override
+	public abstract float getLogProb(long contextOffset, int contextOrder, int word, @OutputParameter LmContextInfo outputContext);
+
+	@Override
+	public abstract LmContextInfo getOffsetForNgram(int[] ngram, int startPos, int endPos);
+
+	@Override
+	public abstract int[] getNgramForOffset(long contextOffset, int contextOrder, int word);
 
 }

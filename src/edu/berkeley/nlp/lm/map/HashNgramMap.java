@@ -1,5 +1,6 @@
 package edu.berkeley.nlp.lm.map;
 
+import java.util.Arrays;
 import java.util.List;
 
 import edu.berkeley.nlp.lm.ConfigOptions;
@@ -61,6 +62,21 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		return getOffsetForContextEncoding(contextOffset, contextOrder, word, null);
 	}
 
+	@Override
+	public int[] getNgramForOffset(long contextOffset, int contextOrder, int word) {
+		int[] ret = new int[contextOrder + 1];
+		long contextOffset_ = contextOffset;
+		int word_ = word;
+		ret[reversed ? 0 : (ret.length - 1)] = word_;
+		for (int i = 0; i < contextOrder; ++i) {
+			contextOffset_ = maps[i].getNextOffset(contextOffset_);
+			word_ = maps[i].getWordForContext(contextOffset_);
+
+			ret[reversed ? (i + 1) : (ret.length - i - 2)] = word_;
+		}
+		return ret;
+	}
+
 	/**
 	 * @param contextOffset_
 	 * @param contextOrder
@@ -73,18 +89,11 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 
 		final long key = combineToKey(word, contextOffset);
 		final HashMap map = maps[ngramOrder];
-		//		final long hash = hash(key, word, ngramOrder, map);
-		//		if (hash < 0) return -1L;
 		final long offset = map.getIndexImplicity(key);
 		if (offset >= 0 && outputVal != null) {
 			values.getFromOffset(offset, ngramOrder, outputVal);
 		}
 		return offset;
-	}
-
-	@Override
-	public long getOffset(final int[] ngram, final int startPos, final int endPos) {
-		return getOffsetFromRawNgram(ngram, startPos, endPos);
 	}
 
 	/**
@@ -98,8 +107,6 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		final int ngramOrder = endPos - startPos - 1;
 		final HashMap currMap = maps[ngramOrder];
 		final long key = getKey(ngram, startPos, endPos);
-		//		final long hash = hash(key, wordOf(key), ngramOrder, currMap);
-		//		if (hash < 0) return -1;
 		final long index = currMap.getIndexImplicity(key);
 		return index;
 	}
@@ -108,7 +115,7 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 	public LmContextInfo getOffsetForNgram(final int[] ngram, final int startPos, final int endPos) {
 		final LmContextInfo lmContextInfo = new LmContextInfo();
 		for (int start = endPos - 1; start >= startPos; --start) {
-			final long offset = getOffset(ngram, start, endPos);
+			final long offset = getOffsetFromRawNgram(ngram, start, endPos);
 			if (offset < 0) break;
 			lmContextInfo.offset = offset;
 			lmContextInfo.order = endPos - start - 1;
@@ -149,7 +156,7 @@ public class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncod
 		long contextOffset = 0;
 		for (int ngramOrder = 0; ngramOrder < endPos - startPos - 1; ++ngramOrder) {
 			final int currNgramPos = reversed ? (endPos - ngramOrder - 1) : (startPos + ngramOrder);
-			contextOffset = getOffsetForContextEncoding(contextOffset, ngramOrder - 1, ngram[currNgramPos], null);//hash < 0 ? -1L : getOffsetHelp(hash, currEndPos, ngramOrder, null)getIndexHelp(ngram, currStartPos, ngramOrder, currEndPos, hash);
+			contextOffset = getOffsetForContextEncoding(contextOffset, ngramOrder - 1, ngram[currNgramPos], null);
 			if (contextOffset == -1L) { return -1; }
 
 		}

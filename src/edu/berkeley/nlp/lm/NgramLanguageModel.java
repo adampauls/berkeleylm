@@ -5,12 +5,10 @@ import java.util.List;
 import edu.berkeley.nlp.lm.collections.BoundedList;
 
 /**
+ * Top-level interface for an n-gram language model which accents n-gram in an
+ * array encoding.
  * 
- * @author adampauls Top-level interface for an n-gram language model.
- * 
- * @param <W>
- *            A type representing words in the language. Can be a
- *            <code>String</code>, or something more complex if needed
+ * @author adampauls
  */
 public interface NgramLanguageModel<W> extends NgramLanguageModelBase<W>
 {
@@ -34,25 +32,6 @@ public interface NgramLanguageModel<W> extends NgramLanguageModelBase<W>
 	 * @see #getLogProb(int[], int, int)
 	 */
 	public float getLogProb(int[] ngram);
-
-	/**
-	 * Convenience method -- the list is first converted to an int[]
-	 * representation. This is general inefficient, and user code should
-	 * directly provide int[] arrays.
-	 * 
-	 * @see #getLogProb(int[], int, int)
-	 * @param ngram
-	 * @return
-	 */
-	public float getLogProb(List<W> ngram);
-
-	/**
-	 * Scores sequence possibly containing multiple n-grams, but not a complete
-	 * sentence.
-	 * 
-	 * @return
-	 */
-	public float scoreSequence(List<W> sequence);
 
 	public static class DefaultImplementations
 	{
@@ -79,27 +58,13 @@ public interface NgramLanguageModel<W> extends NgramLanguageModelBase<W>
 			return lm.getLogProb(ngram, 0, ngram.length);
 		}
 
-		public static <T> float scoreSequence(final List<T> sequence, final NgramLanguageModel<T> lm) {
-			float sentenceScore = 0.0f;
-
-			final int lmOrder = lm.getLmOrder();
-			for (int i = 0; i + lmOrder - 1 < sequence.size(); ++i) {
-				final List<T> ngram = sequence.subList(i, i + lmOrder);
-				final float scoreNgram = lm.getLogProb(ngram);
-				sentenceScore += scoreNgram;
-			}
-			return sentenceScore;
-		}
-
 		public static <T> float getLogProb(final List<T> ngram, final NgramLanguageModel<T> lm) {
-			final int[] ints = new int[ngram.size()];
-			final WordIndexer<T> wordIndexer = lm.getWordIndexer();
-			for (int i = 0; i < ngram.size(); ++i) {
-				ints[i] = wordIndexer.getOrAddIndex(ngram.get(i));
-			}
+			final int[] ints = StaticMethods.toIntArray(ngram, lm);
 			return lm.getLogProb(ints, 0, ints.length);
 
 		}
+
+		
 
 	}
 
