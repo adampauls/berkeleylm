@@ -4,41 +4,14 @@ import java.util.BitSet;
 
 public final class BitList
 {
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((data == null) ? 0 : data.hashCode());
-		result = prime * result + numBits;
-		return result;
-	}
 
-	@Override
-	public boolean equals(final Object obj) {
-		if (this == obj) return true;
-		if (obj == null) return false;
-		if (getClass() != obj.getClass()) return false;
-		final BitList other = (BitList) obj;
-		if (data == null) {
-			if (other.data != null) return false;
-		} else if (!data.equals(other.data)) return false;
-		if (numBits != other.numBits) return false;
-		return true;
-	}
+	private final BitSet data;
 
-	final BitSet data;
-
-	int numBits;
+	private int numBits;
 
 	public BitList() {
 		data = new BitSet();
 		numBits = 0;
-	}
-
-	public void or(final BitList bitList) {
-		for (int i = 0; i < bitList.numBits; ++i) {
-			set(i, bitList.get(i));
-		}
 	}
 
 	public void add(final boolean b) {
@@ -54,7 +27,7 @@ public final class BitList
 		return numBits;
 	}
 
-	public void set(final int index, final boolean b) {
+	private void set(final int index, final boolean b) {
 		data.set(index, b);
 		numBits = Math.max(numBits, index + 1);
 	}
@@ -100,11 +73,8 @@ public final class BitList
 		addHelp(l, Short.SIZE);
 	}
 
-	public void addByte(final byte l) {
-		addHelp(l, Byte.SIZE);
-	}
-
 	public void clear() {
 		numBits = 0;
 	}
+
 }

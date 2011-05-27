@@ -3,7 +3,7 @@ package edu.berkeley.nlp.lm.array;
 import java.io.Serializable;
 import java.util.Arrays;
 
-public final class LargeLongArray implements Serializable, LongArray
+final class LargeLongArray implements Serializable, LongArray
 {
 
 	/**
@@ -15,7 +15,7 @@ public final class LargeLongArray implements Serializable, LongArray
 
 	private long[][] data;
 
-	public LargeLongArray(final long initialCapacity) {
+	protected LargeLongArray(final long initialCapacity) {
 		this.size = 0;
 		allocFor(initialCapacity, null);
 	}
@@ -83,7 +83,7 @@ public final class LargeLongArray implements Serializable, LongArray
 		setHelp(pos, val);
 	}
 
-	public void ensureCapacity(final long minCapacity) {
+	private void ensureCapacity(final long minCapacity) {
 		final long oldCapacity = sizeOf(data);
 		if (minCapacity > oldCapacity) {
 			final long[][] oldData = data;
@@ -202,7 +202,7 @@ public final class LargeLongArray implements Serializable, LongArray
 		for (int i = 0; i < initialCapacity; ++i)
 			setAndGrowIfNeeded(i, l);
 	}
-	
+
 	@Override
 	public long linearSearch(long key, long rangeStart, long rangeEnd, long startIndex, long emptyKey, boolean returnFirstEmptyIndex) {
 		long i = startIndex;
@@ -226,7 +226,7 @@ public final class LargeLongArray implements Serializable, LongArray
 			}
 			final long searchKey = currArray[innerIndex];
 			if (searchKey == key) return i;
-			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i :-1L;
+			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
 			++i;
 			++innerIndex;
 		}

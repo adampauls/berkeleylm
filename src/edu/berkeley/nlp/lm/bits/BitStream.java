@@ -18,19 +18,19 @@ public final class BitStream
 
 	private static final long HIGH_BIT_MASK = (1L << (Long.SIZE - 1));
 
-	final LongArray data;
+	private final LongArray data;
 
-	final long start;
+	private final long start;
 
-	long currLong = -1;
+	private long currLong = -1;
 
-	long currPos = -1;
+	private long currPos = -1;
 
-	int relBit;
+	private int relBit;
 
-	long markedCurrPos = -1;
+	private long markedCurrPos = -1;
 
-	int markedRelBit = -1;
+	private int markedRelBit = -1;
 
 	private final int numBits;
 

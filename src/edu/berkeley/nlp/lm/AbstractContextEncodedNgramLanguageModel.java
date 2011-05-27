@@ -27,7 +27,7 @@ public abstract class AbstractContextEncodedNgramLanguageModel<W> implements Con
 
 	protected final int lmOrder;
 
-	protected final WordIndexer<W> wordIndexer;
+	private final WordIndexer<W> wordIndexer;
 
 	public AbstractContextEncodedNgramLanguageModel(final int lmOrder, final WordIndexer<W> wordIndexer) {
 		this.lmOrder = lmOrder;
@@ -38,7 +38,7 @@ public abstract class AbstractContextEncodedNgramLanguageModel<W> implements Con
 	public int getLmOrder() {
 		return lmOrder;
 	}
-	
+
 	@Override
 	public WordIndexer<W> getWordIndexer() {
 		return wordIndexer;

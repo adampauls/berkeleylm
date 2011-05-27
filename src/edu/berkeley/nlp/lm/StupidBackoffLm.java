@@ -73,7 +73,7 @@ public class StupidBackoffLm<W> extends AbstractNgramLanguageModel<W> implements
 			if (probContext < 0) {
 				return logProb;
 			} else {
-				logProb = scratch.value / lastCount * pow(alpha, i - startPos);
+				logProb = scratch.value / ((float) lastCount) * pow(alpha, i - startPos);
 				lastCount = scratch.value;
 				probContextOrder++;
 
@@ -89,11 +89,6 @@ public class StupidBackoffLm<W> extends AbstractNgramLanguageModel<W> implements
 		for (int i = 0; i < n; ++i)
 			ret *= alpha;
 		return ret;
-	}
-
-	@Override
-	public WordIndexer<W> getWordIndexer() {
-		return wordIndexer;
 	}
 
 	@Override
