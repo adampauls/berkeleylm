@@ -2,8 +2,11 @@ package edu.berkeley.nlp.lm.map;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map;
 
 import edu.berkeley.nlp.lm.array.LongArray;
+import edu.berkeley.nlp.lm.collections.Iterators;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.MurmurHash;
@@ -26,7 +29,6 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 	private final LongArray keys;
 
 	private long numFilled = 0;
-
 
 	private static final int EMPTY_KEY = -1;
 
@@ -99,5 +101,17 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 	public boolean isEmptyKey(long key) {
 		return key == EMPTY_KEY;
 	}
+
+	@Override
+	public long size() {
+		return numFilled;
+	}
+
+	@Override
+	public Iterable<Long> keys() {
+		return Iterators.able(new KeyIterator(keys));
+	}
+
+	
 
 }

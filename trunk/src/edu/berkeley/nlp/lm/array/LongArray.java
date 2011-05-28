@@ -52,10 +52,17 @@ public interface LongArray
 				++i;
 			}
 		}
+
+		public static void incrementCount(LongArray array, long index, long count) {
+			long l = array.get(index);
+			array.set(index, l + count);
+		}
 	}
 
 	public abstract long linearSearch(long key, long rangeStart, long rangeEnd, long startIndex, long emptyKey, boolean returnFirstEmptyIndex);
 
 	public abstract void ensureCapacity(long l);
+
+	public abstract void incrementCount(long index, long count);
 
 }

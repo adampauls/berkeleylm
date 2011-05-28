@@ -25,7 +25,7 @@ public final class NgramMapAddingCallback<V> implements LmReaderCallback<V>
 
 	@Override
 	public void call(final int[] ngram, final V v, final String words) {
-		final long add = map.put(ngram, v);
+		final long add = map.put(ngram, 0, ngram.length, v);
 		if (add < 0) {
 			if (warnCount >= 0 && warnCount < 10) {
 				Logger.warn("Could not add line " + words + "\nThis is usually because the prefix for the n-grams was not already in the map");

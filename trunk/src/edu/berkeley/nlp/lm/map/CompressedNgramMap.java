@@ -74,15 +74,17 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	 * @see edu.berkeley.nlp.mt.lm.NgramMap#add(java.util.List, T)
 	 */
 	@Override
-	public long put(final int[] ngram, final T val) {
+	public long put(final int[] ngram, int startPos, int endPos, final T val) {
 
-		final int ngramOrder = ngram.length - 1;
-		final int word = reverseTrie ? ngram[0] : ngram[ngram.length - 1];
+		final int ngramOrder = endPos - startPos - 1;
+		final int word = reverseTrie ? ngram[startPos] : ngram[endPos - 1];
 
-		final long contextOffset = reverseTrie ? getContextOffset(ngram, 1, ngram.length) : getContextOffset(ngram, 0, ngram.length - 1);
+		final long contextOffset = reverseTrie ? getContextOffset(ngram, startPos + 1, endPos) : getContextOffset(ngram, startPos, endPos - 1);
 		if (contextOffset < 0) return -1;
-		final long newOffset = maps[ngramOrder].add(combineToKey(word, contextOffset));
-		values.add(ngramOrder, maps[ngramOrder].size() - 1, contextOffset, word, val, (-1));
+		final CompressedMap map = maps[ngramOrder];
+		long oldSize = map.size();
+		final long newOffset = map.add(combineToKey(word, contextOffset));
+		values.add(ngram,startPos,endPos, ngramOrder, map.size() - 1, contextOffset, word, val, (-1), map.size() == oldSize);
 
 		return newOffset;
 

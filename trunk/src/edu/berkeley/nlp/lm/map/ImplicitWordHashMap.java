@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 import edu.berkeley.nlp.lm.array.LongArray;
+import edu.berkeley.nlp.lm.collections.Iterators;
+import edu.berkeley.nlp.lm.map.HashMap.KeyIterator;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.MurmurHash;
@@ -150,6 +152,16 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	@Override
 	public boolean isEmptyKey(long key) {
 		return key == EMPTY_KEY;
+	}
+
+	@Override
+	public long size() {
+		return numFilled;
+	}
+
+	@Override
+	public Iterable<Long> keys() {
+		return Iterators.able(new KeyIterator(keys));
 	}
 
 }

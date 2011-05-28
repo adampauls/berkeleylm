@@ -25,7 +25,7 @@ public interface ValueContainer<V>
 	 * @param val
 	 * @param suffixOffset
 	 */
-	public void add(int ngramOrder, long offset, long contextOffset, int word, V val, long suffixOffset);
+	public void add(int[] ngram, int startPos, int endPos, int ngramOrder, long offset, long contextOffset, int word, V val, long suffixOffset,  boolean ngramIsNew);
 
 	/**
 	 * Swaps values at offsets a and b.

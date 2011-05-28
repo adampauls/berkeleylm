@@ -186,5 +186,11 @@ final class IntSmallLongArray implements Serializable, LongArray
 			++i;
 		}
 	}
+	
+	@Override
+	public void incrementCount(long index, long count) {
+		LongArray.StaticMethods.incrementCount(this, index, count);
+	}
+
 
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 import edu.berkeley.nlp.lm.array.LongArray;
+import edu.berkeley.nlp.lm.collections.Iterators;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
@@ -69,18 +70,38 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		}
 	}
 
+	public static class Entry<T>
+	{
+		/**
+		 * @param key
+		 * @param value
+		 */
+		public Entry(int[] key, T value) {
+			super();
+			this.key = key;
+			this.value = value;
+		}
+
+		public int[] key;
+
+		public T value;
+
+	}
+
 	@Override
-	public long put(final int[] ngram, final T val) {
-		final int endPos = ngram.length;
-		final HashMap map = maps[ngram.length - 1];
+	public long put(final int[] ngram, int startPos, int endPos, final T val) {
+		final int ngramOrder = endPos - startPos - 1;
+		final HashMap map = maps[ngramOrder];
 		if (map.getLoadFactor() >= maxLoadFactor) {
 			rehash(endPos - 1, map.getCapacity() * 3 / 2);
 		}
-		final long key = getKey(ngram, 0, endPos);
+		final long key = getKey(ngram, startPos, endPos);
 		if (key < 0) return -1L;
+		long oldSize = map.size();
 		final long index = map.put(key);
-		final long suffixIndex = getSuffixOffset(ngram, 0, endPos);
-		values.add(endPos - 0 - 1, index, contextOffsetOf(key), wordOf(key), val, suffixIndex);
+
+		final long suffixIndex = getSuffixOffset(ngram, startPos, endPos);
+		values.add(ngram, startPos, endPos, ngramOrder, index, contextOffsetOf(key), wordOf(key), val, suffixIndex, map.size() == oldSize);
 		return index;
 	}
 
@@ -151,7 +172,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 				final T val = values.getScratchValue();
 				values.getFromOffset(actualIndex, ngramOrder, val);
 
-				newMap.put(ngram, val);
+				newMap.put(ngram, 0, ngram.length, val);
 
 			}
 		}
@@ -227,6 +248,26 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 	private int headWord(final int[] ngram, final int startPos, final int endPos) {
 		return reversed ? ngram[startPos] : ngram[endPos - 1];
+	}
+
+	public int getMaxLmOrder() {
+		return maps.length;
+	}
+
+	public long getNumNgrams(int ngramOrder) {
+		return maps[ngramOrder].size();
+	}
+
+	public Iterable<Entry<T>> getNgramsForOrder(int ngramOrder) {
+		return Iterators.able(new Iterators.Transform<Long, Entry<T>>(maps[ngramOrder].keys().iterator())
+		{
+
+			@Override
+			protected Entry<T> transform(Long next) {
+				// TODO Auto-generated method stub
+				throw new UnsupportedOperationException("Method not yet implemented");
+			}
+		});
 	}
 
 }
