@@ -8,7 +8,7 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
 public interface NgramMap<T>
 {
 
-	public long put(int[] ngram, T val);
+	public long put(int[] ngram, int startPos, int endPos, T val);
 
 	public void handleNgramsFinished(int justFinishedOrder);
 

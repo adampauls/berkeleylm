@@ -187,4 +187,9 @@ final class SmallLongArray implements Serializable, LongArray
 		}
 	}
 
+	@Override
+	public void incrementCount(long index, long count) {
+		LongArray.StaticMethods.incrementCount(this, index, count);
+	}
+
 }

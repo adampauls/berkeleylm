@@ -231,5 +231,11 @@ final class LargeLongArray implements Serializable, LongArray
 			++innerIndex;
 		}
 	}
+	
+	@Override
+	public void incrementCount(long index, long count) {
+		LongArray.StaticMethods.incrementCount(this, index, count);
+	}
+
 
 }

@@ -214,4 +214,9 @@ public final class CustomWidthArray implements LongArray, Serializable
 		return LongArray.StaticMethods.linearSearch(this, key, rangeStart, rangeEnd, startIndex, emptyKey, returnFirstEmptyIndex);
 	}
 
+	@Override
+	public void incrementCount(long index, long count) {
+		LongArray.StaticMethods.incrementCount(this, index, count);
+	}
+
 }

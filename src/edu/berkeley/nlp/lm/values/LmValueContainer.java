@@ -69,7 +69,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 	}
 
 	@Override
-	public void add(final int ngramOrder, final long offset, final long prefixOffset, final int word, final V val_, final long suffixOffset) {
+	public void add(int[] ngram, int startPos, int endPos, final int ngramOrder, final long offset, final long prefixOffset, final int word, final V val_, final long suffixOffset,  boolean ngramIsNew) {
 		V val = val_;
 		if (val == null) val = getDefaultVal();
 
