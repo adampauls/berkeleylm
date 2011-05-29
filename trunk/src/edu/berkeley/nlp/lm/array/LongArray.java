@@ -26,8 +26,8 @@ public interface LongArray
 		}
 
 		public static LongArray newLongArray(final long maxKeySize, final long maxNumKeys, final long initCapacity) {
-			if (maxNumKeys < Integer.MAX_VALUE) {
-				if (maxKeySize < Integer.MAX_VALUE) {
+			if (maxNumKeys <= Integer.MAX_VALUE) {
+				if (maxKeySize <= Integer.MAX_VALUE) {
 					return new IntSmallLongArray(initCapacity);
 				} else {
 					return new SmallLongArray(initCapacity);
@@ -54,8 +54,12 @@ public interface LongArray
 		}
 
 		public static void incrementCount(LongArray array, long index, long count) {
-			long l = array.get(index);
-			array.set(index, l + count);
+			if (index < 0) {
+				@SuppressWarnings("unused")
+				int x = 5;
+			}
+			long l = index >= array.size() ? 0 : array.get(index);
+			array.setAndGrowIfNeeded(index, l + count);
 		}
 	}
 

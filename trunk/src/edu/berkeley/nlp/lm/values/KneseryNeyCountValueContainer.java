@@ -59,9 +59,9 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 		leftDotTypeCounts = new LongArray[maxNgramOrder - 1];
 		dotdotTypeCounts = new LongArray[maxNgramOrder - 1];
 		for (int i = 0; i < maxNgramOrder - 1; ++i) {
-			rightDotTypeCounts[i] = LongArray.StaticMethods.newLongArray(Integer.MAX_VALUE, Long.MAX_VALUE);
-			leftDotTypeCounts[i] = LongArray.StaticMethods.newLongArray(Integer.MAX_VALUE, Long.MAX_VALUE);
-			dotdotTypeCounts[i] = LongArray.StaticMethods.newLongArray(Integer.MAX_VALUE, Long.MAX_VALUE);
+			rightDotTypeCounts[i] = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, Integer.MAX_VALUE);
+			leftDotTypeCounts[i] = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, Integer.MAX_VALUE);
+			dotdotTypeCounts[i] = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, Integer.MAX_VALUE);
 		}
 	}
 
@@ -73,10 +73,12 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 	}
 
 	@Override
-	public void getFromOffset(final long index, final int ngramOrder, @OutputParameter final KneserNeyCounts outputVal) {
-		outputVal.tokenCounts = ngramOrder == rightDotTypeCounts.length ? -1 : tokenCounts.get(index);
-		outputVal.leftDotTypeCounts = (int) (ngramOrder < rightDotTypeCounts.length ? -1 : rightDotTypeCounts[ngramOrder].get(index));
-		outputVal.dotdotTypeCounts = (int) (ngramOrder < dotdotTypeCounts.length ? -1 : dotdotTypeCounts[ngramOrder].get(index));
+	public void getFromOffset(final long offset, final int ngramOrder, @OutputParameter final KneserNeyCounts outputVal) {
+		final boolean isHighestOrder = isHighestOrder(ngramOrder);
+		outputVal.tokenCounts = !isHighestOrder ? -1 : tokenCounts.get(offset);
+		outputVal.rightDotTypeCounts = (int) (isHighestOrder ? -1 : rightDotTypeCounts[ngramOrder].get(offset));
+		outputVal.leftDotTypeCounts = (int) (isHighestOrder ? -1 : leftDotTypeCounts[ngramOrder].get(offset));
+		outputVal.dotdotTypeCounts = (int) (isHighestOrder ? -1 : dotdotTypeCounts[ngramOrder].get(offset));
 	}
 
 	@Override
@@ -92,8 +94,8 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 	@Override
 	public void add(int[] ngram, int startPos, int endPos, int ngramOrder, long offset, long contextOffset, int word, KneserNeyCounts val, long suffixOffset,
 		boolean ngramIsNew) {
-		if (ngramOrder == dotdotTypeCounts.length) {
-			tokenCounts.setAndGrowIfNeeded(offset, ngramIsNew ? 1 : tokenCounts.get(offset));
+		if (isHighestOrder(ngramOrder)) {
+			tokenCounts.incrementCount(offset, 1);
 		}
 		if (ngramOrder > 0) {
 			if (ngramOrder == 1) {
@@ -116,7 +118,23 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 
 	@Override
 	public void setSizeAtLeast(long size, int ngramOrder) {
+		if (isHighestOrder(ngramOrder)) {
+			tokenCounts.setAndGrowIfNeeded(size - 1, 0);
+		} else {
+			leftDotTypeCounts[ngramOrder].setAndGrowIfNeeded(size - 1, 0);
+			rightDotTypeCounts[ngramOrder].setAndGrowIfNeeded(size - 1, 0);
+			dotdotTypeCounts[ngramOrder].setAndGrowIfNeeded(size - 1, 0);
 
+		}
+
+	}
+
+	/**
+	 * @param ngramOrder
+	 * @return
+	 */
+	private boolean isHighestOrder(int ngramOrder) {
+		return ngramOrder == dotdotTypeCounts.length;
 	}
 
 	@Override

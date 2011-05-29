@@ -61,8 +61,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		final long rangeStart = wordRangesLow[word];
 		final long rangeEnd = wordRangesHigh[word];
 		long i = keys.linearSearch(key, rangeStart, rangeEnd, hash, EMPTY_KEY, true);
-		if (keys.get(i) == EMPTY_KEY) setKey(i, key);
-		numFilled++;
+		if (keys.get(i) == EMPTY_KEY) numFilled++;
+		setKey(i, key);
 
 		return i;
 	}
@@ -161,7 +161,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 
 	@Override
 	public Iterable<Long> keys() {
-		return Iterators.able(new KeyIterator(keys));
+		throw new UnsupportedOperationException("Method not yet implemented.");
 	}
 
 }

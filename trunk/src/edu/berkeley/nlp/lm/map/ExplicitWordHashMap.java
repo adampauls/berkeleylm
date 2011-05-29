@@ -33,7 +33,7 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 	private static final int EMPTY_KEY = -1;
 
 	public ExplicitWordHashMap(long capacity) {
-		keys = LongArray.StaticMethods.newLongArray(capacity, capacity, capacity);
+		keys = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, capacity, capacity);
 		keys.fill(EMPTY_KEY, capacity);
 		numFilled = 0;
 	}
@@ -50,8 +50,10 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 		final long rangeStart = 0;
 		final long rangeEnd = keys.size();
 		long i = keys.linearSearch(key, rangeStart, rangeEnd, hash, EMPTY_KEY, true);
-		if (keys.get(i) == EMPTY_KEY) setKey(i, key);
-		numFilled++;
+		if (keys.get(i) == EMPTY_KEY) {
+			numFilled++;
+		}
+		setKey(i, key);
 
 		return i;
 	}
@@ -69,7 +71,7 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 		final long startIndex = hash;
 		assert startIndex >= rangeStart;
 		assert startIndex < rangeEnd;
-		return keys.linearSearch(AbstractNgramMap.contextOffsetOf(key), rangeStart, rangeEnd, startIndex, EMPTY_KEY, false);
+		return keys.linearSearch(key, rangeStart, rangeEnd, startIndex, EMPTY_KEY, false);
 	}
 
 	public long getCapacity() {
@@ -111,7 +113,5 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 	public Iterable<Long> keys() {
 		return Iterators.able(new KeyIterator(keys));
 	}
-
-	
 
 }

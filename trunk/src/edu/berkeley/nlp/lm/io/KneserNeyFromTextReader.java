@@ -37,6 +37,20 @@ public class KneserNeyFromTextReader<W>
 				}
 			}
 		});
+
+		return countNgrams(wordIndexer, maxOrder, allLinesIterator);
+
+	}
+
+	/**
+	 * @param <W>
+	 * @param wordIndexer
+	 * @param maxOrder
+	 * @param allLinesIterator
+	 * @param ngrams
+	 * @return
+	 */
+	static <W> HashNgramMap<KneserNeyCounts> countNgrams(WordIndexer<W> wordIndexer, int maxOrder, final Iterable<String> allLinesIterator) {
 		final KneseryNeyCountValueContainer values = new KneseryNeyCountValueContainer(maxOrder);
 		HashNgramMap<KneserNeyCounts> ngrams = HashNgramMap.createExplicitWordHashNgramMap(values, new ConfigOptions(), maxOrder, false);
 		values.setMap(ngrams);
@@ -48,20 +62,30 @@ public class KneserNeyFromTextReader<W>
 			for (int i = 0; i < words.length; ++i) {
 				sent[i + 1] = wordIndexer.getOrAddIndexFromString(words[i]);
 			}
-			for (int i = 0; i < words.length; ++i) {
-				for (int ngramOrder = 0; ngramOrder < maxOrder; ++ngramOrder) {
-					if (i + ngramOrder >= words.length) continue;
-					ngrams.put(sent, i, i + ngramOrder + 1, null);
+			for (int ngramOrder = 0; ngramOrder < maxOrder; ++ngramOrder) {
+				for (int i = 0; i < sent.length; ++i) {
+					if (i - ngramOrder < 0) continue;
+					ngrams.put(sent, i - ngramOrder, i + 1, null);
 				}
 			}
 		}
 		return ngrams;
-
 	}
 
 	public static <W> void writeToFile(String file, WordIndexer<W> wordIndexer, HashNgramMap<KneserNeyCounts> ngrams) {
-		int lmOrder = ngrams.getMaxLmOrder();
 		PrintWriter out = IOUtils.openOutHard(file);
+		writeToPrintWriter(wordIndexer, ngrams, out);
+
+	}
+
+	/**
+	 * @param <W>
+	 * @param wordIndexer
+	 * @param ngrams
+	 * @param out
+	 */
+	static <W> void writeToPrintWriter(WordIndexer<W> wordIndexer, HashNgramMap<KneserNeyCounts> ngrams, PrintWriter out) {
+		int lmOrder = ngrams.getMaxLmOrder();
 		out.println();
 		out.println("\\data\\");
 		writeHeader(ngrams, lmOrder, out);
@@ -80,7 +104,6 @@ public class KneserNeyFromTextReader<W>
 			}
 
 		}
-
 	}
 
 	//	from http://www-speech.sri.com/projects/srilm/manpages/ngram-discount.7.html
@@ -114,7 +137,6 @@ public class KneserNeyFromTextReader<W>
 	}
 
 	private static ProbBackoffPair getHighestOrderProb(int[] key, KneserNeyCounts value, HashNgramMap<KneserNeyCounts> ngrams, long sumTokenCounts) {
-
 		float prob = Math.max(0.0f, value.tokenCounts - D) / sumTokenCounts;
 		KneserNeyCounts rightDotCounts = getCounts(key, ngrams, 0, key.length - 1);
 		float backoff = D * rightDotCounts.rightDotTypeCounts / sumTokenCounts;
@@ -122,7 +144,6 @@ public class KneserNeyFromTextReader<W>
 	}
 
 	private static ProbBackoffPair getLowerOrderProb(int[] ngram, int startPos, int endPos, HashNgramMap<KneserNeyCounts> ngrams) {
-
 		KneserNeyCounts dotDotCounts = getCounts(ngram, ngrams, startPos + 1, endPos - 1);
 		KneserNeyCounts leftDotCounts = getCounts(ngram, ngrams, startPos + 1, endPos);
 		KneserNeyCounts rightDotCounts = getCounts(ngram, ngrams, startPos, endPos - 1);
@@ -138,9 +159,15 @@ public class KneserNeyFromTextReader<W>
 	 * @param endPos
 	 */
 	private static KneserNeyCounts getCounts(int[] key, HashNgramMap<KneserNeyCounts> ngrams, int startPos, int endPos) {
-
-		LmContextInfo middleWords = ngrams.getOffsetForNgram(key, startPos, endPos);
 		final KneserNeyCounts value = new KneserNeyCounts();
+		if (startPos > endPos) {
+			//only happens when requesting number of unigrams
+			value.dotdotTypeCounts = (int)ngrams.getNumNgrams(0);
+			return value;
+		}
+		if (startPos == endPos) {
+		}
+		LmContextInfo middleWords = ngrams.getOffsetForNgram(key, startPos, endPos);
 		ngrams.getValues().getFromOffset(middleWords.offset, middleWords.order, value);
 		return value;
 	}

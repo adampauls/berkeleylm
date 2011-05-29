@@ -8,6 +8,6 @@ public interface ContextEncodedNgramMap<T> extends NgramMap<T>
 
 	public LmContextInfo getOffsetForNgram(int[] ngram, int startPos, int endPos);
 
-	public int[] getNgramForOffset(long contextOffset, int contextOrder, int word);
+	public int[] getNgramFromContextEncoding(long contextOffset, int contextOrder, int word);
 
 }
