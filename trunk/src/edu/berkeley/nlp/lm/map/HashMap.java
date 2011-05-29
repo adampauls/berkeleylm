@@ -42,7 +42,7 @@ interface HashMap
 
 		public Long next() {
 			final long nextIndex = nextIndex();
-			return keys == null ? nextIndex : keys.get(nextIndex);
+			return nextIndex;
 		}
 
 		long nextIndex() {

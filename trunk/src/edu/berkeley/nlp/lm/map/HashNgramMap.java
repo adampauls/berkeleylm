@@ -11,6 +11,7 @@ import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.MurmurHash;
+import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 public final class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncodedNgramMap<T>
@@ -61,6 +62,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 	private HashNgramMap(ValueContainer<T> values, ConfigOptions opts, long[] newCapacities, boolean reversed) {
 		super(values, opts);
+		
 		this.reversed = reversed;
 		this.maxLoadFactor = opts.hashTableLoadFactor;
 		maps = new ExplicitWordHashMap[newCapacities.length];
@@ -93,7 +95,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final int ngramOrder = endPos - startPos - 1;
 		final HashMap map = maps[ngramOrder];
 		if (map.getLoadFactor() >= maxLoadFactor) {
-			rehash(endPos - 1, map.getCapacity() * 3 / 2);
+			rehash(ngramOrder, map.getCapacity() * 3 / 2);
 		}
 		final long key = getKey(ngram, startPos, endPos);
 		if (key < 0) return -1L;
@@ -101,7 +103,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final long index = map.put(key);
 
 		final long suffixIndex = getSuffixOffset(ngram, startPos, endPos);
-		values.add(ngram, startPos, endPos, ngramOrder, index, contextOffsetOf(key), wordOf(key), val, suffixIndex, map.size() == oldSize);
+		values.add(ngram, startPos, endPos, ngramOrder, index, contextOffsetOf(key), wordOf(key), val, suffixIndex, map.size() > oldSize);
 		return index;
 	}
 
@@ -116,15 +118,20 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	}
 
 	@Override
-	public int[] getNgramFromContextEncoding(long contextOffset, int contextOrder_, int word) {
-		int contextOrder = Math.max(0, contextOrder_);
-		int[] ret = new int[contextOrder + 1];
+	public int[] getNgramFromContextEncoding(long contextOffset, int contextOrder, int word) {
+		if (contextOrder < 0) return new int[] { word };
+		int[] ret = new int[contextOrder + 2];
 		long contextOffset_ = contextOffset;
 		int word_ = word;
 		ret[reversed ? 0 : (ret.length - 1)] = word_;
-		for (int i = 0; i < contextOrder; ++i) {
-			long key = maps[i].getKey(contextOffset_);
+		for (int i = 0; i <= contextOrder; ++i) {
+			final int ngramOrder = contextOrder - i;
+			long key = maps[ngramOrder].getKey(contextOffset_);
 			contextOffset_ = AbstractNgramMap.contextOffsetOf(key);
+			if (key < 0) {
+				@SuppressWarnings("unused")
+				int x = 5;
+			}
 			word_ = AbstractNgramMap.wordOf(key);
 			ret[reversed ? (i + 1) : (ret.length - i - 2)] = word_;
 		}
@@ -134,11 +141,11 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	private int[] getNgramForOffset(long offset, int ngramOrder) {
 		int[] ret = new int[ngramOrder + 1];
 		long offset_ = offset;
-		for (int i = 0; i < ngramOrder; ++i) {
-			long key = maps[i].getKey(offset_);
+		for (int i = 0; i <= ngramOrder; ++i) {
+			long key = maps[ngramOrder - i].getKey(offset_);
 			offset_ = AbstractNgramMap.contextOffsetOf(key);
 			int word_ = AbstractNgramMap.wordOf(key);
-			ret[reversed ? (i + 1) : (ret.length - i - 2)] = word_;
+			ret[reversed ? (i) : (ret.length - i - 1)] = word_;
 		}
 		return ret;
 	}
@@ -172,6 +179,8 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 			newCapacities[ngramOrder] = ngramOrder == changedNgramOrder ? newCapacity : maps[ngramOrder].getCapacity();
 		}
 		final HashNgramMap<T> newMap = new HashNgramMap<T>(newValues, opts, newCapacities, reversed);
+		newValues.initForMap(newMap);
+	
 
 		for (int ngramOrder = 0; ngramOrder < maps.length; ++ngramOrder) {
 			final HashMap currMap = maps[ngramOrder];

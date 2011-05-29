@@ -1,6 +1,7 @@
 package edu.berkeley.nlp.lm.values;
 
 import edu.berkeley.nlp.lm.collections.Indexer;
+import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 
@@ -81,5 +82,7 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 	public ProbBackoffPair getScratchValue() {
 		return new ProbBackoffPair(Float.NaN, Float.NaN);
 	}
+
+	
 
 }

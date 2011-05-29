@@ -10,6 +10,7 @@ import edu.berkeley.nlp.lm.bits.BitStream;
 import edu.berkeley.nlp.lm.collections.Indexer;
 import edu.berkeley.nlp.lm.encoding.BitCompressor;
 import edu.berkeley.nlp.lm.encoding.VariableLengthBlockCoder;
+import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
@@ -56,6 +57,11 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 	}
 
 	@Override
+	public void initForMap(NgramMap<V> map) {
+
+	}
+
+	@Override
 	public void swap(final long a_, final long b_, final int ngramOrder) {
 
 		final int a = (int) a_;
@@ -69,7 +75,8 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 	}
 
 	@Override
-	public void add(int[] ngram, int startPos, int endPos, final int ngramOrder, final long offset, final long prefixOffset, final int word, final V val_, final long suffixOffset,  boolean ngramIsNew) {
+	public void add(int[] ngram, int startPos, int endPos, final int ngramOrder, final long offset, final long prefixOffset, final int word, final V val_,
+		final long suffixOffset, boolean ngramIsNew) {
 		V val = val_;
 		if (val == null) val = getDefaultVal();
 
