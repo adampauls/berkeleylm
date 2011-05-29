@@ -93,7 +93,9 @@ final class SmallLongArray implements Serializable, LongArray
 	 */
 	@Override
 	public long get(final long pos) {
-		if (pos >= size) throw new ArrayIndexOutOfBoundsException("" + pos);
+		if (pos >= size) { //
+			throw new ArrayIndexOutOfBoundsException("" + pos);
+		}
 		return getHelp(pos);
 	}
 

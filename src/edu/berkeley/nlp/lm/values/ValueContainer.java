@@ -2,6 +2,7 @@ package edu.berkeley.nlp.lm.values;
 
 import edu.berkeley.nlp.lm.bits.BitList;
 import edu.berkeley.nlp.lm.bits.BitStream;
+import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 
 /**
@@ -25,7 +26,8 @@ public interface ValueContainer<V>
 	 * @param val
 	 * @param suffixOffset
 	 */
-	public void add(int[] ngram, int startPos, int endPos, int ngramOrder, long offset, long contextOffset, int word, V val, long suffixOffset,  boolean ngramIsNew);
+	public void add(int[] ngram, int startPos, int endPos, int ngramOrder, long offset, long contextOffset, int word, V val, long suffixOffset,
+		boolean ngramIsNew);
 
 	/**
 	 * Swaps values at offsets a and b.
@@ -120,5 +122,10 @@ public interface ValueContainer<V>
 	 * @return
 	 */
 	public V getScratchValue();
+
+	/**
+	 * Initializes a value container with the map that contains it
+	 */
+	public void initForMap(NgramMap<V> map);
 
 }
