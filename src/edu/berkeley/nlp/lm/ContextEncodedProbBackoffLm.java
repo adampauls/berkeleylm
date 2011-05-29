@@ -77,7 +77,7 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 
 	@Override
 	public int[] getNgramForOffset(final long contextOffset, final int contextOrder, final int word) {
-		return map.getNgramForOffset(contextOffset, contextOrder, word);
+		return map.getNgramFromContextEncoding(contextOffset, contextOrder, word);
 	}
 
 	/**

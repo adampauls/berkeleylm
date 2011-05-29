@@ -116,7 +116,8 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	}
 
 	@Override
-	public int[] getNgramForOffset(long contextOffset, int contextOrder, int word) {
+	public int[] getNgramFromContextEncoding(long contextOffset, int contextOrder_, int word) {
+		int contextOrder = Math.max(0, contextOrder_);
 		int[] ret = new int[contextOrder + 1];
 		long contextOffset_ = contextOffset;
 		int word_ = word;
@@ -125,7 +126,18 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 			long key = maps[i].getKey(contextOffset_);
 			contextOffset_ = AbstractNgramMap.contextOffsetOf(key);
 			word_ = AbstractNgramMap.wordOf(key);
+			ret[reversed ? (i + 1) : (ret.length - i - 2)] = word_;
+		}
+		return ret;
+	}
 
+	private int[] getNgramForOffset(long offset, int ngramOrder) {
+		int[] ret = new int[ngramOrder + 1];
+		long offset_ = offset;
+		for (int i = 0; i < ngramOrder; ++i) {
+			long key = maps[i].getKey(offset_);
+			offset_ = AbstractNgramMap.contextOffsetOf(key);
+			int word_ = AbstractNgramMap.wordOf(key);
 			ret[reversed ? (i + 1) : (ret.length - i - 2)] = word_;
 		}
 		return ret;
@@ -167,7 +179,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 			for (long actualIndex = 0; actualIndex < currMap.getCapacity(); ++actualIndex) {
 				final long key = currMap.getKey(actualIndex);
 				if (currMap.isEmptyKey(key)) continue;
-				final int[] ngram = getNgramForOffset(AbstractNgramMap.contextOffsetOf(key), ngramOrder - 1, AbstractNgramMap.wordOf(key));
+				final int[] ngram = getNgramFromContextEncoding(AbstractNgramMap.contextOffsetOf(key), ngramOrder - 1, AbstractNgramMap.wordOf(key));
 
 				final T val = values.getScratchValue();
 				values.getFromOffset(actualIndex, ngramOrder, val);
@@ -258,16 +270,17 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		return maps[ngramOrder].size();
 	}
 
-	public Iterable<Entry<T>> getNgramsForOrder(int ngramOrder) {
+	public Iterable<Entry<T>> getNgramsForOrder(final int ngramOrder) {
 		return Iterators.able(new Iterators.Transform<Long, Entry<T>>(maps[ngramOrder].keys().iterator())
 		{
 
 			@Override
 			protected Entry<T> transform(Long next) {
-				// TODO Auto-generated method stub
-				throw new UnsupportedOperationException("Method not yet implemented");
+				long offset = contextOffsetOf(next);
+				final T val = values.getScratchValue();
+				values.getFromOffset(offset, ngramOrder, val);
+				return new Entry<T>(getNgramForOffset(offset, ngramOrder), val);
 			}
 		});
 	}
-
 }
