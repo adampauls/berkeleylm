@@ -92,15 +92,18 @@ public class KneserNeyFromTextReader<W>
 		for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
 			out.println("\\" + (ngramOrder + 1) + "-grams:");
 			for (Entry<KneserNeyCounts> entry : ngrams.getNgramsForOrder(ngramOrder)) {
-				ProbBackoffPair val = ngramOrder == lmOrder - 1 ? getHighestOrderProb(entry.key, entry.value, ngrams) : getLowerOrderProb(entry.key, 0,
-					entry.key.length, ngrams, lmOrder);
 				final String ngramString = StrUtils.join(WordIndexer.StaticMethods.toList(wordIndexer, entry.key));
-				float prob = val.prob + getLowerOrderProb(entry.key, 0, entry.key.length - 1, ngrams, lmOrder).backoff
-					* recurse(entry.key, 1, entry.key.length, ngrams, lmOrder);
-				if (val.backoff != 0.0f)
-					out.printf("%f\t%s\t%f\n", (float) log(prob), ngramString, (float) log(val.backoff));
+				ProbBackoffPair val = ngramOrder == lmOrder - 1 ? getHighestOrderProb(entry.key, entry.value, ngrams, wordIndexer) : getLowerOrderProb(
+					entry.key, 0, entry.key.length, ngrams, lmOrder, wordIndexer);
+				float prob = val.prob + getLowerOrderProb(entry.key, 0, entry.key.length - 1, ngrams, lmOrder, wordIndexer).backoff
+					* recurse(entry.key, 1, entry.key.length, ngrams, lmOrder, wordIndexer);
+				boolean endsWithEndSym = entry.key[entry.key.length - 1] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getEndSymbol());
+				boolean isStartEndSym = entry.key.length == 1 && entry.key[0] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
+				final float logProb = isStartEndSym ? -99 : log(prob);
+				if (endsWithEndSym || val.backoff == 1.0f)
+					out.printf("%f\t%s\n", logProb, ngramString);
 				else
-					out.printf("%f\t%s\n", (float) log(prob), ngramString);
+					out.printf("%f\t%s\t%f\n", logProb, ngramString, log(val.backoff));
 			}
 			out.println();
 
@@ -139,27 +142,29 @@ public class KneserNeyFromTextReader<W>
 	//
 	//	where n1 and n2 are the total number of N-grams with exactly one and two counts, respectively. 
 
-	private static float recurse(int[] ngram, int startPos, int endPos, HashNgramMap<KneserNeyCounts> ngrams, int lmOrder) {
+	private static <W> float recurse(int[] ngram, int startPos, int endPos, HashNgramMap<KneserNeyCounts> ngrams, int lmOrder, WordIndexer<W> wordIndexer) {
 		if (startPos == endPos) return 0.0f;
-		ProbBackoffPair backoff = getLowerOrderProb(ngram, startPos, endPos - 1, ngrams, lmOrder);
-		ProbBackoffPair prob = getLowerOrderProb(ngram, startPos, endPos, ngrams, lmOrder);
+		ProbBackoffPair backoff = getLowerOrderProb(ngram, startPos, endPos - 1, ngrams, lmOrder, wordIndexer);
+		ProbBackoffPair prob = getLowerOrderProb(ngram, startPos, endPos, ngrams, lmOrder, wordIndexer);
 
-		return prob.prob + backoff.backoff * recurse(ngram, startPos + 1, endPos, ngrams, lmOrder);
+		return prob.prob + backoff.backoff * recurse(ngram, startPos + 1, endPos, ngrams, lmOrder, wordIndexer);
 	}
 
-	private static ProbBackoffPair getHighestOrderProb(int[] key, KneserNeyCounts value, HashNgramMap<KneserNeyCounts> ngrams) {
-		KneserNeyCounts rightDotCounts = getCounts(key, ngrams, 0, key.length - 1);
+	private static <W> ProbBackoffPair getHighestOrderProb(int[] key, KneserNeyCounts value, HashNgramMap<KneserNeyCounts> ngrams, WordIndexer<W> wordIndexer) {
+		KneserNeyCounts rightDotCounts = getCounts(key, ngrams, 0, key.length - 1, wordIndexer);
 		float prob = Math.max(0.0f, value.tokenCounts - D) / rightDotCounts.tokenCounts;
 		return new ProbBackoffPair(prob, 1.0f);
 	}
 
-	private static ProbBackoffPair getLowerOrderProb(int[] ngram, int startPos, int endPos, HashNgramMap<KneserNeyCounts> ngrams, int lmOrder) {
+	private static <W> ProbBackoffPair getLowerOrderProb(int[] ngram, int startPos, int endPos, HashNgramMap<KneserNeyCounts> ngrams, int lmOrder,
+		WordIndexer<W> wordIndexer) {
 		if (startPos == endPos) return new ProbBackoffPair(1.0f, 1.0f);
-		KneserNeyCounts counts = getCounts(ngram, ngrams, startPos, endPos);
-		KneserNeyCounts prefixCounts = getCounts(ngram, ngrams, startPos, endPos - 1);
+		KneserNeyCounts counts = getCounts(ngram, ngrams, startPos, endPos, wordIndexer);
+		KneserNeyCounts prefixCounts = getCounts(ngram, ngrams, startPos, endPos - 1, wordIndexer);
 		final float d = ((endPos - startPos == 1) ? 0.0f : D);
 		float prob = Math.max(0.0f, counts.leftDotTypeCounts - d) / prefixCounts.dotdotTypeCounts;
-		float backoff = D * counts.rightDotTypeCounts / (endPos - startPos == lmOrder - 1 ? counts.tokenCounts : counts.dotdotTypeCounts);
+		final long backoffDenom = endPos - startPos == lmOrder - 1 ? counts.tokenCounts : counts.dotdotTypeCounts;
+		float backoff = backoffDenom == 0.0f ? 1.0f : D * counts.rightDotTypeCounts / backoffDenom;
 		return new ProbBackoffPair((prob), (backoff));
 	}
 
@@ -169,12 +174,8 @@ public class KneserNeyFromTextReader<W>
 	 * @param startPos
 	 * @param endPos
 	 */
-	private static KneserNeyCounts getCounts(int[] key, HashNgramMap<KneserNeyCounts> ngrams, int startPos, int endPos) {
+	private static <W> KneserNeyCounts getCounts(int[] key, HashNgramMap<KneserNeyCounts> ngrams, int startPos, int endPos, WordIndexer<W> wordIndexer) {
 		final KneserNeyCounts value = new KneserNeyCounts();
-		if (startPos > endPos) {
-			@SuppressWarnings("unused")
-			int x = 5;
-		}
 		if (startPos == endPos) {
 			//only happens when requesting number of bigrams
 			value.dotdotTypeCounts = (int) ngrams.getNumNgrams(1);
@@ -182,6 +183,16 @@ public class KneserNeyFromTextReader<W>
 		}
 		LmContextInfo middleWords = ngrams.getOffsetForNgram(key, startPos, endPos);
 		ngrams.getValues().getFromOffset(middleWords.offset, middleWords.order, value);
+		boolean startsWithStartSym = key[startPos] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
+		boolean endsWithEndSym = key[endPos - 1] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getEndSymbol());
+		if (startsWithStartSym) {
+			value.leftDotTypeCounts = 2;
+			value.dotdotTypeCounts = value.rightDotTypeCounts * 2;
+		}
+		if (endsWithEndSym) {
+			value.rightDotTypeCounts = 2;
+			value.dotdotTypeCounts = value.leftDotTypeCounts * 2;
+		}
 		return value;
 	}
 
