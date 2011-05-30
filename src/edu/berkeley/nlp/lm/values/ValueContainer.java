@@ -126,6 +126,6 @@ public interface ValueContainer<V>
 	/**
 	 * Initializes a value container with the map that contains it
 	 */
-	public void initForMap(NgramMap<V> map);
+	public void setMap(NgramMap<V> map);
 
 }

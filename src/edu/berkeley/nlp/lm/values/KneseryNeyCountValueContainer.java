@@ -17,15 +17,21 @@ import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer.KneserNeyCounts;
 public final class KneseryNeyCountValueContainer implements ValueContainer<KneseryNeyCountValueContainer.KneserNeyCounts>
 {
 
+	/**
+	 * Warning: type counts are stored internally as 32-bit ints.
+	 * 
+	 * @author adampauls
+	 * 
+	 */
 	public static class KneserNeyCounts
 	{
 		public long tokenCounts; // only stored for the highest- and second-highest-order n-grams
 
-		public int leftDotTypeCounts; // N_{1+}(\cdot w) as in Chen and Goodman (1998), not stored for highest-order
+		public long leftDotTypeCounts; // N_{1+}(\cdot w) as in Chen and Goodman (1998), not stored for highest-order
 
-		public int rightDotTypeCounts; // N_{1+}(w \cdot) as in Chen and Goodman (1998), not stored for highest-order
+		public long rightDotTypeCounts; // N_{1+}(w \cdot) as in Chen and Goodman (1998), not stored for highest-order
 
-		public int dotdotTypeCounts; // N_{1+}(\dot w \dot) as in Chen and Goodman (1998), not stored for highest-order
+		public long dotdotTypeCounts; // N_{1+}(\dot w \dot) as in Chen and Goodman (1998), not stored for highest-order
 	}
 
 	private static final long serialVersionUID = 964277160049236607L;
@@ -92,7 +98,7 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 	public void add(int[] ngram, int startPos, int endPos, int ngramOrder, long offset, long contextOffset, int word, KneserNeyCounts val, long suffixOffset,
 		boolean ngramIsNew) {
 
-		if (Arrays.toString(Arrays.copyOfRange(ngram, startPos, endPos)).contains("7") && ngramOrder == 1) {
+		if (Arrays.toString(Arrays.copyOfRange(ngram, startPos, endPos)).contains("6") && ngramOrder == 0) {
 			@SuppressWarnings("unused")
 			int x = 5;
 		}
@@ -204,7 +210,7 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 	}
 
 	@Override
-	public void initForMap(NgramMap<KneserNeyCounts> map) {
+	public void setMap(NgramMap<KneserNeyCounts> map) {
 		this.map = (HashNgramMap<KneserNeyCounts>) map;
 	}
 
