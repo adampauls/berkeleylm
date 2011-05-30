@@ -1,0 +1,57 @@
+
+\data\
+ngram 1=8
+ngram 2=8
+ngram 3=8
+ngram 4=8
+ngram 5=6
+
+\1-grams:
+-0.90309	</s>
+-99	<s>	-0.60206
+-0.90309	This	-0.1249387
+-0.90309	a	-0.1249387
+-0.90309	another	-0.1249387
+-0.90309	is	-0.1249387
+-0.90309	sentence.	-0.1249387
+-0.60206	test	-0.4259687
+
+\2-grams:
+-0.10721	<s> This	-0.60206
+-0.4637573	This is	-0.1249387
+-0.3590219	a test	-0.1249388
+-0.3590219	another test	-0.1249388
+-0.6600519	is a	-0.1249387
+-0.6600519	is another	-0.1249387
+-0.4637573	sentence. </s>
+-0.1727115	test sentence.	-0.4259687
+
+\3-grams:
+-0.07782619	<s> This is	-0.2852358
+-0.2379782	is a test	-0.1091444
+-0.2379782	is another test	-0.1091444
+-0.5390083	This is a	-0.1091444
+-0.5390083	This is another	-0.1091444
+-0.1226827	test sentence. </s>
+-0.1226827	a test sentence.	-0.1091444
+-0.1226827	another test sentence.	-0.1091444
+
+\4-grams:
+-0.1727115	This is a test	-0.7781512
+-0.1727115	This is another test	-0.4771213
+-0.2539175	<s> This is a	-0.7781513
+-0.6498328	<s> This is another	-0.4771213
+-0.09226962	a test sentence. </s>
+-0.09226962	another test sentence. </s>
+-0.09226962	is a test sentence.	-0.7781512
+-0.09226962	is another test sentence.	-0.4771213
+
+\5-grams:
+-0.0244246	<s> This is a test
+-0.05030512	<s> This is another test
+-0.01408025	is a test sentence. </s>
+-0.02863233	is another test sentence. </s>
+-0.01408025	This is a test sentence.
+-0.02863233	This is another test sentence.
+
+\end\
