@@ -21,9 +21,9 @@ import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer.KneserNeyCounts;
 public class KneserNeyFromTextReader<W>
 {
 
-	private static final float D = 0.75f;
+	private static final float D = 0.6f;
 
-	public static <W> HashNgramMap<KneserNeyCounts> readFomFiles(List<File> files, WordIndexer<W> wordIndexer, int maxOrder) {
+	public static <W> HashNgramMap<KneserNeyCounts> readFromFiles(List<File> files, WordIndexer<W> wordIndexer, int maxOrder) {
 		final Iterable<String> allLinesIterator = Iterators.flatten(new Iterators.Transform<File, Iterator<String>>(files.iterator())
 		{
 
@@ -93,17 +93,26 @@ public class KneserNeyFromTextReader<W>
 			out.println("\\" + (ngramOrder + 1) + "-grams:");
 			for (Entry<KneserNeyCounts> entry : ngrams.getNgramsForOrder(ngramOrder)) {
 				ProbBackoffPair val = ngramOrder == lmOrder - 1 ? getHighestOrderProb(entry.key, entry.value, ngrams) : getLowerOrderProb(entry.key, 0,
-					entry.key.length, ngrams);
+					entry.key.length, ngrams, lmOrder);
 				final String ngramString = StrUtils.join(WordIndexer.StaticMethods.toList(wordIndexer, entry.key));
-				float prob = val.prob + getLowerOrderProb(entry.key, 0, entry.key.length - 1, ngrams).backoff * recurse(entry.key, 1, entry.key.length, ngrams);
+				float prob = val.prob + getLowerOrderProb(entry.key, 0, entry.key.length - 1, ngrams, lmOrder).backoff
+					* recurse(entry.key, 1, entry.key.length, ngrams, lmOrder);
 				if (val.backoff != 0.0f)
-					out.printf("%f\t%s\t%f\n", (float) Math.log(prob), ngramString, (float) Math.log(val.backoff));
+					out.printf("%f\t%s\t%f\n", (float) log(prob), ngramString, (float) log(val.backoff));
 				else
-					out.printf("%f\t%s\n", (float) Math.log(prob), ngramString);
+					out.printf("%f\t%s\n", (float) log(prob), ngramString);
 			}
 			out.println();
 
 		}
+	}
+
+	/**
+	 * @param prob
+	 * @return
+	 */
+	private static float log(float prob) {
+		return (float) (Math.log(prob) / Math.log(10.0));
 	}
 
 	//	from http://www-speech.sri.com/projects/srilm/manpages/ngram-discount.7.html
@@ -130,28 +139,27 @@ public class KneserNeyFromTextReader<W>
 	//
 	//	where n1 and n2 are the total number of N-grams with exactly one and two counts, respectively. 
 
-	private static float recurse(int[] ngram, int startPos, int endPos, HashNgramMap<KneserNeyCounts> ngrams) {
+	private static float recurse(int[] ngram, int startPos, int endPos, HashNgramMap<KneserNeyCounts> ngrams, int lmOrder) {
 		if (startPos == endPos) return 0.0f;
-		ProbBackoffPair backoff = getLowerOrderProb(ngram, startPos, endPos - 1, ngrams);
-		ProbBackoffPair prob = getLowerOrderProb(ngram, startPos, endPos, ngrams);
+		ProbBackoffPair backoff = getLowerOrderProb(ngram, startPos, endPos - 1, ngrams, lmOrder);
+		ProbBackoffPair prob = getLowerOrderProb(ngram, startPos, endPos, ngrams, lmOrder);
 
-		return prob.prob + backoff.backoff * recurse(ngram, startPos + 1, endPos, ngrams);
+		return prob.prob + backoff.backoff * recurse(ngram, startPos + 1, endPos, ngrams, lmOrder);
 	}
 
 	private static ProbBackoffPair getHighestOrderProb(int[] key, KneserNeyCounts value, HashNgramMap<KneserNeyCounts> ngrams) {
 		KneserNeyCounts rightDotCounts = getCounts(key, ngrams, 0, key.length - 1);
 		float prob = Math.max(0.0f, value.tokenCounts - D) / rightDotCounts.tokenCounts;
-		float backoff = D * rightDotCounts.rightDotTypeCounts / rightDotCounts.tokenCounts;
-		return new ProbBackoffPair((prob), (backoff));
+		return new ProbBackoffPair(prob, 1.0f);
 	}
 
-	private static ProbBackoffPair getLowerOrderProb(int[] ngram, int startPos, int endPos, HashNgramMap<KneserNeyCounts> ngrams) {
+	private static ProbBackoffPair getLowerOrderProb(int[] ngram, int startPos, int endPos, HashNgramMap<KneserNeyCounts> ngrams, int lmOrder) {
 		if (startPos == endPos) return new ProbBackoffPair(1.0f, 1.0f);
-		KneserNeyCounts dotDotCounts = getCounts(ngram, ngrams, startPos, endPos - 1);
-		KneserNeyCounts leftDotCounts = getCounts(ngram, ngrams, startPos, endPos);
-		KneserNeyCounts rightDotCounts = getCounts(ngram, ngrams, startPos, endPos);
-		float prob = Math.max(0.0f, leftDotCounts.leftDotTypeCounts - D) / dotDotCounts.dotdotTypeCounts;
-		float backoff = D * rightDotCounts.rightDotTypeCounts / dotDotCounts.dotdotTypeCounts;
+		KneserNeyCounts counts = getCounts(ngram, ngrams, startPos, endPos);
+		KneserNeyCounts prefixCounts = getCounts(ngram, ngrams, startPos, endPos - 1);
+		final float d = ((endPos - startPos == 1) ? 0.0f : D);
+		float prob = Math.max(0.0f, counts.leftDotTypeCounts - d) / prefixCounts.dotdotTypeCounts;
+		float backoff = D * counts.rightDotTypeCounts / (endPos - startPos == lmOrder - 1 ? counts.tokenCounts : counts.dotdotTypeCounts);
 		return new ProbBackoffPair((prob), (backoff));
 	}
 
