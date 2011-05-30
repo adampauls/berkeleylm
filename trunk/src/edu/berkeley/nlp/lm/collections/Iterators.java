@@ -2,6 +2,8 @@ package edu.berkeley.nlp.lm.collections;
 
 import java.util.Iterator;
 
+import edu.berkeley.nlp.lm.util.Pair;
+
 /**
  * Utilities for dealing with Iterators
  * 
@@ -106,6 +108,23 @@ public class Iterators
 			base.remove();
 		}
 
+	}
+
+	public static <S, T> Iterator<Pair<S, T>> zip(final Iterator<S> s, final Iterator<T> t) {
+		return new Iterator<Pair<S, T>>()
+		{
+			public boolean hasNext() {
+				return s.hasNext() && t.hasNext();
+			}
+
+			public Pair<S, T> next() {
+				return Pair.newPair(s.next(), t.next());
+			}
+
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+		};
 	}
 
 }
