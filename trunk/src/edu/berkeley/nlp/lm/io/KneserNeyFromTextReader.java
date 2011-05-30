@@ -13,6 +13,7 @@ import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.collections.Iterators;
 import edu.berkeley.nlp.lm.map.HashNgramMap;
 import edu.berkeley.nlp.lm.map.HashNgramMap.Entry;
+import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.LongRef;
 import edu.berkeley.nlp.lm.util.StrUtils;
 import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer;
@@ -21,6 +22,30 @@ import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer.KneserNeyCounts;
 
 public class KneserNeyFromTextReader<W>
 {
+
+	//	from http://www-speech.sri.com/projects/srilm/manpages/ngram-discount.7.html
+
+	//	p(a_z) = g(a_z) + bow(a_) p(_z)  ; Eqn.4
+	//
+	//	Let Z1 be the set {z: c(a_z) > 0}. For highest order N-grams we have:
+	//
+	//		g(a_z)  = max(0, c(a_z) - D) / c(a_)
+	//		bow(a_) = 1 - Sum_Z1 g(a_z)
+	//		        = 1 - Sum_Z1 c(a_z) / c(a_) + Sum_Z1 D / c(a_)
+	//		        = D n(a_*) / c(a_)
+	//
+	//	Let Z2 be the set {z: n(*_z) > 0}. For lower order N-grams we have:
+	//
+	//		g(_z)  = max(0, n(*_z) - D) / n(*_*)
+	//		bow(_) = 1 - Sum_Z2 g(_z)
+	//		       = 1 - Sum_Z2 n(*_z) / n(*_*) + Sum_Z2 D / n(*_*)
+	//		       = D n(_*) / n(*_*)
+	//
+	//	The original Kneser-Ney discounting (-ukndiscount) uses one discounting constant for each N-gram order. These constants are estimated as
+	//
+	//		D = n1 / (n1 + 2*n2)
+	//
+	//	where n1 and n2 are the total number of N-grams with exactly one and two counts, respectively. 
 
 	private static final float DEFAULT_DISCOUNT = 0.75f;
 
@@ -43,6 +68,18 @@ public class KneserNeyFromTextReader<W>
 
 	}
 
+	/**
+	 * Reads newline-separated plain text from inputFiles, and writes an ARPA lm
+	 * file to outputFile. If files have a .gz suffix, then they will be
+	 * (un)zipped as necessary.
+	 * 
+	 * @param inputFiles
+	 * @param outputFile
+	 */
+	public void readFromFiles(List<File> inputFiles, File outputFile) {
+		readFromFiles(inputFiles, IOUtils.openOutHard(outputFile));
+	}
+
 	private static float[] constantArray(int n, float f) {
 		float[] ret = new float[n];
 		Arrays.fill(ret, f);
@@ -50,6 +87,7 @@ public class KneserNeyFromTextReader<W>
 	}
 
 	private HashNgramMap<KneserNeyCounts> readFromFiles(Iterable<File> files) {
+		Logger.startTrack("Reading from files " + files);
 		final Iterable<String> allLinesIterator = Iterators.flatten(new Iterators.Transform<File, Iterator<String>>(files.iterator())
 		{
 
@@ -64,7 +102,9 @@ public class KneserNeyFromTextReader<W>
 			}
 		});
 
-		return countNgrams(allLinesIterator);
+		final HashNgramMap<KneserNeyCounts> countNgrams = countNgrams(allLinesIterator);
+		Logger.endTrack();
+		return countNgrams;
 
 	}
 
@@ -80,7 +120,9 @@ public class KneserNeyFromTextReader<W>
 		final KneseryNeyCountValueContainer values = new KneseryNeyCountValueContainer(lmOrder);
 		HashNgramMap<KneserNeyCounts> ngrams = HashNgramMap.createExplicitWordHashNgramMap(values, new ConfigOptions(), lmOrder, false);
 		numLines = 0;
+
 		for (String line : allLinesIterator) {
+			if (numLines % 10000 == 0) Logger.logs("On line " + numLines);
 			numLines++;
 			final String[] words = line.split(" ");
 			int[] sent = new int[words.length + 2];
@@ -97,10 +139,6 @@ public class KneserNeyFromTextReader<W>
 			}
 		}
 		return ngrams;
-	}
-
-	public void readFromFiles(List<File> inputFiles, File outputFile) {
-		readFromFiles(inputFiles, IOUtils.openOutHard(outputFile));
 	}
 
 	void readFromFiles(List<File> inputFiles, PrintWriter outputFile) {
@@ -122,6 +160,10 @@ public class KneserNeyFromTextReader<W>
 			out.println("\\" + (ngramOrder + 1) + "-grams:");
 			for (Entry<KneserNeyCounts> entry : ngrams.getNgramsForOrder(ngramOrder)) {
 				final String ngramString = StrUtils.join(WordIndexer.StaticMethods.toList(wordIndexer, entry.key));
+				if (ngramString.startsWith("<s> This is")) {
+					@SuppressWarnings("unused")
+					int x = 5;
+				}
 				ProbBackoffPair val = ngramOrder == lmOrder - 1 ? getHighestOrderProb(entry.key, entry.value, ngrams) : getLowerOrderProb(entry.key, 0,
 					entry.key.length, ngrams);
 				float prob = val.prob + getLowerOrderProb(entry.key, 0, entry.key.length - 1, ngrams).backoff * recurse(entry.key, 1, entry.key.length, ngrams);
@@ -148,30 +190,6 @@ public class KneserNeyFromTextReader<W>
 		return (float) (Math.log(prob) / Math.log(10.0));
 	}
 
-	//	from http://www-speech.sri.com/projects/srilm/manpages/ngram-discount.7.html
-
-	//	p(a_z) = g(a_z) + bow(a_) p(_z)  ; Eqn.4
-	//
-	//	Let Z1 be the set {z: c(a_z) > 0}. For highest order N-grams we have:
-	//
-	//		g(a_z)  = max(0, c(a_z) - D) / c(a_)
-	//		bow(a_) = 1 - Sum_Z1 g(a_z)
-	//		        = 1 - Sum_Z1 c(a_z) / c(a_) + Sum_Z1 D / c(a_)
-	//		        = D n(a_*) / c(a_)
-	//
-	//	Let Z2 be the set {z: n(*_z) > 0}. For lower order N-grams we have:
-	//
-	//		g(_z)  = max(0, n(*_z) - D) / n(*_*)
-	//		bow(_) = 1 - Sum_Z2 g(_z)
-	//		       = 1 - Sum_Z2 n(*_z) / n(*_*) + Sum_Z2 D / n(*_*)
-	//		       = D n(_*) / n(*_*)
-	//
-	//	The original Kneser-Ney discounting (-ukndiscount) uses one discounting constant for each N-gram order. These constants are estimated as
-	//
-	//		D = n1 / (n1 + 2*n2)
-	//
-	//	where n1 and n2 are the total number of N-grams with exactly one and two counts, respectively. 
-
 	private float recurse(int[] ngram, int startPos, int endPos, HashNgramMap<KneserNeyCounts> ngrams) {
 		if (startPos == endPos) return 0.0f;
 		ProbBackoffPair backoff = getLowerOrderProb(ngram, startPos, endPos - 1, ngrams);
@@ -191,7 +209,7 @@ public class KneserNeyFromTextReader<W>
 		if (startPos == endPos) return new ProbBackoffPair(1.0f, 1.0f);
 		KneserNeyCounts counts = getCounts(ngram, ngrams, startPos, endPos);
 		KneserNeyCounts prefixCounts = getCounts(ngram, ngrams, startPos, endPos - 1);
-		final float d = ((endPos - startPos == 1) ? 0.0f :  discounts[endPos - startPos - 1]);
+		final float d = ((endPos - startPos == 1) ? 0.0f : discounts[endPos - startPos - 1]);
 		float prob = Math.max(0.0f, counts.leftDotTypeCounts - d) / prefixCounts.dotdotTypeCounts;
 		final long backoffDenom = endPos - startPos == lmOrder - 1 ? counts.tokenCounts : counts.dotdotTypeCounts;
 		final float D = discounts[endPos - startPos];
@@ -217,12 +235,12 @@ public class KneserNeyFromTextReader<W>
 		boolean startsWithStartSym = key[startPos] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
 		boolean endsWithEndSym = key[endPos - 1] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getEndSymbol());
 		if (startsWithStartSym) {
-			value.leftDotTypeCounts = numLines;
-			value.dotdotTypeCounts = value.rightDotTypeCounts * numLines;
+			value.leftDotTypeCounts = 1;
+			value.dotdotTypeCounts = value.rightDotTypeCounts;
 		}
 		if (endsWithEndSym) {
-			value.rightDotTypeCounts = numLines;
-			value.dotdotTypeCounts = value.leftDotTypeCounts * numLines;
+			value.rightDotTypeCounts = 1;
+			value.dotdotTypeCounts = value.leftDotTypeCounts;
 		}
 		return value;
 	}
