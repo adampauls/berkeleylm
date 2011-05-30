@@ -57,7 +57,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements ValueContain
 	}
 
 	@Override
-	public void initForMap(NgramMap<V> map) {
+	public void setMap(NgramMap<V> map) {
 
 	}
 

@@ -54,6 +54,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		this.offsetDeltaRadix = opts.offsetDeltaRadix;
 		suffixCoder = new VariableLengthBlockCoder(offsetDeltaRadix);
 		this.compressedBlockSize = opts.compressedBlockSize;
+		values.setMap(this);
 
 	}
 
