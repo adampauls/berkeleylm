@@ -1,0 +1,1 @@
+ngram-count -text x.in -lm x.out -order 3 -interpolate -ukndiscount -gt3min 1
