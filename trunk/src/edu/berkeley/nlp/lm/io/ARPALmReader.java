@@ -15,7 +15,7 @@ import edu.berkeley.nlp.lm.values.ProbBackoffPair;
  * @author Alex Bouchard-Cote
  * @author Adam Pauls
  */
-public class ARPALmReader<W> implements LmReader<ProbBackoffPair>
+public class ARPALmReader<W> implements LmReader<ProbBackoffPair, ARPALmReaderCallback<ProbBackoffPair>>
 {
 
 	private static final String START_SYMBOL = "<s>";
@@ -41,7 +41,7 @@ public class ARPALmReader<W> implements LmReader<ProbBackoffPair>
 
 	private final String file;
 
-	private LmReaderCallback<ProbBackoffPair> callback;
+	private ARPALmReaderCallback<ProbBackoffPair> callback;
 
 	/**
 	 * 
@@ -69,7 +69,7 @@ public class ARPALmReader<W> implements LmReader<ProbBackoffPair>
 	 * 
 	 */
 	@Override
-	public void parse(final LmReaderCallback<ProbBackoffPair> callback_) {
+	public void parse(final ARPALmReaderCallback<ProbBackoffPair> callback_) {
 		this.callback = callback_;
 		this.reader = IOUtils.openInHard(file);
 		Logger.startTrack("Parsing ARPA language model file");
@@ -167,7 +167,7 @@ public class ARPALmReader<W> implements LmReader<ProbBackoffPair>
 		final int length = line.length();
 		final String logProbString = line.substring(0, firstTab);
 		final String firstWord = line.substring(firstTab + 1, secondTab < 0 ? length : secondTab);
-		final int[] nGram = callback.ignoreNgrams() ? null : parseNGram(firstWord, currentNGramLength);
+		final int[] ngram = parseNGram(firstWord, currentNGramLength);
 
 		// the first column contains the log pr
 		final float logProbability = Float.parseFloat(logProbString);
@@ -179,11 +179,7 @@ public class ARPALmReader<W> implements LmReader<ProbBackoffPair>
 		}
 		// add the new n-gram
 		assert logProbability != 0;
-		if (line.contains("years . \" over")) {
-			@SuppressWarnings("unused")
-			final int x = 5;
-		}
-		callback.call(nGram, new ProbBackoffPair(logProbability, backoff), line);
+		callback.call(ngram, 0, ngram.length, new ProbBackoffPair(logProbability, backoff), line);
 
 		currentNGramCount++;
 	}

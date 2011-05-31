@@ -14,16 +14,6 @@ public interface LmReaderCallback<V>
 {
 
 	/**
-	 * Called initially with a list of how many n-grams will appear for each
-	 * order.
-	 * 
-	 * @param numNGrams
-	 *            maps n-gram orders to number of n-grams (i.e. numNGrams.get(0)
-	 *            is the number of unigrams)
-	 */
-	public void initWithLengths(List<Long> numNGrams);
-
-	/**
 	 * Called for each n-gram
 	 * 
 	 * @param ngram
@@ -34,26 +24,11 @@ public interface LmReaderCallback<V>
 	 * @param words
 	 *            The string representation of the n-gram (space separated)
 	 */
-	public void call(int[] ngram, V value, String words);
-
-	/**
-	 * Called when all n-grams of a given order are finished
-	 * 
-	 * @param order
-	 */
-	public void handleNgramOrderFinished(int order);
+	public void call(int[] ngram, int startPos, int endPos, V value, String words);
 
 	/**
 	 * Called once all reading is done.
 	 */
 	public void cleanup();
-
-	/**
-	 * Whether this call back is interested in the n-grams or not. If not, then
-	 * parsing can be speed up.
-	 * 
-	 * @return
-	 */
-	public boolean ignoreNgrams();
 
 }

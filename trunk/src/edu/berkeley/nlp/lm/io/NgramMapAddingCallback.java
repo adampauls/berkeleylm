@@ -13,7 +13,7 @@ import edu.berkeley.nlp.lm.util.Logger;
  * @param <V>
  *            Value type
  */
-public final class NgramMapAddingCallback<V> implements LmReaderCallback<V>
+public final class NgramMapAddingCallback<V> implements ARPALmReaderCallback<V>
 {
 	private final NgramMap<V> map;
 
@@ -24,8 +24,8 @@ public final class NgramMapAddingCallback<V> implements LmReaderCallback<V>
 	}
 
 	@Override
-	public void call(final int[] ngram, final V v, final String words) {
-		final long add = map.put(ngram, 0, ngram.length, v);
+	public void call(final int[] ngram, int startPos, int endPos, final V v, final String words) {
+		final long add = map.put(ngram, startPos, endPos, v);
 		if (add < 0) {
 			if (warnCount >= 0 && warnCount < 10) {
 				Logger.warn("Could not add line " + words + "\nThis is usually because the prefix for the n-grams was not already in the map");
@@ -50,8 +50,4 @@ public final class NgramMapAddingCallback<V> implements LmReaderCallback<V>
 		map.initWithLengths(numNGrams);
 	}
 
-	@Override
-	public boolean ignoreNgrams() {
-		return false;
-	}
 }

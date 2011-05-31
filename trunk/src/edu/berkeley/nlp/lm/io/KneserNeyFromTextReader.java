@@ -27,7 +27,7 @@ import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer.KneserNeyCounts;
  * 
  * @param <W>
  */
-public class KneserNeyFromTextReader<W>
+public class KneserNeyFromTextReader<W> implements LmReader<Object, LmReaderCallback<Object>>
 {
 
 	//	from http://www-speech.sri.com/projects/srilm/manpages/ngram-discount.7.html
@@ -54,21 +54,17 @@ public class KneserNeyFromTextReader<W>
 	//
 	//	where n1 and n2 are the total number of N-grams with exactly one and two counts, respectively. 
 
-	private static final float DEFAULT_DISCOUNT = 0.75f;
+	
 
 	private int lmOrder;
 
-	private float[] discounts;
-
 	private WordIndexer<W> wordIndexer;
 
-	public KneserNeyFromTextReader(WordIndexer<W> wordIndexer, int maxOrder) {
-		this(wordIndexer, maxOrder, constantArray(maxOrder, DEFAULT_DISCOUNT));
-	}
+	private List<File> inputFiles;
 
-	public KneserNeyFromTextReader(WordIndexer<W> wordIndexer, int maxOrder, float[] discounts) {
+	public KneserNeyFromTextReader(List<File> inputFiles, WordIndexer<W> wordIndexer, int maxOrder) {
+		this.inputFiles = inputFiles;
 		this.lmOrder = maxOrder;
-		this.discounts = discounts;
 		this.wordIndexer = wordIndexer;
 
 	}
@@ -81,22 +77,16 @@ public class KneserNeyFromTextReader<W>
 	 * @param inputFiles
 	 * @param outputFile
 	 */
-	public void readFromFiles(List<File> inputFiles, File outputFile) {
-		readFromFiles(inputFiles, IOUtils.openOutHard(outputFile));
+	public void parse(LmReaderCallback<Object> callback) {
+		readFromFiles(callback);
 	}
 
-	void readFromFiles(List<File> inputFiles, PrintWriter outputFile) {
-		HashNgramMap<KneserNeyCounts> readFromFiles = readFromFiles(inputFiles);
-		writeToPrintWriter(readFromFiles, outputFile);
-	}
+	private void readFromFiles(LmReaderCallback<Object> callback) {
+		Logger.startTrack("Reading from files " + inputFiles);
+		final Iterable<String> allLinesIterator = getLineIterator(inputFiles);
 
-	private HashNgramMap<KneserNeyCounts> readFromFiles(Iterable<File> files) {
-		Logger.startTrack("Reading from files " + files);
-		final Iterable<String> allLinesIterator = getLineIterator(files);
-
-		final HashNgramMap<KneserNeyCounts> countNgrams = countNgrams(allLinesIterator);
+		countNgrams(allLinesIterator, callback);
 		Logger.endTrack();
-		return countNgrams;
 
 	}
 
@@ -105,12 +95,11 @@ public class KneserNeyFromTextReader<W>
 	 * @param wordIndexer
 	 * @param maxOrder
 	 * @param allLinesIterator
+	 * @param callback
 	 * @param ngrams
 	 * @return
 	 */
-	private HashNgramMap<KneserNeyCounts> countNgrams(final Iterable<String> allLinesIterator) {
-		final KneseryNeyCountValueContainer values = new KneseryNeyCountValueContainer(lmOrder);
-		HashNgramMap<KneserNeyCounts> ngrams = HashNgramMap.createExplicitWordHashNgramMap(values, new ConfigOptions(), lmOrder, false);
+	private void countNgrams(final Iterable<String> allLinesIterator, LmReaderCallback<Object> callback) {
 		long numLines = 0;
 
 		for (String line : allLinesIterator) {
@@ -128,11 +117,11 @@ public class KneserNeyFromTextReader<W>
 				for (int i = 0; i < sent.length; ++i) {
 					if (i - ngramOrder < 0) continue;
 					counts.tokenCounts = 1;
-					ngrams.put(sent, i - ngramOrder, i + 1, counts);
+					callback.call(sent, i - ngramOrder, i + 1, counts, line);
 				}
 			}
 		}
-		return ngrams;
+		callback.cleanup();
 	}
 
 	/**
@@ -154,124 +143,6 @@ public class KneserNeyFromTextReader<W>
 			}
 		});
 		return allLinesIterator;
-	}
-
-	/**
-	 * @param <W>
-	 * @param wordIndexer
-	 * @param ngrams
-	 * @param out
-	 */
-	void writeToPrintWriter(HashNgramMap<KneserNeyCounts> ngrams, PrintWriter out) {
-		out.println();
-		out.println("\\data\\");
-		writeHeader(ngrams, lmOrder, out);
-		for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
-			out.println("\\" + (ngramOrder + 1) + "-grams:");
-			for (Entry<KneserNeyCounts> entry : ngrams.getNgramsForOrder(ngramOrder)) {
-				final String ngramString = StrUtils.join(WordIndexer.StaticMethods.toList(wordIndexer, entry.key));
-
-				ProbBackoffPair val = ngramOrder == lmOrder - 1 ? getHighestOrderProb(entry.key, entry.value, ngrams) : getLowerOrderProb(entry.key, 0,
-					entry.key.length, ngrams);
-				float prob = val.prob + getLowerOrderProb(entry.key, 0, entry.key.length - 1, ngrams).backoff
-					* interpolateProb(entry.key, 1, entry.key.length, ngrams);
-				boolean endsWithEndSym = entry.key[entry.key.length - 1] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getEndSymbol());
-				boolean isStartEndSym = entry.key.length == 1 && entry.key[0] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
-				final float logProb = isStartEndSym ? -99 : log(prob);
-				if (endsWithEndSym || val.backoff == 1.0f)
-					out.printf("%f\t%s\n", logProb, ngramString);
-				else
-					out.printf("%f\t%s\t%f\n", logProb, ngramString, log(val.backoff));
-			}
-			out.println();
-
-		}
-		out.println("\\end\\");
-		out.close();
-	}
-
-	private float interpolateProb(int[] ngram, int startPos, int endPos, HashNgramMap<KneserNeyCounts> ngrams) {
-		if (startPos == endPos) return 0.0f;
-		ProbBackoffPair backoff = getLowerOrderProb(ngram, startPos, endPos - 1, ngrams);
-		ProbBackoffPair prob = getLowerOrderProb(ngram, startPos, endPos, ngrams);
-		return prob.prob + backoff.backoff * interpolateProb(ngram, startPos + 1, endPos, ngrams);
-	}
-
-	private ProbBackoffPair getHighestOrderProb(int[] key, KneserNeyCounts value, HashNgramMap<KneserNeyCounts> ngrams) {
-		KneserNeyCounts rightDotCounts = getCounts(key, ngrams, 0, key.length - 1);
-		final float D = discounts[key.length - 1];
-		float prob = Math.max(0.0f, value.tokenCounts - D) / rightDotCounts.tokenCounts;
-		return new ProbBackoffPair(prob, 1.0f);
-	}
-
-	private ProbBackoffPair getLowerOrderProb(int[] ngram, int startPos, int endPos, HashNgramMap<KneserNeyCounts> ngrams) {
-		if (startPos == endPos) return new ProbBackoffPair(1.0f, 1.0f);
-		KneserNeyCounts counts = getCounts(ngram, ngrams, startPos, endPos);
-		KneserNeyCounts prefixCounts = getCounts(ngram, ngrams, startPos, endPos - 1);
-
-		final float probDiscount = ((endPos - startPos == 1) ? 0.0f : discounts[endPos - startPos - 1]);
-		float prob = Math.max(0.0f, counts.leftDotTypeCounts - probDiscount) / prefixCounts.dotdotTypeCounts;
-
-		final long backoffDenom = endPos - startPos == lmOrder - 1 ? counts.tokenCounts : counts.dotdotTypeCounts;
-		final float backoffDiscount = discounts[endPos - startPos];
-		float backoff = backoffDenom == 0.0f ? 1.0f : backoffDiscount * counts.rightDotTypeCounts / backoffDenom;
-		return new ProbBackoffPair((prob), (backoff));
-	}
-
-	/**
-	 * @param key
-	 * @param ngrams
-	 * @param startPos
-	 * @param endPos
-	 */
-	private KneserNeyCounts getCounts(int[] key, HashNgramMap<KneserNeyCounts> ngrams, int startPos, int endPos) {
-		final KneserNeyCounts value = new KneserNeyCounts();
-		if (startPos == endPos) {
-			//only happens when requesting number of bigrams
-			value.dotdotTypeCounts = (int) ngrams.getNumNgrams(1);
-			return value;
-		}
-		LmContextInfo middleWords = ngrams.getOffsetForNgram(key, startPos, endPos);
-		ngrams.getValues().getFromOffset(middleWords.offset, middleWords.order, value);
-		boolean startsWithStartSym = key[startPos] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
-		boolean endsWithEndSym = key[endPos - 1] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getEndSymbol());
-		if (startsWithStartSym) {
-			value.leftDotTypeCounts = 1;
-			value.dotdotTypeCounts = value.rightDotTypeCounts;
-		}
-		if (endsWithEndSym) {
-			value.rightDotTypeCounts = 1;
-			value.dotdotTypeCounts = value.leftDotTypeCounts;
-		}
-		return value;
-	}
-
-	/**
-	 * @param ngrams
-	 * @param lmOrder
-	 * @param out
-	 */
-	private static void writeHeader(HashNgramMap<KneserNeyCounts> ngrams, int lmOrder, PrintWriter out) {
-		for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
-			long numNgrams = ngrams.getNumNgrams(ngramOrder);
-			out.println("ngram " + (ngramOrder + 1) + "=" + numNgrams);
-
-		}
-		out.println();
-	}
-
-	private static float[] constantArray(int n, float f) {
-		float[] ret = new float[n];
-		Arrays.fill(ret, f);
-		return ret;
-	}
-
-	/**
-	 * @param prob
-	 * @return
-	 */
-	private static float log(float prob) {
-		return (float) (Math.log(prob) / Math.log(10.0));
 	}
 
 }

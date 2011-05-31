@@ -1,7 +1,14 @@
 package edu.berkeley.nlp.lm.io;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.List;
+
 import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.ContextEncodedProbBackoffLm;
+import edu.berkeley.nlp.lm.NgramLanguageModelBase;
 import edu.berkeley.nlp.lm.ProbBackoffLm;
 import edu.berkeley.nlp.lm.StringWordIndexer;
 import edu.berkeley.nlp.lm.StupidBackoffLm;
@@ -30,17 +37,6 @@ public class LmReaders
 		return readContextEncodedLmFromArpa(lmFile, compress, wordIndexer, new ConfigOptions(), Integer.MAX_VALUE);
 	}
 
-	/**
-	 * Factory method for reading an ARPA lm file.
-	 * 
-	 * @param <W>
-	 * @param opts
-	 * @param lmFile
-	 * @param lmOrder
-	 * @param wordIndexer
-	 * @param compress
-	 * @return
-	 */
 	public static <W> ContextEncodedProbBackoffLm<W> readContextEncodedLmFromArpa(final String lmFile, boolean compress, final WordIndexer<W> wordIndexer,
 		final ConfigOptions opts, final int lmOrder) {
 
@@ -57,16 +53,6 @@ public class LmReaders
 		return readLmFromArpa(lmFile, compress, wordIndexer, new ConfigOptions(), Integer.MAX_VALUE);
 	}
 
-	/**
-	 * Factory method for reading an ARPA lm file.
-	 * 
-	 * @param <W>
-	 * @param opts
-	 * @param lmFile
-	 * @param lmOrder
-	 * @param wordIndexer
-	 * @return
-	 */
 	public static <W> ProbBackoffLm<W> readLmFromArpa(final String lmFile, boolean compress, final WordIndexer<W> wordIndexer, final ConfigOptions opts,
 		final int lmOrder) {
 
@@ -84,6 +70,66 @@ public class LmReaders
 		final FirstPassCallback<LongRef> valueAddingCallback = firstPassGoogle(dir, wordIndexer, opts);
 		final LongArray[] numNgramsForEachWord = valueAddingCallback.getNumNgramsForEachWord();
 		return secondPassGoogle(opts, dir, wordIndexer, valueAddingCallback, numNgramsForEachWord, compress);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <W> NgramLanguageModelBase<W> readLmBinary(final String file) {
+		return (NgramLanguageModelBase<W>) IOUtils.readObjFileHard(file);
+	}
+
+	public static <W> void writeLmBinary(NgramLanguageModelBase<W> lm, String file) {
+		IOUtils.writeObjFileHard(file, lm);
+	}
+
+	public static <W> ContextEncodedProbBackoffLm<W> readContextEncodedKneserNeyLmFromTextFile(List<File> files, final WordIndexer<W> wordIndexer,
+		final int lmOrder, ConfigOptions opts, boolean compress) {
+		File tmpFile = getTempFile();
+		return readContextEncodedKneserNeyLmFromTextFile(files, wordIndexer, lmOrder, compress, opts, tmpFile);
+	}
+
+	public static <W> ProbBackoffLm<W> readKneserNeyLmFromTextFile(List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder, ConfigOptions opts,
+		boolean compress) {
+		File tmpFile = getTempFile();
+		return readKneserNeyLmFromTextFile(files, wordIndexer, lmOrder, compress, opts, tmpFile);
+	}
+
+	public static <W> ContextEncodedProbBackoffLm<W> readContextEncodedKneserNeyLmFromTextFile(List<File> files, final WordIndexer<W> wordIndexer,
+		final int lmOrder, boolean compress, ConfigOptions opts, File tmpFile) {
+		createKneserNeyLmFromTextFiles(files, wordIndexer, lmOrder, tmpFile);
+		return readContextEncodedLmFromArpa(tmpFile.getPath(), compress, wordIndexer, opts, lmOrder);
+	}
+
+	public static <W> ProbBackoffLm<W> readKneserNeyLmFromTextFile(List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder, boolean compress,
+		ConfigOptions opts, File tmpFile) {
+		createKneserNeyLmFromTextFiles(files, wordIndexer, lmOrder, tmpFile);
+		return readLmFromArpa(tmpFile.getPath(), compress, wordIndexer, opts, lmOrder);
+	}
+
+	/**
+	 * @param <W>
+	 * @param files
+	 * @param wordIndexer
+	 * @param lmOrder
+	 * @param arpaOutputFile
+	 */
+	public static <W> void createKneserNeyLmFromTextFiles(List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder, File arpaOutputFile) {
+		final KneserNeyFromTextReader<W> reader = new KneserNeyFromTextReader<W>(files, wordIndexer, lmOrder);
+		reader.parse(new KneserNeyLmReaderCallback<W>(arpaOutputFile, wordIndexer, lmOrder));
+	}
+
+	/**
+	 * @return
+	 */
+	private static File getTempFile() {
+		File tmpFile;
+		try {
+			tmpFile = File.createTempFile("berkeleylm", "arpa");
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+
+		}
+		tmpFile.deleteOnExit();
+		return tmpFile;
 	}
 
 	/**
@@ -173,9 +219,11 @@ public class LmReaders
 	 * @return
 	 */
 	private static <W, V extends Comparable<V>> NgramMap<V> buildMapCommon(final ConfigOptions opts, final WordIndexer<W> wordIndexer,
-		final LongArray[] numNgramsForEachWord, final boolean reversed, final LmReader<V> lmReader, final ValueContainer<V> values, final boolean compress) {
+		final LongArray[] numNgramsForEachWord, final boolean reversed, final LmReader<V, ? super NgramMapAddingCallback<V>> lmReader,
+		final ValueContainer<V> values, final boolean compress) {
 		Logger.startTrack("Pass 2 of 2");
-		final NgramMap<V> map = compress ? new CompressedNgramMap<V>((CompressibleValueContainer<V>) values, opts) : HashNgramMap.createImplicitWordHashNgramMap(values, opts, numNgramsForEachWord, reversed);
+		final NgramMap<V> map = compress ? new CompressedNgramMap<V>((CompressibleValueContainer<V>) values, opts) : HashNgramMap
+			.createImplicitWordHashNgramMap(values, opts, numNgramsForEachWord, reversed);
 
 		lmReader.parse(new NgramMapAddingCallback<V>(map));
 		wordIndexer.trimAndLock();
@@ -205,7 +253,8 @@ public class LmReaders
 	 * @param arpaLmReader
 	 * @return
 	 */
-	private static <V extends Comparable<V>> FirstPassCallback<V> firstPassCommon(final LmReader<V> arpaLmReader, final boolean reverse) {
+	private static <V extends Comparable<V>> FirstPassCallback<V> firstPassCommon(final LmReader<V, ? super FirstPassCallback<V>> arpaLmReader,
+		final boolean reverse) {
 		Logger.startTrack("Pass 1 of 2");
 		final FirstPassCallback<V> valueAddingCallback = new FirstPassCallback<V>(reverse);
 		arpaLmReader.parse(valueAddingCallback);
