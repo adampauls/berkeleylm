@@ -7,13 +7,14 @@ import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 
 /**
  * 
- * @author adampauls Methods shared between
+ * Base interface for an n-gram language model, which exposes only inefficient convenience methods. See
  *         {@link ContextEncodedNgramLanguageModel} and
- *         {@link ArrayEncodedNgramLanguageModel}
+ *         {@link ArrayEncodedNgramLanguageModel} for more efficient accessors.
+ *         
+ * @author adampauls
  * 
  * @param <W>
- *            A type representing words in the language. Can be a
- *            <code>String</code>, or something more complex if needed
+ *           
  */
 public interface NgramLanguageModel<W>
 {

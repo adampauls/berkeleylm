@@ -16,7 +16,7 @@ public class MakeLmBinary
 		}
 		Logger.setGlobalLogger(new Logger.SystemLogger(System.out, System.err));
 		Logger.startTrack("Reading Lm File " + argv[0] + " . . . ");
-		final ContextEncodedProbBackoffLm<String> lm = LmReaders.readContextEncodedLmFromArpa(argv[0], false);
+		final ContextEncodedProbBackoffLm<String> lm = LmReaders.readContextEncodedLmFromArpa(argv[0]);
 		Logger.endTrack();
 		Logger.startTrack("Writing to file " + argv[1] + " . . . ");
 		IOUtils.writeObjFile(new File(argv[1]), lm);
