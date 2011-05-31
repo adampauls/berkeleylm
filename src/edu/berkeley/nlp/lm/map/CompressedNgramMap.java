@@ -48,13 +48,14 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	private final boolean reverseTrie = true;
 
-	public CompressedNgramMap(final CompressibleValueContainer<T> values, final ConfigOptions opts) {
+	public CompressedNgramMap(final CompressibleValueContainer<T> values, long[] numNgramsForEachOrder, final ConfigOptions opts) {
 		super(values, opts);
 		offsetCoder = new VariableLengthBlockCoder(OFFSET_RADIX);
 		wordCoder = new VariableLengthBlockCoder(WORD_RADIX);
 		this.offsetDeltaRadix = opts.offsetDeltaRadix;
 		suffixCoder = new VariableLengthBlockCoder(offsetDeltaRadix);
 		this.compressedBlockSize = opts.compressedBlockSize;
+		initWithLengths(numNgramsForEachOrder);
 		values.setMap(this);
 
 	}
@@ -83,6 +84,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 		final long contextOffset = reverseTrie ? getContextOffset(ngram, startPos + 1, endPos) : getContextOffset(ngram, startPos, endPos - 1);
 		if (contextOffset < 0) return -1;
+
 		final CompressedMap map = maps[ngramOrder];
 		long oldSize = map.size();
 		final long newOffset = map.add(combineToKey(word, contextOffset));
@@ -464,10 +466,21 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	@Override
 	public void initWithLengths(final List<Long> numNGrams) {
-		maps = new CompressedMap[numNGrams.size()];
-		for (int i = 0; i < numNGrams.size(); ++i) {
+		long[] array = new long[numNGrams.size()];
+		for (int i = 0; i < array.length; ++i) {
+			array[i] = numNGrams.get(i);
+		}
+		initWithLengths(array);
+	}
+
+	/**
+	 * @param numNGrams
+	 */
+	private void initWithLengths(long[] numNGrams) {
+		maps = new CompressedMap[numNGrams.length];
+		for (int i = 0; i < numNGrams.length; ++i) {
 			maps[i] = new CompressedMap();
-			final long l = numNGrams.get(i);
+			final long l = numNGrams[i];
 			maps[i].init(l);
 			values.setSizeAtLeast(l, i);
 

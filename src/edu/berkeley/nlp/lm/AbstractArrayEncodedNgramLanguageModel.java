@@ -13,7 +13,7 @@ import java.util.List;
  * 
  * @param <W>
  */
-public abstract class AbstractNgramLanguageModel<W> implements NgramLanguageModel<W>, Serializable
+public abstract class AbstractArrayEncodedNgramLanguageModel<W> implements ArrayEncodedNgramLanguageModel<W>, Serializable
 {
 
 	/**
@@ -25,7 +25,7 @@ public abstract class AbstractNgramLanguageModel<W> implements NgramLanguageMode
 
 	private final WordIndexer<W> wordIndexer;
 
-	public AbstractNgramLanguageModel(final int lmOrder, final WordIndexer<W> wordIndexer) {
+	public AbstractArrayEncodedNgramLanguageModel(final int lmOrder, final WordIndexer<W> wordIndexer) {
 		this.lmOrder = lmOrder;
 		this.wordIndexer = wordIndexer;
 	}
@@ -37,17 +37,17 @@ public abstract class AbstractNgramLanguageModel<W> implements NgramLanguageMode
 
 	@Override
 	public float scoreSentence(final List<W> sentence) {
-		return NgramLanguageModel.DefaultImplementations.scoreSentence(sentence, this);
+		return ArrayEncodedNgramLanguageModel.DefaultImplementations.scoreSentence(sentence, this);
 	}
 
 	@Override
 	public float getLogProb(final List<W> phrase) {
-		return NgramLanguageModel.DefaultImplementations.getLogProb(phrase, this);
+		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(phrase, this);
 	}
 
 	@Override
 	public float getLogProb(final int[] ngram) {
-		return NgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
+		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
 	}
 
 	@Override

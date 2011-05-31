@@ -14,7 +14,7 @@ import edu.berkeley.nlp.lm.values.ProbBackoffPair;
  * 
  * @param <W>
  */
-public class ProbBackoffLm<W> extends AbstractNgramLanguageModel<W> implements NgramLanguageModel<W>, Serializable
+public class ProbBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W> implements ArrayEncodedNgramLanguageModel<W>, Serializable
 {
 
 	/**
@@ -80,12 +80,12 @@ public class ProbBackoffLm<W> extends AbstractNgramLanguageModel<W> implements N
 
 	@Override
 	public float getLogProb(final int[] ngram) {
-		return NgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
+		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
 	}
 
 	@Override
 	public float getLogProb(final List<W> ngram) {
-		return NgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
+		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
 	}
 
 }

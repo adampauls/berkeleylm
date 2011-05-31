@@ -1,70 +1,74 @@
 package edu.berkeley.nlp.lm;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import edu.berkeley.nlp.lm.collections.BoundedList;
+import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 
 /**
- * Top-level interface for an n-gram language model which accents n-gram in an
- * array encoding.
  * 
- * @author adampauls
+ * @author adampauls Methods shared between
+ *         {@link ContextEncodedNgramLanguageModel} and
+ *         {@link ArrayEncodedNgramLanguageModel}
+ * 
+ * @param <W>
+ *            A type representing words in the language. Can be a
+ *            <code>String</code>, or something more complex if needed
  */
-public interface NgramLanguageModel<W> extends NgramLanguageModelBase<W>
+public interface NgramLanguageModel<W>
 {
 
 	/**
-	 * Calculate language model score of an n-gram.
+	 * Maximum size of n-grams stored by the model.
 	 * 
-	 * @param ngram
-	 *            array of words in integer representation
-	 * @param startPos
-	 *            start of the portion of the array to be read
-	 * @param endPos
-	 *            end of the portion of the array to be read.
 	 * @return
 	 */
-	public float getLogProb(int[] ngram, int startPos, int endPos);
+	public int getLmOrder();
 
 	/**
-	 * Equivalent to <code>getLogProb(ngram, 0, ngram.length)</code>
+	 * Each LM must have a WordIndexer which assigns integer IDs to each word W
+	 * in the language.
 	 * 
-	 * @see #getLogProb(int[], int, int)
+	 * @return
 	 */
-	public float getLogProb(int[] ngram);
+	public WordIndexer<W> getWordIndexer();
 
-	public static class DefaultImplementations
+	/**
+	 * Scores a complete sentence, taking appropriate care with the start- and
+	 * end-of-sentence symbols. This is a convenience method and will generally
+	 * be very inefficient.
+	 * 
+	 * @return
+	 */
+	public float scoreSentence(List<W> sentence);
+
+	/**
+	 * 
+	 * Scores an n-gram. This is a convenience method and will generally be very
+	 * inefficient.
+	 */
+	public float getLogProb(List<W> ngram);
+
+	public static class StaticMethods
 	{
 
-		public static <T> float scoreSentence(final List<T> sentence, final NgramLanguageModel<T> lm) {
-			final List<T> sentenceWithBounds = new BoundedList<T>(sentence, lm.getWordIndexer().getStartSymbol(), lm.getWordIndexer().getEndSymbol());
-
-			final int lmOrder = lm.getLmOrder();
-			float sentenceScore = 0.0f;
-			for (int i = 1; i < lmOrder - 1 && i <= sentenceWithBounds.size() + 1; ++i) {
-				final List<T> ngram = sentenceWithBounds.subList(-1, i);
-				final float scoreNgram = lm.getLogProb(ngram);
-				sentenceScore += scoreNgram;
+		public static <T> int[] toIntArray(final List<T> ngram, final ArrayEncodedNgramLanguageModel<T> lm) {
+			final int[] ints = new int[ngram.size()];
+			final WordIndexer<T> wordIndexer = lm.getWordIndexer();
+			for (int i = 0; i < ngram.size(); ++i) {
+				ints[i] = wordIndexer.getIndexPossiblyUnk(ngram.get(i));
 			}
-			for (int i = lmOrder - 1; i < sentenceWithBounds.size() + 2; ++i) {
-				final List<T> ngram = sentenceWithBounds.subList(i - lmOrder, i);
-				final float scoreNgram = lm.getLogProb(ngram);
-				sentenceScore += scoreNgram;
+			return ints;
+		}
+
+		public static <T> List<T> toObjectList(int[] ngram, final ArrayEncodedNgramLanguageModel<T> lm) {
+			final List<T> ret = new ArrayList<T>(ngram.length);
+			final WordIndexer<T> wordIndexer = lm.getWordIndexer();
+			for (int i = 0; i < ngram.length; ++i) {
+				ret.add(wordIndexer.getWord(ngram[i]));
 			}
-			return sentenceScore;
+			return ret;
 		}
-
-		public static <T> float getLogProb(final int[] ngram, final NgramLanguageModel<T> lm) {
-			return lm.getLogProb(ngram, 0, ngram.length);
-		}
-
-		public static <T> float getLogProb(final List<T> ngram, final NgramLanguageModel<T> lm) {
-			final int[] ints = StaticMethods.toIntArray(ngram, lm);
-			return lm.getLogProb(ints, 0, ints.length);
-
-		}
-
-		
 
 	}
 

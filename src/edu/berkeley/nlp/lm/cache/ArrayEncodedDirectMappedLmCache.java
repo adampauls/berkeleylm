@@ -2,7 +2,7 @@ package edu.berkeley.nlp.lm.cache;
 
 import java.util.Arrays;
 
-public final class DirectMappedLmCache implements LmCache
+public final class ArrayEncodedDirectMappedLmCache implements LmCache
 {
 	/**
 	 * 
@@ -11,7 +11,7 @@ public final class DirectMappedLmCache implements LmCache
 
 	private final int cacheSize;
 
-	public DirectMappedLmCache(final int cacheBits) {
+	public ArrayEncodedDirectMappedLmCache(final int cacheBits) {
 		cacheSize = (1 << cacheBits) - 1;
 		cachedKey = new int[cacheSize][];
 		cachedVal = new float[cacheSize];

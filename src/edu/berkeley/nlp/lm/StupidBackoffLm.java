@@ -8,14 +8,14 @@ import edu.berkeley.nlp.lm.util.LongRef;
 import edu.berkeley.nlp.lm.values.RankedCountValueContainer;
 
 /**
- * Language model implementation which uses Kneser-Ney-style backoff
+ * Language model implementation which uses stupid backoff (Brants et al., 2007)
  * computation.
  * 
  * @author adampauls
  * 
  * @param <W>
  */
-public class StupidBackoffLm<W> extends AbstractNgramLanguageModel<W> implements NgramLanguageModel<W>, Serializable
+public class StupidBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W> implements ArrayEncodedNgramLanguageModel<W>, Serializable
 {
 
 	/**
@@ -45,20 +45,6 @@ public class StupidBackoffLm<W> extends AbstractNgramLanguageModel<W> implements
 
 	@Override
 	public float getLogProb(final int[] ngram, final int startPos_, final int endPos_) {
-		//		if (map instanceof OffsetNgramMap<?>) {
-		//			return getLogProbWithOffsets(ngram, startPos_, endPos_);
-		//		} else {
-		return getLogProbDirectly(ngram, startPos_, endPos_);
-		//		}
-	}
-
-	/**
-	 * @param ngram
-	 * @param startPos_
-	 * @param endPos_
-	 * @return
-	 */
-	private float getLogProbDirectly(final int[] ngram, final int startPos, final int endPos) {
 		final NgramMap<LongRef> localMap = map;
 		float logProb = oovWordLogProb;
 		long probContext = 0L;
@@ -66,19 +52,17 @@ public class StupidBackoffLm<W> extends AbstractNgramLanguageModel<W> implements
 
 		long lastCount = ((RankedCountValueContainer) map.getValues()).getUnigramSum();
 		final LongRef scratch = new LongRef(-1L);
-		for (int i = endPos - 1; i >= startPos; --i) {
+		for (int i = endPos_ - 1; i >= startPos_; --i) {
 			assert (probContext >= 0);
 			probContext = localMap.getValueAndOffset(probContext, probContextOrder, ngram[i], scratch);
 
 			if (probContext < 0) {
 				return logProb;
 			} else {
-				logProb = scratch.value / ((float) lastCount) * pow(alpha, i - startPos);
+				logProb = (float) Math.log(scratch.value / ((float) lastCount) * pow(alpha, i - startPos_));
 				lastCount = scratch.value;
 				probContextOrder++;
-
 			}
-			if (i == startPos) break;
 
 		}
 		return logProb;
@@ -93,12 +77,12 @@ public class StupidBackoffLm<W> extends AbstractNgramLanguageModel<W> implements
 
 	@Override
 	public float getLogProb(final int[] ngram) {
-		return NgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
+		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
 	}
 
 	@Override
 	public float getLogProb(final List<W> ngram) {
-		return NgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
+		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
 	}
 
 }
