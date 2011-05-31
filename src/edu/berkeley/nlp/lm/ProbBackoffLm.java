@@ -64,6 +64,8 @@ public class ProbBackoffLm<W> extends AbstractNgramLanguageModel<W> implements N
 					logProb = currProb;
 					backoff = 0.0f;
 				}
+			} else {
+				if (i == endPos_ - 1) return oovWordLogProb;
 			}
 			if (i == startPos_) break;
 
@@ -75,7 +77,6 @@ public class ProbBackoffLm<W> extends AbstractNgramLanguageModel<W> implements N
 		}
 		return logProb + backoff;
 	}
-
 
 	@Override
 	public float getLogProb(final int[] ngram) {

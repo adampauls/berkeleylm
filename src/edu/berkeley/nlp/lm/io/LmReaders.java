@@ -151,7 +151,7 @@ public class LmReaders
 		final boolean reversed = false;
 		final NgramMap<ProbBackoffPair> map = buildMapArpa(opts, lmFile, lmOrder, wordIndexer, valueAddingCallback, numNgramsForEachWord, contextEncoded,
 			reversed, compress);
-		return new ContextEncodedProbBackoffLm<W>(lmOrder, wordIndexer, (ContextEncodedNgramMap<ProbBackoffPair>) map, opts);
+		return new ContextEncodedProbBackoffLm<W>(map.getMaxNgramOrder(), wordIndexer, (ContextEncodedNgramMap<ProbBackoffPair>) map, opts);
 	}
 
 	/**
@@ -171,7 +171,7 @@ public class LmReaders
 		final boolean contextEncoded = false;
 		final NgramMap<ProbBackoffPair> map = buildMapArpa(opts, lmFile, lmOrder, wordIndexer, valueAddingCallback, numNgramsForEachWord, contextEncoded,
 			reversed, compress);
-		return new ProbBackoffLm<W>(lmOrder, wordIndexer, map, opts);
+		return new ProbBackoffLm<W>(map.getMaxNgramOrder(), wordIndexer, map, opts);
 	}
 
 	private static <W> StupidBackoffLm<W> secondPassGoogle(final ConfigOptions opts, final String dir, final WordIndexer<W> wordIndexer,
