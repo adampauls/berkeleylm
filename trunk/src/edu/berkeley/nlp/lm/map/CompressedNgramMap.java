@@ -11,6 +11,7 @@ import edu.berkeley.nlp.lm.encoding.BitCompressor;
 import edu.berkeley.nlp.lm.encoding.VariableLengthBlockCoder;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Logger;
+import edu.berkeley.nlp.lm.values.CompressibleValueContainer;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serializable
@@ -47,7 +48,8 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	private final boolean reverseTrie = true;
 
-	public CompressedNgramMap(final ValueContainer<T> values, final ConfigOptions opts) {
+	
+	public CompressedNgramMap(final CompressibleValueContainer<T> values, final ConfigOptions opts) {
 		super(values, opts);
 		offsetCoder = new VariableLengthBlockCoder(OFFSET_RADIX);
 		wordCoder = new VariableLengthBlockCoder(WORD_RADIX);
@@ -136,7 +138,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	private void compress(final int ngramOrder) {
 		(maps[ngramOrder]).compressedKeys = compress(maps[ngramOrder].keys, maps[ngramOrder].keys.size(), ngramOrder);
-		values.clearStorageAfterCompression(ngramOrder);
+		((CompressibleValueContainer<T>) values).clearStorageAfterCompression(ngramOrder);
 		maps[ngramOrder].keys = null;
 	}
 
@@ -149,6 +151,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		long totalNumValueBits = 0;
 		long currBlock = 0;
 
+		final CompressibleValueContainer<T> compressibleValues = (CompressibleValueContainer<T>) values;
 		while (uncompressedPos < uncompressedSize) {
 			final BitList currBlockBits = new BitList();
 			final long firstKey = uncompressed.get(uncompressedPos);
@@ -158,7 +161,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 			currBlockBits.addLong(firstKey);
 			final BitList offsetBits = offsetCoder.compress(uncompressedPos);
 
-			final BitList firstValueBits = values.getCompressed(uncompressedPos, ngramOrder);
+			final BitList firstValueBits = compressibleValues.getCompressed(uncompressedPos, ngramOrder);
 			BitList headerBits = new BitList();
 			BitList bodyBits = new BitList();
 			long numKeyBits = 0;
@@ -297,7 +300,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	 * @return
 	 */
 	private long compressValue(final int ngramOrder, final long currPos, final BitList newBits) {
-		final BitList valueBits = values.getCompressed(currPos, ngramOrder);
+		final BitList valueBits = ((CompressibleValueContainer<T>) values).getCompressed(currPos, ngramOrder);
 		newBits.addAll(valueBits);
 		return valueBits.size();
 	}
@@ -329,7 +332,8 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		long currSuffix = contextOffsetOf(firstKey);
 		final boolean foundKeyFirst = firstKey == searchKey;
 
-		values.decompress(bits, ngramOrder, !foundKeyFirst, outputVal);
+		final CompressibleValueContainer<T> compressibleValues = (CompressibleValueContainer<T>) values;
+		compressibleValues.decompress(bits, ngramOrder, !foundKeyFirst, outputVal);
 		if (foundKeyFirst) return offset;
 
 		long currKey = -1;
@@ -353,7 +357,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 			currWord = newWord;
 			currSuffix = nextSuffix;
 			final boolean foundKey = currKey == searchKey;
-			values.decompress(bits, ngramOrder, !foundKey, outputVal);
+			compressibleValues.decompress(bits, ngramOrder, !foundKey, outputVal);
 			if (foundKey) {
 				final long indexFound = offset + k;
 				return indexFound;
@@ -444,7 +448,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	protected void swap(final long a, final long b, final LongArray array, final int ngramOrder) {
 		swap(array, a, b);
-		values.swap(a, b, ngramOrder);
+		((CompressibleValueContainer<T>) values).swap(a, b, ngramOrder);
 	}
 
 	protected void swap(final LongArray array, final long a, final long b) {

@@ -13,6 +13,7 @@ import edu.berkeley.nlp.lm.map.HashNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.LongRef;
+import edu.berkeley.nlp.lm.values.CompressibleValueContainer;
 import edu.berkeley.nlp.lm.values.RankedCountValueContainer;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
@@ -174,7 +175,7 @@ public class LmReaders
 	private static <W, V extends Comparable<V>> NgramMap<V> buildMapCommon(final ConfigOptions opts, final WordIndexer<W> wordIndexer,
 		final LongArray[] numNgramsForEachWord, final boolean reversed, final LmReader<V> lmReader, final ValueContainer<V> values, final boolean compress) {
 		Logger.startTrack("Pass 2 of 2");
-		final NgramMap<V> map = compress ? new CompressedNgramMap<V>(values, opts) : HashNgramMap.createImplicitWordHashNgramMap(values, opts, numNgramsForEachWord, reversed);
+		final NgramMap<V> map = compress ? new CompressedNgramMap<V>((CompressibleValueContainer<V>) values, opts) : HashNgramMap.createImplicitWordHashNgramMap(values, opts, numNgramsForEachWord, reversed);
 
 		lmReader.parse(new NgramMapAddingCallback<V>(map));
 		wordIndexer.trimAndLock();
