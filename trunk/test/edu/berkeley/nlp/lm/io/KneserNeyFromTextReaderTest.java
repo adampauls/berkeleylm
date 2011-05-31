@@ -49,12 +49,12 @@ public class KneserNeyFromTextReaderTest
 	@Test
 	public void test() {
 
-		TestInfo[] tests = new TestInfo[3];
-
 		int k = 0;
+		TestInfo[] tests = new TestInfo[4];
 		tests[k++] = new TestInfo("tiny_test_bigram", 2, new float[] { 0.75f, 0.33333f });
 		tests[k++] = new TestInfo("tiny_test_trigram", 3, new float[] { 0.75f, 0.6f, 0.6f });
 		tests[k++] = new TestInfo("tiny_test_fivegram", 5, new float[] { 0.4f, 0.5f, 0.5f, 0.538462f, 0.454545f });
+		tests[k++] = new TestInfo("big_test", 5, new float[] { 0.755639f, 0.891934f, 0.944268f, 0.955941f, 0.359436f });
 		for (TestInfo fileInfo : tests) {
 			String prefix = fileInfo.prefix;
 			int order = fileInfo.lmOrder;
@@ -94,7 +94,6 @@ public class KneserNeyFromTextReaderTest
 				Assert.assertEquals(lines.toString(), testSplit[1], goldSplit[1]);
 				if (!testSplit[1].startsWith("<s>")) {
 					// SRILM appears to do the wrong thing with the <s> start tag, so we don't test for equality
-
 					Assert.assertEquals(lines.toString(), Double.parseDouble(testSplit[0]), Double.parseDouble(goldSplit[0]), 1e-3);
 					if (testSplit.length == 3) {
 						Assert.assertEquals(lines.toString(), Double.parseDouble(testSplit[2]), Double.parseDouble(goldSplit[2]), 1e-3);
@@ -146,7 +145,7 @@ public class KneserNeyFromTextReaderTest
 	 * @param testFileName
 	 * @return
 	 */
-	private File getFile(final String testFileName) {
+	public static File getFile(final String testFileName) {
 		File txtFile = null;
 		try {
 			txtFile = new File(KneserNeyFromTextReaderTest.class.getResource(testFileName).toURI());
