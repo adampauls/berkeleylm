@@ -23,7 +23,7 @@ import edu.berkeley.nlp.lm.util.WorkQueue;
  * @author adampauls
  * 
  */
-public class GoogleLmReader<W> implements LmReader<LongRef>
+public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReaderCallback<LongRef>>
 {
 
 	private static final String START_SYMBOL = "<S>";
@@ -47,7 +47,7 @@ public class GoogleLmReader<W> implements LmReader<LongRef>
 	}
 
 	@Override
-	public void parse(final LmReaderCallback<LongRef> callback) {
+	public void parse(final NgramOrderedLmReaderCallback<LongRef> callback) {
 
 		final List<File> listFiles = Arrays.asList(new File(rootDir).listFiles());
 		Collections.sort(listFiles);
@@ -139,7 +139,7 @@ public class GoogleLmReader<W> implements LmReader<LongRef>
 							spaceIndex = nextIndex + 1;
 						}
 						final long count = Long.parseLong(line.substring(tabIndex + 1));
-						callback.call(ngram, new LongRef(count), words);
+						callback.call(ngram, 0, ngram.length, new LongRef(count), words);
 					}
 				});
 			}
@@ -152,7 +152,7 @@ public class GoogleLmReader<W> implements LmReader<LongRef>
 		wordIndexer.setStartSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(START_SYMBOL)));
 		wordIndexer.setEndSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(END_SYMBOL)));
 		wordIndexer.setUnkSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(UNK_SYMBOL)));
- 
+
 	}
 
 }

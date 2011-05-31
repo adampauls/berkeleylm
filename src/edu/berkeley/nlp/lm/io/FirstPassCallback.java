@@ -16,7 +16,7 @@ import edu.berkeley.nlp.lm.util.Logger;
  * @param <V>
  *            Value type
  */
-public final class FirstPassCallback<V extends Comparable<V>> implements LmReaderCallback<V>
+public final class FirstPassCallback<V extends Comparable<V>> implements ARPALmReaderCallback<V>
 {
 
 	private Counter<V> valueCounter;
@@ -33,10 +33,10 @@ public final class FirstPassCallback<V extends Comparable<V>> implements LmReade
 	}
 
 	@Override
-	public void call(final int[] ngram, final V v, final String words) {
+	public void call(final int[] ngram, int startPos, int endPos, final V v, final String words) {
 		valueCounter.incrementCount(v, 1);
-		final LongArray ngramOrderCounts = numNgramsForEachWord[ngram.length - 1];
-		final int word = reverse ? ngram[0] : ngram[ngram.length - 1];
+		final LongArray ngramOrderCounts = numNgramsForEachWord[endPos - 1];
+		final int word = reverse ? ngram[startPos] : ngram[endPos - 1];
 		if (word >= ngramOrderCounts.size()) {
 
 			ngramOrderCounts.setAndGrowIfNeeded(word, 1);
@@ -76,11 +76,6 @@ public final class FirstPassCallback<V extends Comparable<V>> implements LmReade
 		for (int ngramOrder = 0; ngramOrder < numNgramsForEachWord.length; ++ngramOrder) {
 			numNgramsForEachWord[ngramOrder] = LongArray.StaticMethods.newLongArray(numNGrams.get(ngramOrder), numWords, numWords);
 		}
-	}
-
-	@Override
-	public boolean ignoreNgrams() {
-		return false;
 	}
 
 	public LongArray[] getNumNgramsForEachWord() {
