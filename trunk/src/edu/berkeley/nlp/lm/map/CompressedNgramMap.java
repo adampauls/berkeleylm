@@ -48,7 +48,6 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	private final boolean reverseTrie = true;
 
-	
 	public CompressedNgramMap(final CompressibleValueContainer<T> values, final ConfigOptions opts) {
 		super(values, opts);
 		offsetCoder = new VariableLengthBlockCoder(OFFSET_RADIX);
@@ -87,7 +86,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		final CompressedMap map = maps[ngramOrder];
 		long oldSize = map.size();
 		final long newOffset = map.add(combineToKey(word, contextOffset));
-		values.add(ngram,startPos,endPos, ngramOrder, map.size() - 1, contextOffset, word, val, (-1), map.size() == oldSize);
+		values.add(ngram, startPos, endPos, ngramOrder, map.size() - 1, contextOffset, word, val, (-1), map.size() == oldSize);
 
 		return newOffset;
 
@@ -473,6 +472,11 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 			values.setSizeAtLeast(l, i);
 
 		}
+	}
+
+	@Override
+	public int getMaxNgramOrder() {
+		return maps.length;
 	}
 
 }

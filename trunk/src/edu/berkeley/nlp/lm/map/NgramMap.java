@@ -20,4 +20,6 @@ public interface NgramMap<T>
 
 	public long getValueAndOffset(final long contextOffset, final int contextOrder, int word, @OutputParameter T currProbVal);
 
+	public int getMaxNgramOrder();
+
 }

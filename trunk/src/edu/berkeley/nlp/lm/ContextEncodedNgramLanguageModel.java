@@ -102,7 +102,7 @@ public interface ContextEncodedNgramLanguageModel<W> extends NgramLanguageModelB
 			final WordIndexer<T> wordIndexer = lm.getWordIndexer();
 			float score = Float.NaN;
 			for (int i = 0; i < ngram.size(); ++i) {
-				score = lm.getLogProb(contextOutput.offset, contextOutput.order, wordIndexer.getOrAddIndex(ngram.get(i)), contextOutput);
+				score = lm.getLogProb(contextOutput.offset, contextOutput.order, wordIndexer.getIndexPossiblyUnk(ngram.get(i)), contextOutput);
 			}
 			return score;
 		}

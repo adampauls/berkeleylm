@@ -42,8 +42,6 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 		this.values = (ProbBackoffValueContainer) map.getValues();
 
 	}
-	
-	
 
 	@Override
 	public float getLogProb(final long contextOffset, final int contextOrder, final int word, @OutputParameter final LmContextInfo outputContext) {
@@ -65,6 +63,8 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 				currContextOrder--;
 				currContextOffset = currContextOrder < 0 ? 0 : values.getSuffixOffset(currContextOffset, currContextOrder + 1);
 			} else {
+				outputContext.offset = 0;
+				outputContext.order = -1;
 				return oovWordLogProb;
 			}
 		}
@@ -98,7 +98,5 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 			}
 		}
 	}
-
-	
 
 }

@@ -95,13 +95,9 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 	@Override
 	public long put(final int[] ngram, int startPos, int endPos, final T val) {
-		if (endPos == 5 && startPos == 4) {
-			@SuppressWarnings("unused")
-			int x = 5;
-		}
 		final int ngramOrder = endPos - startPos - 1;
 		HashMap map = maps[ngramOrder];
-		if (map.getLoadFactor() >= maxLoadFactor) {
+		if (map instanceof ExplicitWordHashMap && map.getLoadFactor() >= maxLoadFactor) {
 			rehash(ngramOrder, map.getCapacity() * 3 / 2);
 			map = maps[ngramOrder];
 		}
@@ -169,6 +165,10 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final int ngramOrder = contextOrder + 1;
 
 		final long key = combineToKey(word, contextOffset);
+		if (ngramOrder >= maps.length) {
+			@SuppressWarnings("unused")
+			int x = 5;
+		}
 		final HashMap map = maps[ngramOrder];
 		final long offset = map.getOffset(key);
 		if (offset >= 0 && outputVal != null) {
@@ -278,7 +278,8 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		return reversed ? ngram[startPos] : ngram[endPos - 1];
 	}
 
-	public int getMaxLmOrder() {
+	@Override
+	public int getMaxNgramOrder() {
 		return maps.length;
 	}
 
@@ -299,4 +300,5 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 			}
 		});
 	}
+
 }

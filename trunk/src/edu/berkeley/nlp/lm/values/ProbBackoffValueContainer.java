@@ -63,11 +63,9 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 		int k = 0;
 		for (final ProbBackoffPair pair : countIndexer.getObjects()) {
 
-			final int i = k;
+			probsForRank[k] = pair.prob;
+			backoffsForRank[k] = pair.backoff;
 			k++;
-
-			probsForRank[i] = pair.prob;
-			backoffsForRank[i] = pair.backoff;
 		}
 	}
 
@@ -82,7 +80,5 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 	public ProbBackoffPair getScratchValue() {
 		return new ProbBackoffPair(Float.NaN, Float.NaN);
 	}
-
-	
 
 }

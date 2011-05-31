@@ -56,7 +56,7 @@ public interface NgramLanguageModelBase<W>
 			final int[] ints = new int[ngram.size()];
 			final WordIndexer<T> wordIndexer = lm.getWordIndexer();
 			for (int i = 0; i < ngram.size(); ++i) {
-				ints[i] = wordIndexer.getOrAddIndex(ngram.get(i));
+				ints[i] = wordIndexer.getIndexPossiblyUnk(ngram.get(i));
 			}
 			return ints;
 		}
