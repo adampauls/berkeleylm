@@ -5,8 +5,8 @@ import java.util.List;
 import edu.berkeley.nlp.lm.collections.BoundedList;
 
 /**
- * Top-level interface for an n-gram language model which accents n-gram in an
- * array encoding.
+ * Top-level interface for an n-gram language model which accepts n-gram in an
+ * array-of-integers encoding.
  * 
  * @author adampauls
  */

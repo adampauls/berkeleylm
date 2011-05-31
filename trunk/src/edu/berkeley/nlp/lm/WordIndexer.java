@@ -11,7 +11,8 @@ import java.util.List;
  * @author adampauls
  * 
  * @param <W>
- *            The type representing a word.
+ *            A type representing words in the language. Can be a
+ *            <code>String</code>, or something more complex if needed
  */
 public interface WordIndexer<W> extends Serializable
 {
@@ -35,6 +36,11 @@ public interface WordIndexer<W> extends Serializable
 	 */
 	public int getIndexPossiblyUnk(W word);
 
+	/**
+	 * Gets the word object for an index.
+	 * @param index
+	 * @return
+	 */
 	public W getWord(int index);
 
 	/**
