@@ -20,94 +20,99 @@ import edu.berkeley.nlp.lm.collections.Iterators;
 
 public class PerplexityTest
 {
-	final float bigGoldProb = -2675.41f;
+	public static final String TEST_PERPLEX_TINY_TXT = "test_perplex_tiny.txt";
 
-	final float smallGoldProb = -38.9312f;
+	public static final String TEST_PERPLEX_TXT = "test_perplex.txt";
+
+	public static final String BIG_TEST_ARPA = "big_test.arpa";
+
+	public static final float TEST_PERPLEX_GOLD_PROB = -2675.41f;
+
+	public static final float TEST_PERPLEX_TINY_GOLD_PROB = -38.9312f;
 
 	@Test
 	public void testTiny() {
-		File file = FileUtils.getFile("test_perplex_tiny.txt");
-		float goldLogProb = smallGoldProb;
+		File file = FileUtils.getFile(TEST_PERPLEX_TINY_TXT);
+		float goldLogProb = TEST_PERPLEX_TINY_GOLD_PROB;
 		ProbBackoffLm<String> lm = getLm();
-		testLogProb(lm, file, goldLogProb);
+		testArrayEncodedLogProb(lm, file, goldLogProb);
 		//		Assert.assertEquals(logScore, -2806.4f, 1e-1);
 	}
 
 	@Test
 	public void testTinyContextEncoded() {
-		File file = FileUtils.getFile("test_perplex_tiny.txt");
-		float goldLogProb = smallGoldProb;
+		File file = FileUtils.getFile(TEST_PERPLEX_TINY_TXT);
+		float goldLogProb = TEST_PERPLEX_TINY_GOLD_PROB;
 		ContextEncodedProbBackoffLm<String> lm = getContextEncodedLm();
 		testContextEncodedLogProb(lm, file, goldLogProb);
 	}
 
 	@Test
 	public void test() {
-		File file = FileUtils.getFile("test_perplex.txt");
-		float goldLogProb = bigGoldProb;
+		File file = FileUtils.getFile(TEST_PERPLEX_TXT);
+		float goldLogProb = TEST_PERPLEX_GOLD_PROB;
 		ProbBackoffLm<String> lm = getLm();
-		testLogProb(lm, file, goldLogProb);
+		testArrayEncodedLogProb(lm, file, goldLogProb);
 	}
 
 	@Test
 	public void testCompressed() {
-		File file = FileUtils.getFile("test_perplex.txt");
-		float goldLogProb = bigGoldProb;
-		File lmFile = FileUtils.getFile("big_test.arpa");
+		File file = FileUtils.getFile(TEST_PERPLEX_TXT);
+		float goldLogProb = TEST_PERPLEX_GOLD_PROB;
+		File lmFile = FileUtils.getFile(BIG_TEST_ARPA);
 		final ConfigOptions configOptions = new ConfigOptions();
 		configOptions.unknownWordLogProb = 0.0f;
 		ProbBackoffLm<String> lm = LmReaders.readArrayEncodedLmFromArpa(lmFile.getPath(), true, new StringWordIndexer(), configOptions, Integer.MAX_VALUE);
-		testLogProb(lm, file, goldLogProb);
+		testArrayEncodedLogProb(lm, file, goldLogProb);
 	}
 
 	@Test
 	public void testCompressedCached() {
-		File file = FileUtils.getFile("test_perplex.txt");
-		float goldLogProb = bigGoldProb;
-		File lmFile = FileUtils.getFile("big_test.arpa");
+		File file = FileUtils.getFile(TEST_PERPLEX_TXT);
+		float goldLogProb = TEST_PERPLEX_GOLD_PROB;
+		File lmFile = FileUtils.getFile(BIG_TEST_ARPA);
 		final ConfigOptions configOptions = new ConfigOptions();
 		configOptions.unknownWordLogProb = 0.0f;
 		ProbBackoffLm<String> lm = LmReaders.readArrayEncodedLmFromArpa(lmFile.getPath(), true, new StringWordIndexer(), configOptions, Integer.MAX_VALUE);
-		testLogProb(new ArrayEncodedCachingLmWrapper<String>(lm), file, goldLogProb);
+		testArrayEncodedLogProb(new ArrayEncodedCachingLmWrapper<String>(lm), file, goldLogProb);
 	}
 
 	@Test
 	public void testContextEncoded() {
-		File file = FileUtils.getFile("test_perplex.txt");
-		float goldLogProb = bigGoldProb;
+		File file = FileUtils.getFile(TEST_PERPLEX_TXT);
+		float goldLogProb = TEST_PERPLEX_GOLD_PROB;
 		ContextEncodedProbBackoffLm<String> lm = getContextEncodedLm();
 		testContextEncodedLogProb(lm, file, goldLogProb);
 	}
 
 	@Test
 	public void testCachedTiny() {
-		File file = FileUtils.getFile("test_perplex_tiny.txt");
-		float goldLogProb = smallGoldProb;
+		File file = FileUtils.getFile(TEST_PERPLEX_TINY_TXT);
+		float goldLogProb = TEST_PERPLEX_TINY_GOLD_PROB;
 		ArrayEncodedNgramLanguageModel<String> lm = new ArrayEncodedCachingLmWrapper<String>(getLm());
-		testLogProb(lm, file, goldLogProb);
-		//		Assert.assertEquals(logScore, -2806.4f, 1e-1);
+		testArrayEncodedLogProb(lm, file, goldLogProb);
 	}
 
 	@Test
 	public void testCachedTinyContextEncoded() {
-		File file = FileUtils.getFile("test_perplex_tiny.txt");
-		float goldLogProb = smallGoldProb;
+		File file = FileUtils.getFile(TEST_PERPLEX_TINY_TXT);
+		float goldLogProb = TEST_PERPLEX_TINY_GOLD_PROB;
 		ContextEncodedCachingLmWrapper<String> lm = new ContextEncodedCachingLmWrapper<String>(getContextEncodedLm());
 		testContextEncodedLogProb(lm, file, goldLogProb);
 	}
 
 	@Test
 	public void testCached() {
-		File file = FileUtils.getFile("test_perplex.txt");
-		float goldLogProb = bigGoldProb;
+		File file = FileUtils.getFile(TEST_PERPLEX_TXT);
+		float goldLogProb = TEST_PERPLEX_GOLD_PROB;
 		ArrayEncodedNgramLanguageModel<String> lm = new ArrayEncodedCachingLmWrapper<String>(getLm());
-		testLogProb(lm, file, goldLogProb);
+		testArrayEncodedLogProb(lm, file, goldLogProb);
 	}
 
 	@Test
 	public void testCachedContextEncoded() {
-		File file = FileUtils.getFile("test_perplex.txt");
-		float goldLogProb = bigGoldProb;
+		File file = FileUtils.getFile(TEST_PERPLEX_TXT);
+		float goldLogProb = TEST_PERPLEX_GOLD_PROB;
 		ContextEncodedCachingLmWrapper<String> lm = new ContextEncodedCachingLmWrapper<String>(getContextEncodedLm());
 		testContextEncodedLogProb(lm, file, goldLogProb);
 	}
@@ -116,10 +121,10 @@ public class PerplexityTest
 	 * @return
 	 */
 	private ContextEncodedProbBackoffLm<String> getContextEncodedLm() {
-		File lmFile = FileUtils.getFile("big_test.arpa");
+		File lmFile = FileUtils.getFile(BIG_TEST_ARPA);
 		final ConfigOptions configOptions = new ConfigOptions();
 		configOptions.unknownWordLogProb = 0.0f;
-		ContextEncodedProbBackoffLm<String> lm = LmReaders.readContextEncodedLmFromArpa(lmFile.getPath(), false, new StringWordIndexer(), configOptions,
+		ContextEncodedProbBackoffLm<String> lm = LmReaders.readContextEncodedLmFromArpa(lmFile.getPath(), new StringWordIndexer(), configOptions,
 			Integer.MAX_VALUE);
 		return lm;
 	}
@@ -128,7 +133,7 @@ public class PerplexityTest
 	 * @return
 	 */
 	private ProbBackoffLm<String> getLm() {
-		File lmFile = FileUtils.getFile("big_test.arpa");
+		File lmFile = FileUtils.getFile(BIG_TEST_ARPA);
 		final ConfigOptions configOptions = new ConfigOptions();
 		configOptions.unknownWordLogProb = 0.0f;
 		ProbBackoffLm<String> lm = LmReaders.readArrayEncodedLmFromArpa(lmFile.getPath(), false, new StringWordIndexer(), configOptions, Integer.MAX_VALUE);
@@ -140,7 +145,7 @@ public class PerplexityTest
 	 * @param file
 	 * @param goldLogProb
 	 */
-	private void testContextEncodedLogProb(ContextEncodedNgramLanguageModel<String> lm_, File file, float goldLogProb) {
+	public static void testContextEncodedLogProb(ContextEncodedNgramLanguageModel<String> lm_, File file, float goldLogProb) {
 		float logScore = 0.0f;
 		try {
 			for (final String line : Iterators.able(IOUtils.lineIterator(file.getPath()))) {
@@ -177,7 +182,7 @@ public class PerplexityTest
 	 * @param file
 	 * @param goldLogProb
 	 */
-	private void testLogProb(ArrayEncodedNgramLanguageModel<String> lm_, File file, float goldLogProb) {
+	public static void testArrayEncodedLogProb(ArrayEncodedNgramLanguageModel<String> lm_, File file, float goldLogProb) {
 		float logScore = 0.0f;
 		try {
 			for (final String line : Iterators.able(IOUtils.lineIterator(file.getPath()))) {
