@@ -63,7 +63,7 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 				final float backOff = backoffIndex < 0 ? 0.0f : values.getBackoff(currContextOrder, backoffIndex);
 				backoffSum += (Float.isNaN(backOff) ? 0.0f : backOff);
 				currContextOrder--;
-				currContextOffset = currContextOrder < 0 ? 0 : values.getContextOffset(currContextOffset, currContextOrder + 1);
+				currContextOffset = currContextOrder < 0 ? 0 : values.getSuffixOffset(currContextOffset, currContextOrder + 1);
 			} else {
 				return oovWordLogProb;
 			}
@@ -88,7 +88,7 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 	private void setOutputContext(final LmContextInfo outputContext, final long offset, final int ngramOrder) {
 		if (outputContext != null) {
 			if (ngramOrder == lmOrder - 1) {
-				final long suffixOffset = values.getContextOffset(offset, ngramOrder);
+				final long suffixOffset = values.getSuffixOffset(offset, ngramOrder);
 				outputContext.offset = suffixOffset;
 				outputContext.order = ngramOrder - 1;
 			} else {
