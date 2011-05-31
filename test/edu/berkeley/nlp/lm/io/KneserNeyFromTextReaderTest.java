@@ -64,9 +64,9 @@ public class KneserNeyFromTextReaderTest
 			wordIndexer.setUnkSymbol("<unk>");
 			File txtFile = getFile(prefix + ".txt");
 			File goldArpaFile = getFile(prefix + ".arpa");
-			final KneserNeyFromTextReader<String> reader = new KneserNeyFromTextReader<String>(wordIndexer, order, fileInfo.discounts);
 			StringWriter stringWriter = new StringWriter();
-			reader.readFromFiles(Arrays.asList(txtFile), new PrintWriter(stringWriter));
+			final KneserNeyFromTextReader<String> reader = new KneserNeyFromTextReader<String>(Arrays.asList(txtFile), wordIndexer, order);
+			reader.parse(new KneserNeyLmReaderCallback<String>(new PrintWriter(stringWriter), wordIndexer, order, fileInfo.discounts));
 			System.out.println(stringWriter.toString());
 			List<String> arpaLines = new ArrayList<String>(Arrays.asList(stringWriter.toString().split("\n")));
 			sortAndRemoveBlankLines(arpaLines);
@@ -81,6 +81,7 @@ public class KneserNeyFromTextReaderTest
 	 * @param goldArpaLines
 	 */
 	private void compareLines(List<String> arpaLines, List<String> goldArpaLines) {
+		Assert.assertEquals(arpaLines.size(), goldArpaLines.size());
 		for (Pair<String, String> lines : Iterators.able(Iterators.zip(arpaLines.iterator(), goldArpaLines.iterator()))) {
 			String testLine = lines.getFirst();
 			String goldLine = lines.getSecond();
