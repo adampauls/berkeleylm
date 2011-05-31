@@ -106,17 +106,9 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 		boolean ngramIsNew) {
 
 		if (isHighestOrder(ngramOrder)) {
-			if (val != null) {
-				tokenCounts.set(offset, val.tokenCounts);
-			} else {
-				tokenCounts.incrementCount(offset, 1);
-			}
+			tokenCounts.incrementCount(offset, val.tokenCounts);
 		} else if (isSecondHighestOrder(ngramOrder)) {
-			if (val != null) {
-				prefixTokenCounts.set(offset, val.tokenCounts);
-			} else {
-				prefixTokenCounts.incrementCount(offset, 1);
-			}
+			prefixTokenCounts.incrementCount(offset, val.tokenCounts);
 		}
 		if (ngramIsNew) {
 			if (ngramOrder > 0) {
