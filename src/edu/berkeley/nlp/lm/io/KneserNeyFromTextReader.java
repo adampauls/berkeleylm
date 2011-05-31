@@ -21,9 +21,10 @@ import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer.KneserNeyCounts;
 
 /**
- * Class for producing a Kneser-Ney language model in ARPA format from raw text. 
+ * Class for producing a Kneser-Ney language model in ARPA format from raw text.
+ * 
  * @author adampauls
- *
+ * 
  * @param <W>
  */
 public class KneserNeyFromTextReader<W>
@@ -60,7 +61,6 @@ public class KneserNeyFromTextReader<W>
 	private float[] discounts;
 
 	private WordIndexer<W> wordIndexer;
-
 
 	public KneserNeyFromTextReader(WordIndexer<W> wordIndexer, int maxOrder) {
 		this(wordIndexer, maxOrder, constantArray(maxOrder, DEFAULT_DISCOUNT));
@@ -112,7 +112,7 @@ public class KneserNeyFromTextReader<W>
 		final KneseryNeyCountValueContainer values = new KneseryNeyCountValueContainer(lmOrder);
 		HashNgramMap<KneserNeyCounts> ngrams = HashNgramMap.createExplicitWordHashNgramMap(values, new ConfigOptions(), lmOrder, false);
 		long numLines = 0;
-	
+
 		for (String line : allLinesIterator) {
 			if (numLines % 10000 == 0) Logger.logs("On line " + numLines);
 			numLines++;
@@ -123,10 +123,12 @@ public class KneserNeyFromTextReader<W>
 			for (int i = 0; i < words.length; ++i) {
 				sent[i + 1] = wordIndexer.getOrAddIndexFromString(words[i]);
 			}
+			KneserNeyCounts counts = new KneserNeyCounts();
 			for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
 				for (int i = 0; i < sent.length; ++i) {
 					if (i - ngramOrder < 0) continue;
-					ngrams.put(sent, i - ngramOrder, i + 1, null);
+					counts.tokenCounts = 1;
+					ngrams.put(sent, i - ngramOrder, i + 1, counts);
 				}
 			}
 		}
@@ -168,13 +170,11 @@ public class KneserNeyFromTextReader<W>
 			out.println("\\" + (ngramOrder + 1) + "-grams:");
 			for (Entry<KneserNeyCounts> entry : ngrams.getNgramsForOrder(ngramOrder)) {
 				final String ngramString = StrUtils.join(WordIndexer.StaticMethods.toList(wordIndexer, entry.key));
-				if (ngramString.startsWith("<s> This is")) {
-					@SuppressWarnings("unused")
-					int x = 5;
-				}
+
 				ProbBackoffPair val = ngramOrder == lmOrder - 1 ? getHighestOrderProb(entry.key, entry.value, ngrams) : getLowerOrderProb(entry.key, 0,
 					entry.key.length, ngrams);
-				float prob = val.prob + getLowerOrderProb(entry.key, 0, entry.key.length - 1, ngrams).backoff * interpolateProb(entry.key, 1, entry.key.length, ngrams);
+				float prob = val.prob + getLowerOrderProb(entry.key, 0, entry.key.length - 1, ngrams).backoff
+					* interpolateProb(entry.key, 1, entry.key.length, ngrams);
 				boolean endsWithEndSym = entry.key[entry.key.length - 1] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getEndSymbol());
 				boolean isStartEndSym = entry.key.length == 1 && entry.key[0] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
 				final float logProb = isStartEndSym ? -99 : log(prob);
@@ -208,10 +208,10 @@ public class KneserNeyFromTextReader<W>
 		if (startPos == endPos) return new ProbBackoffPair(1.0f, 1.0f);
 		KneserNeyCounts counts = getCounts(ngram, ngrams, startPos, endPos);
 		KneserNeyCounts prefixCounts = getCounts(ngram, ngrams, startPos, endPos - 1);
-		
+
 		final float probDiscount = ((endPos - startPos == 1) ? 0.0f : discounts[endPos - startPos - 1]);
 		float prob = Math.max(0.0f, counts.leftDotTypeCounts - probDiscount) / prefixCounts.dotdotTypeCounts;
-		
+
 		final long backoffDenom = endPos - startPos == lmOrder - 1 ? counts.tokenCounts : counts.dotdotTypeCounts;
 		final float backoffDiscount = discounts[endPos - startPos];
 		float backoff = backoffDenom == 0.0f ? 1.0f : backoffDiscount * counts.rightDotTypeCounts / backoffDenom;
