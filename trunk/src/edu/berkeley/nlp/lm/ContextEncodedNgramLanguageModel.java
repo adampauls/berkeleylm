@@ -14,7 +14,7 @@ import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
  * 
  * @param <W>
  */
-public interface ContextEncodedNgramLanguageModel<W> extends NgramLanguageModelBase<W>
+public interface ContextEncodedNgramLanguageModel<W> extends NgramLanguageModel<W>
 {
 
 	/**

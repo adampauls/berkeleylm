@@ -52,35 +52,26 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 		final List<File> listFiles = Arrays.asList(new File(rootDir).listFiles());
 		Collections.sort(listFiles);
 		int ngramOrder_ = 0;
+		final String sortedVocabFile = "vocab_cs.gz";
 		final int numGoogleLoadThreads = opts.numGoogleLoadThreads;
 		for (final File ngramDir : listFiles) {
+			final int ngramOrder__ = ngramOrder_;
 			final File[] ngramFiles = ngramDir.listFiles(new FilenameFilter()
 			{
 
 				@Override
 				public boolean accept(final File dir, final String name) {
-					return name.endsWith("gz");
+					return ngramOrder__ == 0 ? name.equals(sortedVocabFile) : name.endsWith(".gz");
 				}
 			});
 			if (ngramOrder_ == 0) {
-				if (ngramFiles.length != 1) throw new RuntimeException("Expected just one file for unigrams, found " + Arrays.toString(ngramFiles));
-				final Counter<String> counts = new Counter<String>();
-				try {
-					for (final String line : Iterators.able(IOUtils.lineIterator(ngramFiles[0].getPath()))) {
-						final String[] parts = line.split("\t");
-						final String word = parts[0];
-						final long count = Long.parseLong(parts[1]);
-						counts.setCount(word, count);//
-					}
-				} catch (final NumberFormatException e) {
-					throw new RuntimeException(e);
-
-				} catch (final IOException e) {
-					throw new RuntimeException(e);
-
-				}
-				for (final Entry<String, Double> entry : counts.getEntriesSortedByDecreasingCount()) {
-					wordIndexer.getOrAddIndexFromString(entry.getKey());
+				if (ngramFiles.length != 1) throw new RuntimeException("Could not find expected vocab file " + sortedVocabFile);
+				final boolean manuallySortVocab = false;
+				final String sortedVocabPath = ngramFiles[0].getPath();
+				if (manuallySortVocab) {
+					addWordsToIndexerManuallySorted(sortedVocabPath);
+				} else {
+					addWordToIndexer(sortedVocabPath);
 				}
 			}
 			Logger.startTrack("Reading ngrams of order " + (ngramOrder_ + 1));
@@ -128,13 +119,12 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 						int spaceIndex = 0;
 						final int[] ngram = new int[ngramOrder + 1];
 						final String words = line.substring(0, tabIndex);
-						int i = ngram.length - 1;
-						while (true) {
+						for (int i = 0;; ++i) {
 							int nextIndex = line.indexOf(' ', spaceIndex);
 							if (nextIndex < 0) nextIndex = words.length();
 							final String word = words.substring(spaceIndex, nextIndex);
 							ngram[i] = wordIndexer.getOrAddIndexFromString(word);
-							--i;
+
 							if (nextIndex == words.length()) break;
 							spaceIndex = nextIndex + 1;
 						}
@@ -153,6 +143,50 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 		wordIndexer.setEndSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(END_SYMBOL)));
 		wordIndexer.setUnkSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(UNK_SYMBOL)));
 
+	}
+
+	/**
+	 * @param sortedVocabPath
+	 */
+	private void addWordToIndexer(final String sortedVocabPath) {
+		try {
+			for (final String line : Iterators.able(IOUtils.lineIterator(sortedVocabPath))) {
+				final String[] parts = line.split("\t");
+				final String word = parts[0];
+				wordIndexer.getOrAddIndexFromString(word);
+			}
+		} catch (final NumberFormatException e) {
+			throw new RuntimeException(e);
+
+		} catch (final IOException e) {
+			throw new RuntimeException(e);
+
+		}
+	}
+
+	/**
+	 * @param sortedVocabPath
+	 */
+	private void addWordsToIndexerManuallySorted(final String sortedVocabPath) {
+		final Counter<String> counts = new Counter<String>();
+		try {
+			for (final String line : Iterators.able(IOUtils.lineIterator(sortedVocabPath))) {
+				final String[] parts = line.split("\t");
+				final String word = parts[0];
+				final long count = Long.parseLong(parts[1]);
+				wordIndexer.getOrAddIndexFromString(word);
+				counts.setCount(word, count);//
+			}
+		} catch (final NumberFormatException e) {
+			throw new RuntimeException(e);
+
+		} catch (final IOException e) {
+			throw new RuntimeException(e);
+
+		}
+		for (final Entry<String, Double> entry : counts.getEntriesSortedByDecreasingCount()) {
+			wordIndexer.getOrAddIndexFromString(entry.getKey());
+		}
 	}
 
 }

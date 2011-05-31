@@ -1,7 +1,7 @@
 package edu.berkeley.nlp.lm.cache;
 
-import edu.berkeley.nlp.lm.AbstractNgramLanguageModel;
-import edu.berkeley.nlp.lm.NgramLanguageModel;
+import edu.berkeley.nlp.lm.AbstractArrayEncodedNgramLanguageModel;
+import edu.berkeley.nlp.lm.ArrayEncodedNgramLanguageModel;
 
 /**
  * This wrapper is <b>not</b> threadsafe. To use a cache in a multithreaded
@@ -11,7 +11,7 @@ import edu.berkeley.nlp.lm.NgramLanguageModel;
  * 
  * @param <W>
  */
-public class CachingLmWrapper<W> extends AbstractNgramLanguageModel<W>
+public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLanguageModel<W>
 {
 
 	/**
@@ -21,13 +21,13 @@ public class CachingLmWrapper<W> extends AbstractNgramLanguageModel<W>
 
 	private final LmCache cache;
 
-	private final NgramLanguageModel<W> lm;
+	private final ArrayEncodedNgramLanguageModel<W> lm;
 
-	public CachingLmWrapper(final NgramLanguageModel<W> lm) {
-		this(lm, new DirectMappedLmCache(24));
+	public ArrayEncodedCachingLmWrapper(final ArrayEncodedNgramLanguageModel<W> lm) {
+		this(lm, new ArrayEncodedDirectMappedLmCache(24));
 	}
 
-	public CachingLmWrapper(final NgramLanguageModel<W> lm, final LmCache cache) {
+	public ArrayEncodedCachingLmWrapper(final ArrayEncodedNgramLanguageModel<W> lm, final LmCache cache) {
 		super(lm.getLmOrder(), lm.getWordIndexer());
 		this.cache = cache;
 		this.lm = lm;
