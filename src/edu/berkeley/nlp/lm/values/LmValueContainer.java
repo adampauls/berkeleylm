@@ -15,7 +15,7 @@ import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
 
-abstract class LmValueContainer<V extends Comparable<V>> implements CompressibleValueContainer<V>, SuffixOffsetStoringValueContainer<V>, Serializable
+abstract class LmValueContainer<V extends Comparable<V>> implements CompressibleValueContainer<V>, Serializable
 {
 
 	/**
@@ -114,8 +114,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 		}
 	}
 
-	@Override
-	public long getContextOffset(final long index, final int ngramOrder) {
+	public long getSuffixOffset(final long index, final int ngramOrder) {
 		return contextOffsets == null ? -1L : contextOffsets[ngramOrder].get(index);
 	}
 
