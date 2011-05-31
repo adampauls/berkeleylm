@@ -85,4 +85,8 @@ public class StupidBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W
 		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
 	}
 
+	public NgramMap<LongRef> getNgramMap() {
+		return map;
+	}
+
 }
