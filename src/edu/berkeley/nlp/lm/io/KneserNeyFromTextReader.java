@@ -20,6 +20,12 @@ import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer.KneserNeyCounts;
 
+/**
+ * Class for producing a Kneser-Ney language model in ARPA format from raw text. 
+ * @author adampauls
+ *
+ * @param <W>
+ */
 public class KneserNeyFromTextReader<W>
 {
 
@@ -55,7 +61,6 @@ public class KneserNeyFromTextReader<W>
 
 	private WordIndexer<W> wordIndexer;
 
-	private long numLines;
 
 	public KneserNeyFromTextReader(WordIndexer<W> wordIndexer, int maxOrder) {
 		this(wordIndexer, maxOrder, constantArray(maxOrder, DEFAULT_DISCOUNT));
@@ -80,27 +85,14 @@ public class KneserNeyFromTextReader<W>
 		readFromFiles(inputFiles, IOUtils.openOutHard(outputFile));
 	}
 
-	private static float[] constantArray(int n, float f) {
-		float[] ret = new float[n];
-		Arrays.fill(ret, f);
-		return ret;
+	void readFromFiles(List<File> inputFiles, PrintWriter outputFile) {
+		HashNgramMap<KneserNeyCounts> readFromFiles = readFromFiles(inputFiles);
+		writeToPrintWriter(readFromFiles, outputFile);
 	}
 
 	private HashNgramMap<KneserNeyCounts> readFromFiles(Iterable<File> files) {
 		Logger.startTrack("Reading from files " + files);
-		final Iterable<String> allLinesIterator = Iterators.flatten(new Iterators.Transform<File, Iterator<String>>(files.iterator())
-		{
-
-			@Override
-			protected Iterator<String> transform(File file) {
-				try {
-					return IOUtils.lineIterator(file.getPath());
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-
-				}
-			}
-		});
+		final Iterable<String> allLinesIterator = getLineIterator(files);
 
 		final HashNgramMap<KneserNeyCounts> countNgrams = countNgrams(allLinesIterator);
 		Logger.endTrack();
@@ -119,8 +111,8 @@ public class KneserNeyFromTextReader<W>
 	private HashNgramMap<KneserNeyCounts> countNgrams(final Iterable<String> allLinesIterator) {
 		final KneseryNeyCountValueContainer values = new KneseryNeyCountValueContainer(lmOrder);
 		HashNgramMap<KneserNeyCounts> ngrams = HashNgramMap.createExplicitWordHashNgramMap(values, new ConfigOptions(), lmOrder, false);
-		numLines = 0;
-
+		long numLines = 0;
+	
 		for (String line : allLinesIterator) {
 			if (numLines % 10000 == 0) Logger.logs("On line " + numLines);
 			numLines++;
@@ -141,9 +133,25 @@ public class KneserNeyFromTextReader<W>
 		return ngrams;
 	}
 
-	void readFromFiles(List<File> inputFiles, PrintWriter outputFile) {
-		HashNgramMap<KneserNeyCounts> readFromFiles = readFromFiles(inputFiles);
-		writeToPrintWriter(readFromFiles, outputFile);
+	/**
+	 * @param files
+	 * @return
+	 */
+	private Iterable<String> getLineIterator(Iterable<File> files) {
+		final Iterable<String> allLinesIterator = Iterators.flatten(new Iterators.Transform<File, Iterator<String>>(files.iterator())
+		{
+
+			@Override
+			protected Iterator<String> transform(File file) {
+				try {
+					return IOUtils.lineIterator(file.getPath());
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+
+				}
+			}
+		});
+		return allLinesIterator;
 	}
 
 	/**
@@ -166,7 +174,7 @@ public class KneserNeyFromTextReader<W>
 				}
 				ProbBackoffPair val = ngramOrder == lmOrder - 1 ? getHighestOrderProb(entry.key, entry.value, ngrams) : getLowerOrderProb(entry.key, 0,
 					entry.key.length, ngrams);
-				float prob = val.prob + getLowerOrderProb(entry.key, 0, entry.key.length - 1, ngrams).backoff * recurse(entry.key, 1, entry.key.length, ngrams);
+				float prob = val.prob + getLowerOrderProb(entry.key, 0, entry.key.length - 1, ngrams).backoff * interpolateProb(entry.key, 1, entry.key.length, ngrams);
 				boolean endsWithEndSym = entry.key[entry.key.length - 1] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getEndSymbol());
 				boolean isStartEndSym = entry.key.length == 1 && entry.key[0] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
 				final float logProb = isStartEndSym ? -99 : log(prob);
@@ -182,20 +190,11 @@ public class KneserNeyFromTextReader<W>
 		out.close();
 	}
 
-	/**
-	 * @param prob
-	 * @return
-	 */
-	private static float log(float prob) {
-		return (float) (Math.log(prob) / Math.log(10.0));
-	}
-
-	private float recurse(int[] ngram, int startPos, int endPos, HashNgramMap<KneserNeyCounts> ngrams) {
+	private float interpolateProb(int[] ngram, int startPos, int endPos, HashNgramMap<KneserNeyCounts> ngrams) {
 		if (startPos == endPos) return 0.0f;
 		ProbBackoffPair backoff = getLowerOrderProb(ngram, startPos, endPos - 1, ngrams);
 		ProbBackoffPair prob = getLowerOrderProb(ngram, startPos, endPos, ngrams);
-
-		return prob.prob + backoff.backoff * recurse(ngram, startPos + 1, endPos, ngrams);
+		return prob.prob + backoff.backoff * interpolateProb(ngram, startPos + 1, endPos, ngrams);
 	}
 
 	private ProbBackoffPair getHighestOrderProb(int[] key, KneserNeyCounts value, HashNgramMap<KneserNeyCounts> ngrams) {
@@ -209,11 +208,13 @@ public class KneserNeyFromTextReader<W>
 		if (startPos == endPos) return new ProbBackoffPair(1.0f, 1.0f);
 		KneserNeyCounts counts = getCounts(ngram, ngrams, startPos, endPos);
 		KneserNeyCounts prefixCounts = getCounts(ngram, ngrams, startPos, endPos - 1);
-		final float d = ((endPos - startPos == 1) ? 0.0f : discounts[endPos - startPos - 1]);
-		float prob = Math.max(0.0f, counts.leftDotTypeCounts - d) / prefixCounts.dotdotTypeCounts;
+		
+		final float probDiscount = ((endPos - startPos == 1) ? 0.0f : discounts[endPos - startPos - 1]);
+		float prob = Math.max(0.0f, counts.leftDotTypeCounts - probDiscount) / prefixCounts.dotdotTypeCounts;
+		
 		final long backoffDenom = endPos - startPos == lmOrder - 1 ? counts.tokenCounts : counts.dotdotTypeCounts;
-		final float D = discounts[endPos - startPos];
-		float backoff = backoffDenom == 0.0f ? 1.0f : D * counts.rightDotTypeCounts / backoffDenom;
+		final float backoffDiscount = discounts[endPos - startPos];
+		float backoff = backoffDenom == 0.0f ? 1.0f : backoffDiscount * counts.rightDotTypeCounts / backoffDenom;
 		return new ProbBackoffPair((prob), (backoff));
 	}
 
@@ -257,6 +258,20 @@ public class KneserNeyFromTextReader<W>
 
 		}
 		out.println();
+	}
+
+	private static float[] constantArray(int n, float f) {
+		float[] ret = new float[n];
+		Arrays.fill(ret, f);
+		return ret;
+	}
+
+	/**
+	 * @param prob
+	 * @return
+	 */
+	private static float log(float prob) {
+		return (float) (Math.log(prob) / Math.log(10.0));
 	}
 
 }

@@ -15,7 +15,7 @@ import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
 
-abstract class LmValueContainer<V extends Comparable<V>> implements ValueContainer<V>, Serializable
+abstract class LmValueContainer<V extends Comparable<V>> implements CompressibleValueContainer<V>, SuffixOffsetStoringValueContainer<V>, Serializable
 {
 
 	/**

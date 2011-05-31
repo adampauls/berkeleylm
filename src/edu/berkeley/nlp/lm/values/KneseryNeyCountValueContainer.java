@@ -14,6 +14,13 @@ import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.LongRef;
 import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer.KneserNeyCounts;
 
+/**
+ * Stored type and token counts necessary for estimating a Kneser-Ney language
+ * model
+ * 
+ * @author adampauls
+ * 
+ */
 public final class KneseryNeyCountValueContainer implements ValueContainer<KneseryNeyCountValueContainer.KneserNeyCounts>
 {
 
@@ -37,9 +44,9 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 	private static final long serialVersionUID = 964277160049236607L;
 
 	@PrintMemoryCount
-	private LongArray tokenCounts;
+	private LongArray tokenCounts; // for highest-order ngrams
 
-	private LongArray prefixTokenCounts;
+	private LongArray prefixTokenCounts;// for second-highest order n-grams
 
 	@PrintMemoryCount
 	private final LongArray[] rightDotTypeCounts;
@@ -98,10 +105,6 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 	public void add(int[] ngram, int startPos, int endPos, int ngramOrder, long offset, long contextOffset, int word, KneserNeyCounts val, long suffixOffset,
 		boolean ngramIsNew) {
 
-		if (Arrays.toString(Arrays.copyOfRange(ngram, startPos, endPos)).contains("6") && ngramOrder == 0) {
-			@SuppressWarnings("unused")
-			int x = 5;
-		}
 		if (isHighestOrder(ngramOrder)) {
 			if (val != null) {
 				tokenCounts.set(offset, val.tokenCounts);
@@ -129,11 +132,6 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 				rightDotTypeCounts[ngramOrder - 1].incrementCount(rightDotOffset.offset, 1);
 			}
 		}
-	}
-
-	@Override
-	public void swap(long a, long b, int ngramOrder) {
-		throw new UnsupportedOperationException("Method not yet implemented");
 	}
 
 	@Override
@@ -178,35 +176,14 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 	}
 
 	@Override
-	public BitList getCompressed(long offset, int ngramOrder) {
-		throw new UnsupportedOperationException("Method not yet implemented");
-	}
-
-	@Override
-	public void decompress(BitStream bits, int ngramOrder, boolean justConsume, KneserNeyCounts outputVal) {
-		throw new UnsupportedOperationException("Method not yet implemented");
-	}
-
-	@Override
-	public void clearStorageAfterCompression(int ngramOrder) {
-		throw new UnsupportedOperationException("Method not yet implemented");
-	}
-
-	@Override
 	public void trim() {
 		tokenCounts.trim();
 		prefixTokenCounts.trim();
-
 		for (int i = 0; i < rightDotTypeCounts.length; ++i) {
 			rightDotTypeCounts[i].trim();
 			leftDotTypeCounts[i].trim();
 			dotdotTypeCounts[i].trim();
 		}
-	}
-
-	@Override
-	public long getContextOffset(long offset, int ngramOrder) {
-		throw new UnsupportedOperationException("Method not yet implemented");
 	}
 
 	@Override
