@@ -62,12 +62,11 @@ public class KneserNeyFromTextReaderTest
 			wordIndexer.setStartSymbol("<s>");
 			wordIndexer.setEndSymbol("</s>");
 			wordIndexer.setUnkSymbol("<unk>");
-			File txtFile = getFile(prefix + ".txt");
-			File goldArpaFile = getFile(prefix + ".arpa");
+			File txtFile = FileUtils.getFile(prefix + ".txt");
+			File goldArpaFile = FileUtils.getFile(prefix + ".arpa");
 			StringWriter stringWriter = new StringWriter();
 			final KneserNeyFromTextReader<String> reader = new KneserNeyFromTextReader<String>(Arrays.asList(txtFile), wordIndexer, order);
 			reader.parse(new KneserNeyLmReaderCallback<String>(new PrintWriter(stringWriter), wordIndexer, order, fileInfo.discounts));
-			System.out.println(stringWriter.toString());
 			List<String> arpaLines = new ArrayList<String>(Arrays.asList(stringWriter.toString().split("\n")));
 			sortAndRemoveBlankLines(arpaLines);
 			List<String> goldArpaLines = getLines(goldArpaFile);
@@ -141,19 +140,5 @@ public class KneserNeyFromTextReaderTest
 		}
 	}
 
-	/**
-	 * @param testFileName
-	 * @return
-	 */
-	public static File getFile(final String testFileName) {
-		File txtFile = null;
-		try {
-			txtFile = new File(KneserNeyFromTextReaderTest.class.getResource(testFileName).toURI());
-		} catch (URISyntaxException e) {
-			Assert.fail(e.toString());
-		}
-		Assert.assertNotNull("Could not read " + testFileName, txtFile);
-		return txtFile;
-	}
-
+	
 }
