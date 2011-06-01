@@ -49,7 +49,14 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 	@Override
 	public void parse(final NgramOrderedLmReaderCallback<LongRef> callback) {
 
-		final List<File> listFiles = Arrays.asList(new File(rootDir).listFiles());
+		final List<File> listFiles = Arrays.asList(new File(rootDir).listFiles(new FilenameFilter()
+		{
+
+			@Override
+			public boolean accept(final File dir, final String name) {
+				return name.endsWith("gms");
+			}
+		}));
 		Collections.sort(listFiles);
 		int ngramOrder_ = 0;
 		final String sortedVocabFile = "vocab_cs.gz";
