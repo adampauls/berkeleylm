@@ -31,7 +31,7 @@ public class MakeKneserNeyFromText
 		int lmOrder = Integer.parseInt(argv[0]);
 		String outputFile = argv[1];
 		List<File> inputFiles = new ArrayList<File>();
-		for (int i = 1; i < argv.length; ++i) {
+		for (int i = 2; i < argv.length; ++i) {
 			inputFiles.add(new File(argv[i]));
 		}
 		Logger.setGlobalLogger(new Logger.SystemLogger(System.out, System.err));
