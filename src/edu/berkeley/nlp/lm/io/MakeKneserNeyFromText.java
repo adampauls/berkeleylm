@@ -36,7 +36,11 @@ public class MakeKneserNeyFromText
 		}
 		Logger.setGlobalLogger(new Logger.SystemLogger(System.out, System.err));
 		Logger.startTrack("Reading text files " + inputFiles + " and writing to file " + outputFile);
-		LmReaders.createKneserNeyLmFromTextFiles(inputFiles, new StringWordIndexer(), lmOrder, new File(outputFile));
+		final StringWordIndexer wordIndexer = new StringWordIndexer();
+		wordIndexer.setStartSymbol(ARPALmReader.START_SYMBOL);
+		wordIndexer.setEndSymbol(ARPALmReader.END_SYMBOL);
+		wordIndexer.setUnkSymbol(ARPALmReader.UNK_SYMBOL);
+		LmReaders.createKneserNeyLmFromTextFiles(inputFiles, wordIndexer, lmOrder, new File(outputFile));
 		Logger.endTrack();
 	}
 
