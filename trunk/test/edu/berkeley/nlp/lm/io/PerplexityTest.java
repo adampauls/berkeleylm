@@ -15,7 +15,9 @@ import edu.berkeley.nlp.lm.ArrayEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ProbBackoffLm;
 import edu.berkeley.nlp.lm.StringWordIndexer;
 import edu.berkeley.nlp.lm.cache.ArrayEncodedCachingLmWrapper;
+import edu.berkeley.nlp.lm.cache.ArrayEncodedDirectMappedLmCache;
 import edu.berkeley.nlp.lm.cache.ContextEncodedCachingLmWrapper;
+import edu.berkeley.nlp.lm.cache.ContextEncodedDirectMappedLmCache;
 import edu.berkeley.nlp.lm.collections.Iterators;
 
 public class PerplexityTest
@@ -74,7 +76,7 @@ public class PerplexityTest
 		final ConfigOptions configOptions = new ConfigOptions();
 		configOptions.unknownWordLogProb = 0.0f;
 		ProbBackoffLm<String> lm = LmReaders.readArrayEncodedLmFromArpa(lmFile.getPath(), true, new StringWordIndexer(), configOptions, Integer.MAX_VALUE);
-		testArrayEncodedLogProb(new ArrayEncodedCachingLmWrapper<String>(lm), file, goldLogProb);
+		testArrayEncodedLogProb(new ArrayEncodedCachingLmWrapper<String>(lm, new ArrayEncodedDirectMappedLmCache(16)), file, goldLogProb);
 	}
 
 	@Test
@@ -89,7 +91,7 @@ public class PerplexityTest
 	public void testCachedTiny() {
 		File file = FileUtils.getFile(TEST_PERPLEX_TINY_TXT);
 		float goldLogProb = TEST_PERPLEX_TINY_GOLD_PROB;
-		ArrayEncodedNgramLanguageModel<String> lm = new ArrayEncodedCachingLmWrapper<String>(getLm());
+		ArrayEncodedNgramLanguageModel<String> lm = new ArrayEncodedCachingLmWrapper<String>(getLm(),new ArrayEncodedDirectMappedLmCache(16));
 		testArrayEncodedLogProb(lm, file, goldLogProb);
 	}
 
@@ -97,7 +99,7 @@ public class PerplexityTest
 	public void testCachedTinyContextEncoded() {
 		File file = FileUtils.getFile(TEST_PERPLEX_TINY_TXT);
 		float goldLogProb = TEST_PERPLEX_TINY_GOLD_PROB;
-		ContextEncodedCachingLmWrapper<String> lm = new ContextEncodedCachingLmWrapper<String>(getContextEncodedLm());
+		ContextEncodedCachingLmWrapper<String> lm = new ContextEncodedCachingLmWrapper<String>(getContextEncodedLm(), new ContextEncodedDirectMappedLmCache(16));
 		testContextEncodedLogProb(lm, file, goldLogProb);
 	}
 
@@ -105,7 +107,7 @@ public class PerplexityTest
 	public void testCached() {
 		File file = FileUtils.getFile(TEST_PERPLEX_TXT);
 		float goldLogProb = TEST_PERPLEX_GOLD_PROB;
-		ArrayEncodedNgramLanguageModel<String> lm = new ArrayEncodedCachingLmWrapper<String>(getLm());
+		ArrayEncodedNgramLanguageModel<String> lm = new ArrayEncodedCachingLmWrapper<String>(getLm(),new ArrayEncodedDirectMappedLmCache(16));
 		testArrayEncodedLogProb(lm, file, goldLogProb);
 	}
 
@@ -113,7 +115,7 @@ public class PerplexityTest
 	public void testCachedContextEncoded() {
 		File file = FileUtils.getFile(TEST_PERPLEX_TXT);
 		float goldLogProb = TEST_PERPLEX_GOLD_PROB;
-		ContextEncodedCachingLmWrapper<String> lm = new ContextEncodedCachingLmWrapper<String>(getContextEncodedLm());
+		ContextEncodedCachingLmWrapper<String> lm = new ContextEncodedCachingLmWrapper<String>(getContextEncodedLm(), new ContextEncodedDirectMappedLmCache(16));
 		testContextEncodedLogProb(lm, file, goldLogProb);
 	}
 
