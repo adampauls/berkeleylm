@@ -22,7 +22,7 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 	}
 
 	public ContextEncodedCachingLmWrapper(final ContextEncodedNgramLanguageModel<T> lm, final ContextEncodedLmCache cache) {
-		super(lm.getLmOrder(), lm.getWordIndexer());
+		super(lm.getLmOrder(), lm.getWordIndexer(), Float.NaN);
 		this.lm = lm;
 		this.contextCache = cache;
 

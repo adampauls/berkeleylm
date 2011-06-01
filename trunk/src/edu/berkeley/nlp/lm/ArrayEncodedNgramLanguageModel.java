@@ -63,9 +63,6 @@ public interface ArrayEncodedNgramLanguageModel<W> extends NgramLanguageModel<W>
 			return lm.getLogProb(ints, 0, ints.length);
 
 		}
-
-		
-
 	}
 
 }

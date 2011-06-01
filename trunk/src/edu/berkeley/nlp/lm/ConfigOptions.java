@@ -18,10 +18,6 @@ public class ConfigOptions implements Serializable
 	 */
 	private static final long serialVersionUID = 1L;
 
-	/**
-	 * Number of longs (8 bytes) used as a "block" for variable length
-	 * compression.
-	 */
 	@Option(gloss = "Number of longs (8 bytes) used as a block for variable length compression")
 	public int compressedBlockSize = 16;
 
@@ -34,10 +30,10 @@ public class ConfigOptions implements Serializable
 	@Option(gloss = "Fraction of hash table array actually used for entries (lower means more memory/more speed)")
 	public double hashTableLoadFactor = 0.7;
 
-	@Option
+	@Option(gloss = "Probability returned when the last word of an n-gram is not in the vocabulary of the LM (this is *not* the probability of the <unk> tag)")
 	public double unknownWordLogProb = -100.0f;
 
-	@Option
+	@Option(gloss = "Backoff constant used for stupid backoff")
 	public double stupidBackoffAlpha = 0.4;
 
 	@Option(gloss = "Number of threads to use while reading directories in the format used by Google N-grams. 0 means no threading is used")

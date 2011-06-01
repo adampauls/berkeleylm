@@ -11,7 +11,7 @@ import java.util.concurrent.Semaphore;
  * 0 to the number of objects.
  * 
  * @author Dan Klein
- * @authoer Adam Pauls
+ * @author Adam Pauls
  */
 @SuppressWarnings("rawtypes")
 public class Indexer<E extends Comparable> implements Serializable

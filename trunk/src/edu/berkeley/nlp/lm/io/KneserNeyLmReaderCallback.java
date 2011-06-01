@@ -48,16 +48,26 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 	//		       = 1 - Sum_Z2 n(*_z) / n(*_*) + Sum_Z2 D / n(*_*)
 	//		       = D n(_*) / n(*_*)
 	//
-	//	The original Kneser-Ney discounting (-ukndiscount) uses one discounting constant for each N-gram order. These constants are estimated as
-	//
-	//		D = n1 / (n1 + 2*n2)
-	//
-	//	where n1 and n2 are the total number of N-grams with exactly one and two counts, respectively. 
 
 	private static final float DEFAULT_DISCOUNT = 0.75f;
 
 	private int lmOrder;
 
+	/**
+	 * 
+	 * This array represents the discount used for each ngram order.
+	 * 
+	 * The original Kneser-Ney discounting (-ukndiscount) uses one discounting
+	 * constant for each N-gram order. These constants are estimated as
+	 * 
+	 * D = n1 / (n1 + 2*n2)
+	 * 
+	 * where n1 and n2 are the total number of N-grams with exactly one and two
+	 * counts, respectively.
+	 * 
+	 * For simplicity, our code just uses a constant discount for each order of
+	 * 0.75. However, other discounts can be specified.
+	 */
 	private float[] discounts;
 
 	private WordIndexer<W> wordIndexer;
@@ -111,17 +121,16 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 			for (Entry<KneserNeyCounts> entry : ngrams.getNgramsForOrder(ngramOrder)) {
 				final String ngramString = StrUtils.join(WordIndexer.StaticMethods.toList(wordIndexer, entry.key));
 
-				ProbBackoffPair val = ngramOrder == lmOrder - 1 ? getHighestOrderProb(entry.key, entry.value, ngrams) : getLowerOrderProb(entry.key, 0,
-					entry.key.length, ngrams);
-				float prob = val.prob + getLowerOrderProb(entry.key, 0, entry.key.length - 1, ngrams).backoff
-					* interpolateProb(entry.key, 1, entry.key.length, ngrams);
+				ProbBackoffPair val = ngramOrder == lmOrder - 1 ? getHighestOrderProb(entry.key, entry.value) : getLowerOrderProb(entry.key, 0,
+					entry.key.length);
+				float prob = val.prob + getLowerOrderProb(entry.key, 0, entry.key.length - 1).backoff * interpolateProb(entry.key, 1, entry.key.length);
 				boolean endsWithEndSym = entry.key[entry.key.length - 1] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getEndSymbol());
 				boolean isStartEndSym = entry.key.length == 1 && entry.key[0] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
-				final float logProb = isStartEndSym ? -99 : log(prob);
+				final float logProb = isStartEndSym ? -99 : ((float) (Math.log10(prob)));
 				if (endsWithEndSym || val.backoff == 1.0f)
 					out.printf("%f\t%s\n", logProb, ngramString);
 				else
-					out.printf("%f\t%s\t%f\n", logProb, ngramString, log(val.backoff));
+					out.printf("%f\t%s\t%f\n", logProb, ngramString, ((float) (Math.log10(val.backoff))));
 			}
 			out.println();
 
@@ -130,24 +139,24 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 		out.close();
 	}
 
-	private float interpolateProb(int[] ngram, int startPos, int endPos, HashNgramMap<KneserNeyCounts> ngrams) {
+	private float interpolateProb(int[] ngram, int startPos, int endPos) {
 		if (startPos == endPos) return 0.0f;
-		ProbBackoffPair backoff = getLowerOrderProb(ngram, startPos, endPos - 1, ngrams);
-		ProbBackoffPair prob = getLowerOrderProb(ngram, startPos, endPos, ngrams);
-		return prob.prob + backoff.backoff * interpolateProb(ngram, startPos + 1, endPos, ngrams);
+		ProbBackoffPair backoff = getLowerOrderProb(ngram, startPos, endPos - 1);
+		ProbBackoffPair prob = getLowerOrderProb(ngram, startPos, endPos);
+		return prob.prob + backoff.backoff * interpolateProb(ngram, startPos + 1, endPos);
 	}
 
-	private ProbBackoffPair getHighestOrderProb(int[] key, KneserNeyCounts value, HashNgramMap<KneserNeyCounts> ngrams) {
-		KneserNeyCounts rightDotCounts = getCounts(key, ngrams, 0, key.length - 1);
+	private ProbBackoffPair getHighestOrderProb(int[] key, KneserNeyCounts value) {
+		KneserNeyCounts rightDotCounts = getCounts(key, 0, key.length - 1);
 		final float D = discounts[key.length - 1];
 		float prob = Math.max(0.0f, value.tokenCounts - D) / rightDotCounts.tokenCounts;
 		return new ProbBackoffPair(prob, 1.0f);
 	}
 
-	private ProbBackoffPair getLowerOrderProb(int[] ngram, int startPos, int endPos, HashNgramMap<KneserNeyCounts> ngrams) {
+	private ProbBackoffPair getLowerOrderProb(int[] ngram, int startPos, int endPos) {
 		if (startPos == endPos) return new ProbBackoffPair(1.0f, 1.0f);
-		KneserNeyCounts counts = getCounts(ngram, ngrams, startPos, endPos);
-		KneserNeyCounts prefixCounts = getCounts(ngram, ngrams, startPos, endPos - 1);
+		KneserNeyCounts counts = getCounts(ngram, startPos, endPos);
+		KneserNeyCounts prefixCounts = getCounts(ngram, startPos, endPos - 1);
 
 		final float probDiscount = ((endPos - startPos == 1) ? 0.0f : discounts[endPos - startPos - 1]);
 		float prob = Math.max(0.0f, counts.leftDotTypeCounts - probDiscount) / prefixCounts.dotdotTypeCounts;
@@ -164,7 +173,7 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 	 * @param startPos
 	 * @param endPos
 	 */
-	private KneserNeyCounts getCounts(int[] key, HashNgramMap<KneserNeyCounts> ngrams, int startPos, int endPos) {
+	private KneserNeyCounts getCounts(int[] key, int startPos, int endPos) {
 		final KneserNeyCounts value = new KneserNeyCounts();
 		if (startPos == endPos) {
 			//only happens when requesting number of bigrams
@@ -195,7 +204,6 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 		for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
 			long numNgrams = ngrams.getNumNgrams(ngramOrder);
 			out.println("ngram " + (ngramOrder + 1) + "=" + numNgrams);
-
 		}
 		out.println();
 	}
@@ -204,14 +212,6 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 		float[] ret = new float[n];
 		Arrays.fill(ret, f);
 		return ret;
-	}
-
-	/**
-	 * @param prob
-	 * @return
-	 */
-	private static float log(float prob) {
-		return (float) (Math.log(prob) / Math.log(10.0));
 	}
 
 }

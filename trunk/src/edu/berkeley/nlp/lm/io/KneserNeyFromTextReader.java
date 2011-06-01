@@ -29,33 +29,6 @@ import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer.KneserNeyCounts;
  */
 public class KneserNeyFromTextReader<W> implements LmReader<Object, LmReaderCallback<Object>>
 {
-
-	//	from http://www-speech.sri.com/projects/srilm/manpages/ngram-discount.7.html
-
-	//	p(a_z) = g(a_z) + bow(a_) p(_z)  ; Eqn.4
-	//
-	//	Let Z1 be the set {z: c(a_z) > 0}. For highest order N-grams we have:
-	//
-	//		g(a_z)  = max(0, c(a_z) - D) / c(a_)
-	//		bow(a_) = 1 - Sum_Z1 g(a_z)
-	//		        = 1 - Sum_Z1 c(a_z) / c(a_) + Sum_Z1 D / c(a_)
-	//		        = D n(a_*) / c(a_)
-	//
-	//	Let Z2 be the set {z: n(*_z) > 0}. For lower order N-grams we have:
-	//
-	//		g(_z)  = max(0, n(*_z) - D) / n(*_*)
-	//		bow(_) = 1 - Sum_Z2 g(_z)
-	//		       = 1 - Sum_Z2 n(*_z) / n(*_*) + Sum_Z2 D / n(*_*)
-	//		       = D n(_*) / n(*_*)
-	//
-	//	The original Kneser-Ney discounting (-ukndiscount) uses one discounting constant for each N-gram order. These constants are estimated as
-	//
-	//		D = n1 / (n1 + 2*n2)
-	//
-	//	where n1 and n2 are the total number of N-grams with exactly one and two counts, respectively. 
-
-	
-
 	private int lmOrder;
 
 	private WordIndexer<W> wordIndexer;

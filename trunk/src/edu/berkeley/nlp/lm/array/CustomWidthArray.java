@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 /**
  * An array with a custom word "width" in bits. Only handles arrays with 2^37
- * bits.
+ * bits. Borrows heavily from Sux4J (http://sux.dsi.unimi.it/)
  * 
  * @author adampauls
  * 

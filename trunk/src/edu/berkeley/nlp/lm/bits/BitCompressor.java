@@ -1,9 +1,7 @@
-package edu.berkeley.nlp.lm.encoding;
+package edu.berkeley.nlp.lm.bits;
 
 import java.io.Serializable;
 
-import edu.berkeley.nlp.lm.bits.BitList;
-import edu.berkeley.nlp.lm.bits.BitStream;
 
 public interface BitCompressor extends Serializable
 {

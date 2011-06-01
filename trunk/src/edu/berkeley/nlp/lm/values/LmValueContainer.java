@@ -5,11 +5,11 @@ import java.util.Arrays;
 
 import edu.berkeley.nlp.lm.array.CustomWidthArray;
 import edu.berkeley.nlp.lm.array.LongArray;
+import edu.berkeley.nlp.lm.bits.BitCompressor;
 import edu.berkeley.nlp.lm.bits.BitList;
 import edu.berkeley.nlp.lm.bits.BitStream;
+import edu.berkeley.nlp.lm.bits.VariableLengthBitCompressor;
 import edu.berkeley.nlp.lm.collections.Indexer;
-import edu.berkeley.nlp.lm.encoding.BitCompressor;
-import edu.berkeley.nlp.lm.encoding.VariableLengthBlockCoder;
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
@@ -41,7 +41,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 
 	public LmValueContainer(final Indexer<V> countIndexer, final int valueRadix, final boolean storePrefixIndexes) {
 		this.valueRadix = valueRadix;
-		valueCoder = new VariableLengthBlockCoder(valueRadix);
+		valueCoder = new VariableLengthBitCompressor(valueRadix);
 		this.countIndexer = countIndexer;
 		this.storePrefixIndexes = storePrefixIndexes;
 		if (storePrefixIndexes) contextOffsets = new LongArray[6];

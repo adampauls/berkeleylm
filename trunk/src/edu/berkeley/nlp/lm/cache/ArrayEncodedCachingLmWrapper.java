@@ -28,7 +28,7 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 	}
 
 	public ArrayEncodedCachingLmWrapper(final ArrayEncodedNgramLanguageModel<W> lm, final LmCache cache) {
-		super(lm.getLmOrder(), lm.getWordIndexer());
+		super(lm.getLmOrder(), lm.getWordIndexer(), Float.NaN);
 		this.cache = cache;
 		this.lm = lm;
 
