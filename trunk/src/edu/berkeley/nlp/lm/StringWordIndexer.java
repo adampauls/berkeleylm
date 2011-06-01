@@ -1,6 +1,7 @@
 package edu.berkeley.nlp.lm;
 
 import edu.berkeley.nlp.lm.collections.Indexer;
+import edu.berkeley.nlp.lm.io.ARPALmReader;
 
 /**
  * Implementation of a WordIndexer in which words are represented as strings.
@@ -18,11 +19,11 @@ public class StringWordIndexer implements WordIndexer<String>
 
 	private final Indexer<String> sparseIndexer;
 
-	private String startSymbol;
+	private String startSymbol = ARPALmReader.START_SYMBOL;
 
-	private String endSymbol;
+	private String endSymbol = ARPALmReader.END_SYMBOL;
 
-	private String unkSymbol;
+	private String unkSymbol = ARPALmReader.UNK_SYMBOL;
 
 	private int unkIndex = -1;
 
