@@ -115,13 +115,13 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 				if (ngramOrder == 1) {
 					bigramTypeCounts++;
 				} else {
-					LmContextInfo dotDotOffset = map.getOffsetForNgram(ngram, startPos + 1, endPos - 1);
-					dotdotTypeCounts[ngramOrder - 2].incrementCount(dotDotOffset.offset, 1);
+					long dotDotOffset = map.getOffsetForNgramInModel(ngram, startPos + 1, endPos - 1);
+					dotdotTypeCounts[ngramOrder - 2].incrementCount(dotDotOffset, 1);
 				}
-				LmContextInfo leftDotOffset = map.getOffsetForNgram(ngram, startPos + 1, endPos);
-				leftDotTypeCounts[ngramOrder - 1].incrementCount(leftDotOffset.offset, 1);
-				LmContextInfo rightDotOffset = map.getOffsetForNgram(ngram, startPos, endPos - 1);
-				rightDotTypeCounts[ngramOrder - 1].incrementCount(rightDotOffset.offset, 1);
+				long leftDotOffset = map.getOffsetForNgramInModel(ngram, startPos + 1, endPos);
+				leftDotTypeCounts[ngramOrder - 1].incrementCount(leftDotOffset, 1);
+				long rightDotOffset = map.getOffsetForNgramInModel(ngram, startPos, endPos - 1);
+				rightDotTypeCounts[ngramOrder - 1].incrementCount(rightDotOffset, 1);
 			}
 		}
 	}

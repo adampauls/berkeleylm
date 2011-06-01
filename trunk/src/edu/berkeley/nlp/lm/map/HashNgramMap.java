@@ -235,6 +235,18 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		}
 		return lmContextInfo;
 	}
+	
+	/**
+	 * Like {@link #getOffsetForNgram(int[], int, int)}, but assumes that the full n-gram is in the map (i.e. 
+	 * does not back off to the largest suffix which is in the model). 
+	 * @param ngram
+	 * @param startPos
+	 * @param endPos
+	 * @return
+	 */
+	public long getOffsetForNgramInModel(final int[] ngram, final int startPos, final int endPos) {
+		return getOffsetFromRawNgram(ngram, startPos, endPos);
+	}
 
 	@Override
 	public void handleNgramsFinished(final int justFinishedOrder) {
