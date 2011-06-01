@@ -132,12 +132,25 @@ public final class CustomWidthArray implements LongArray, Serializable
 
 	@Override
 	public boolean add(final long value) {
+		return addHelp(value, true);
+	}
+	
+	@Override
+	public boolean addWithFixedCapacity(final long value) {
+		return addHelp(value, false);
+	}
+
+	/**
+	 * @param value
+	 * @return
+	 */
+	private boolean addHelp(final long value, boolean growCapacity) {
 		assert !(width < Long.SIZE && (value & -1L << width) != 0) : "The specified value (" + value
 			+ ") is larger than the maximum value for the given width (" + width + ")";
 		final long length = this.size * width;
 		final int startWord = word(length);
 		final int startBit = bit(length);
-		ensureCapacity(this.size + 1);
+		if (growCapacity) ensureCapacity(this.size + 1);
 
 		if (startBit + width <= Long.SIZE)
 			data[startWord] |= value << startBit;

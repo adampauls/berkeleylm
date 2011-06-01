@@ -19,7 +19,7 @@ class CompressedMap implements Serializable
 	LongArray keys;
 
 	public long add(final long key) {
-		keys.add(key);
+		keys.addWithFixedCapacity(key);
 		return keys.size();
 	}
 

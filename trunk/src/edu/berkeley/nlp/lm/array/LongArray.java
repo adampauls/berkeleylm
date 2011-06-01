@@ -13,6 +13,8 @@ public interface LongArray
 
 	public abstract long size();
 
+	public abstract boolean addWithFixedCapacity(long val);
+	
 	public abstract boolean add(long val);
 
 	public abstract void trimToSize(long size);
