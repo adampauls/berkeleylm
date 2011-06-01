@@ -25,6 +25,8 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	@PrintMemoryCount
 	private final HashMap[] maps;
 
+	private final long[] initCapacities;
+
 	private final double maxLoadFactor;
 
 	private final boolean reversed;
@@ -39,6 +41,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		this.reversed = reversed;
 		this.maxLoadFactor = opts.hashTableLoadFactor;
 		maps = new ImplicitWordHashMap[numNgramsForEachWord.length];
+		initCapacities = null;
 		for (int ngramOrder = 0; ngramOrder < numNgramsForEachWord.length; ++ngramOrder) {
 			maps[ngramOrder] = new ImplicitWordHashMap(numNgramsForEachWord[ngramOrder], maxLoadFactor);
 			values.setSizeAtLeast(maps[ngramOrder].getCapacity(), ngramOrder);
@@ -55,24 +58,28 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		this.reversed = reversed;
 		this.maxLoadFactor = opts.hashTableLoadFactor;
 		maps = new ExplicitWordHashMap[maxNgramOrder];
-		for (int ngramOrder = 0; ngramOrder < maxNgramOrder; ++ngramOrder) {
-			maps[ngramOrder] = new ExplicitWordHashMap(10);
-			values.setSizeAtLeast(maps[ngramOrder].getCapacity(), ngramOrder);
-		}
+		initCapacities = new long[maxNgramOrder];
+		Arrays.fill(initCapacities, 100);
 		values.setMap(this);
 	}
 
 	private HashNgramMap(ValueContainer<T> values, ConfigOptions opts, long[] newCapacities, boolean reversed) {
 		super(values, opts);
-
 		this.reversed = reversed;
 		this.maxLoadFactor = opts.hashTableLoadFactor;
 		maps = new ExplicitWordHashMap[newCapacities.length];
-		for (int ngramOrder = 0; ngramOrder < maps.length; ++ngramOrder) {
-			maps[ngramOrder] = new ExplicitWordHashMap(newCapacities[ngramOrder]);
-			values.setSizeAtLeast(maps[ngramOrder].getCapacity(), ngramOrder);
-		}
+		this.initCapacities = newCapacities;
 		values.setMap(this);
+	}
+
+	/**
+	 * @param values
+	 * @param newCapacities
+	 * @param ngramOrder
+	 */
+	private void initMap(long newCapacity, int ngramOrder) {
+		maps[ngramOrder] = new ExplicitWordHashMap(newCapacity);
+		values.setSizeAtLeast(maps[ngramOrder].getCapacity(), ngramOrder);
 	}
 
 	public static class Entry<T>
@@ -97,6 +104,10 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	public long put(final int[] ngram, int startPos, int endPos, final T val) {
 		final int ngramOrder = endPos - startPos - 1;
 		HashMap map = maps[ngramOrder];
+		if (map == null) {
+			initMap(initCapacities[ngramOrder], ngramOrder);
+			map = maps[ngramOrder];
+		}
 		if (map instanceof ExplicitWordHashMap && map.getLoadFactor() >= maxLoadFactor) {
 			rehash(ngramOrder, map.getCapacity() * 3 / 2);
 			map = maps[ngramOrder];
