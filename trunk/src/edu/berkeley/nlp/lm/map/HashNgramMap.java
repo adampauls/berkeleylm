@@ -277,6 +277,17 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		return getOffsetFromRawNgram(ngram, reversed ? startPos : (startPos + 1), reversed ? (endPos - 1) : endPos);
 	}
 
+	/**
+	 * Gets the offset of the context for an n-gram (represented by offset)
+	 * 
+	 * @param offset
+	 * @return
+	 */
+	public long getPrefixOffset(long offset, int ngramOrder) {
+		if (ngramOrder == 0) return -1;
+		return AbstractNgramMap.contextOffsetOf(maps[ngramOrder].getKey(offset));
+	}
+
 	private long getKey(final int[] ngram, final int startPos, final int endPos) {
 		long contextOffset = 0;
 		for (int ngramOrder = 0; ngramOrder < endPos - startPos - 1; ++ngramOrder) {
