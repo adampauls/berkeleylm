@@ -19,11 +19,11 @@ public class StringWordIndexer implements WordIndexer<String>
 
 	private final Indexer<String> sparseIndexer;
 
-	private String startSymbol = ARPALmReader.START_SYMBOL;
+	private String startSymbol;
 
-	private String endSymbol = ARPALmReader.END_SYMBOL;
+	private String endSymbol;
 
-	private String unkSymbol = ARPALmReader.UNK_SYMBOL;
+	private String unkSymbol;
 
 	private int unkIndex = -1;
 
