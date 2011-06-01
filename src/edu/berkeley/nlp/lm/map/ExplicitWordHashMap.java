@@ -45,10 +45,6 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 	 */
 	@Override
 	public long put(final long key) {
-		if (AbstractNgramMap.contextOffsetOf(key) < 0) {
-			@SuppressWarnings("unused")
-			int x = 5;
-		}
 		final long hash = hash(key);
 		if (hash < 0) return -1L;
 		final long rangeStart = 0;

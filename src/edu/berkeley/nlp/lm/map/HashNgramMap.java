@@ -162,10 +162,6 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final int ngramOrder = contextOrder + 1;
 
 		final long key = combineToKey(word, contextOffset);
-		if (ngramOrder >= maps.length) {
-			@SuppressWarnings("unused")
-			int x = 5;
-		}
 		final HashMap map = maps[ngramOrder];
 		final long offset = map.getOffset(key);
 		if (offset >= 0 && outputVal != null) {
