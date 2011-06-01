@@ -69,8 +69,16 @@ final class IntSmallLongArray implements Serializable, LongArray
 	 */
 	@Override
 	public void setAndGrowIfNeeded(final long pos, final long val) {
+		setGrowHelp(pos, val, true);
+	}
+
+	/**
+	 * @param pos
+	 * @param val
+	 */
+	private void setGrowHelp(final long pos, final long val, boolean growCapacity) {
 		check(pos);
-		ensureCapacity(pos + 1);
+		if (growCapacity) ensureCapacity(pos + 1);
 		size = Math.max(size, pos + 1);
 		setHelp(pos, val);
 	}
@@ -145,7 +153,13 @@ final class IntSmallLongArray implements Serializable, LongArray
 	 */
 	@Override
 	public boolean add(final long val) {
-		setAndGrowIfNeeded(size, val);
+		setGrowHelp(size, val, true);
+		return true;
+	}
+	
+	@Override
+	public boolean addWithFixedCapacity(final long val) {
+		setGrowHelp(size, val, false);
 		return true;
 	}
 

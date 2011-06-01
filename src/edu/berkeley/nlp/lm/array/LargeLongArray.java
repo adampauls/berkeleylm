@@ -79,6 +79,14 @@ final class LargeLongArray implements Serializable, LongArray
 	@Override
 	public void setAndGrowIfNeeded(final long pos, final long val) {
 		ensureCapacity(pos + 1);
+		setGrowHelp(pos, val);
+	}
+
+	/**
+	 * @param pos
+	 * @param val
+	 */
+	private void setGrowHelp(final long pos, final long val) {
 		size = Math.max(size, pos + 1);
 		setHelp(pos, val);
 	}
@@ -161,6 +169,12 @@ final class LargeLongArray implements Serializable, LongArray
 		return true;
 	}
 
+	@Override
+	public boolean addWithFixedCapacity(final long val) {
+		setGrowHelp(size, val);
+		return true;
+	}
+
 	public void shift(final long src, final long dest, final int length) {
 		if (length == 0) return;
 		if (src == dest) return;
@@ -231,11 +245,10 @@ final class LargeLongArray implements Serializable, LongArray
 			++innerIndex;
 		}
 	}
-	
+
 	@Override
 	public void incrementCount(long index, long count) {
 		LongArray.StaticMethods.incrementCount(this, index, count);
 	}
-
 
 }
