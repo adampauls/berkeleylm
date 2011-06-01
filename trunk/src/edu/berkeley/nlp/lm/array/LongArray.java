@@ -54,12 +54,13 @@ public interface LongArray
 		}
 
 		public static void incrementCount(LongArray array, long index, long count) {
-			if (index < 0) {
-				@SuppressWarnings("unused")
-				int x = 5;
+
+			if (index >= array.size()) {
+				array.setAndGrowIfNeeded(index, count);
+			} else {
+				long l = array.get(index);
+				array.set(index, l + count);
 			}
-			long l = index >= array.size() ? 0 : array.get(index);
-			array.setAndGrowIfNeeded(index, l + count);
 		}
 	}
 
