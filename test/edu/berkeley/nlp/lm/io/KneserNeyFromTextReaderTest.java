@@ -24,55 +24,47 @@ import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer.KneserNeyCounts;
 public class KneserNeyFromTextReaderTest
 {
 
-	private static class TestInfo
-	{
-		String prefix;
-
-		int lmOrder;
-
-		float[] discounts;
-
-		/**
-		 * @param prefix
-		 * @param lmOrder
-		 * @param discounts
-		 */
-		public TestInfo(String prefix, int lmOrder, float[] discounts) {
-			super();
-			this.prefix = prefix;
-			this.lmOrder = lmOrder;
-			this.discounts = discounts;
-		}
-
+	@Test
+	public void testBigram() {
+		doTest("tiny_test_bigram", new float[] { 0.75f, 0.33333f });
 	}
 
 	@Test
-	public void test() {
+	public void testTrigram() {
+		doTest("tiny_test_trigram", new float[] { 0.75f, 0.6f, 0.6f });
+	}
 
-		int k = 0;
-		TestInfo[] tests = new TestInfo[4];
-		tests[k++] = new TestInfo("tiny_test_bigram", 2, new float[] { 0.75f, 0.33333f });
-		tests[k++] = new TestInfo("tiny_test_trigram", 3, new float[] { 0.75f, 0.6f, 0.6f });
-		tests[k++] = new TestInfo("tiny_test_fivegram", 5, new float[] { 0.4f, 0.5f, 0.5f, 0.538462f, 0.454545f });
-		tests[k++] = new TestInfo("big_test", 5, new float[] { 0.755639f, 0.891934f, 0.944268f, 0.955941f, 0.359436f });
-		for (TestInfo fileInfo : tests) {
-			String prefix = fileInfo.prefix;
-			int order = fileInfo.lmOrder;
-			final StringWordIndexer wordIndexer = new StringWordIndexer();
-			wordIndexer.setStartSymbol("<s>");
-			wordIndexer.setEndSymbol("</s>");
-			wordIndexer.setUnkSymbol("<unk>");
-			File txtFile = FileUtils.getFile(prefix + ".txt");
-			File goldArpaFile = FileUtils.getFile(prefix + ".arpa");
-			StringWriter stringWriter = new StringWriter();
-			final KneserNeyFromTextReader<String> reader = new KneserNeyFromTextReader<String>(Arrays.asList(txtFile), wordIndexer, order);
-			reader.parse(new KneserNeyLmReaderCallback<String>(new PrintWriter(stringWriter), wordIndexer, order, fileInfo.discounts));
-			List<String> arpaLines = new ArrayList<String>(Arrays.asList(stringWriter.toString().split("\n")));
-			sortAndRemoveBlankLines(arpaLines);
-			List<String> goldArpaLines = getLines(goldArpaFile);
-			sortAndRemoveBlankLines(goldArpaLines);
-			compareLines(arpaLines, goldArpaLines);
-		}
+	@Test
+	public void testFivegram() {
+		doTest("tiny_test_fivegram", new float[] { 0.4f, 0.5f, 0.5f, 0.538462f, 0.454545f });
+	}
+
+	@Test
+	public void testBig() {
+		doTest("big_test", new float[] { 0.755639f, 0.891934f, 0.944268f, 0.955941f, 0.359436f });
+	}
+
+	/**
+	 * @param prefix
+	 * @param order
+	 * @param discounts
+	 */
+	private void doTest(String prefix, final float[] discounts) {
+		final StringWordIndexer wordIndexer = new StringWordIndexer();
+		int order = discounts.length;
+		wordIndexer.setStartSymbol("<s>");
+		wordIndexer.setEndSymbol("</s>");
+		wordIndexer.setUnkSymbol("<unk>");
+		File txtFile = FileUtils.getFile(prefix + ".txt");
+		File goldArpaFile = FileUtils.getFile(prefix + ".arpa");
+		StringWriter stringWriter = new StringWriter();
+		final KneserNeyFromTextReader<String> reader = new KneserNeyFromTextReader<String>(Arrays.asList(txtFile), wordIndexer, order);
+		reader.parse(new KneserNeyLmReaderCallback<String>(new PrintWriter(stringWriter), wordIndexer, order, discounts));
+		List<String> arpaLines = new ArrayList<String>(Arrays.asList(stringWriter.toString().split("\n")));
+		sortAndRemoveBlankLines(arpaLines);
+		List<String> goldArpaLines = getLines(goldArpaFile);
+		sortAndRemoveBlankLines(goldArpaLines);
+		compareLines(arpaLines, goldArpaLines);
 	}
 
 	/**
@@ -140,5 +132,4 @@ public class KneserNeyFromTextReaderTest
 		}
 	}
 
-	
 }
