@@ -235,10 +235,12 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		}
 		return lmContextInfo;
 	}
-	
+
 	/**
-	 * Like {@link #getOffsetForNgram(int[], int, int)}, but assumes that the full n-gram is in the map (i.e. 
-	 * does not back off to the largest suffix which is in the model). 
+	 * Like {@link #getOffsetForNgram(int[], int, int)}, but assumes that the
+	 * full n-gram is in the map (i.e. does not back off to the largest suffix
+	 * which is in the model).
+	 * 
 	 * @param ngram
 	 * @param startPos
 	 * @param endPos
@@ -311,6 +313,10 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 				return new Entry<T>(getNgramForOffset(offset, ngramOrder), val);
 			}
 		});
+	}
+
+	public boolean isReversed() {
+		return reversed;
 	}
 
 }
