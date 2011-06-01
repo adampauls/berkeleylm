@@ -178,7 +178,7 @@ public class ARPALmReader<W> implements LmReader<ProbBackoffPair, ARPALmReaderCa
 			backoff = Float.parseFloat(line.substring(secondTab + 1, length));
 		}
 		// add the new n-gram
-		assert logProbability != 0;
+		if ( logProbability >= 0) throw new RuntimeException("Bad ARPA line " + line);
 		callback.call(ngram, 0, ngram.length, new ProbBackoffPair(logProbability, backoff), line);
 
 		currentNGramCount++;
