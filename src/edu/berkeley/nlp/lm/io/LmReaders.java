@@ -174,7 +174,7 @@ public class LmReaders
 	 * @param arpaOutputFile
 	 */
 	public static <W> void createKneserNeyLmFromTextFiles(List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder, File arpaOutputFile) {
-		final KneserNeyFromTextReader<W> reader = new KneserNeyFromTextReader<W>(files, wordIndexer, lmOrder);
+		final TextReader<W> reader = new TextReader<W>(files, wordIndexer, lmOrder);
 		reader.parse(new KneserNeyLmReaderCallback<W>(arpaOutputFile, wordIndexer, lmOrder));
 	}
 

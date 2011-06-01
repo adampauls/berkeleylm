@@ -123,7 +123,7 @@ public class ARPALmReader<W> implements LmReader<ProbBackoffPair, ARPALmReaderCa
 		Logger.startTrack("Reading 1-grams");
 		try {
 			while (reader.ready()) {
-				if (currLine % 1000 == 0) Logger.logs("Read " + currLine);
+				if (currLine % 100000 == 0) Logger.logs("Read " + currLine + " lines");
 				currLine++;
 				final String line = reader.readLine();
 				assert line != null;
