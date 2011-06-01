@@ -5,10 +5,10 @@ import java.util.List;
 
 import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.array.LongArray;
+import edu.berkeley.nlp.lm.bits.BitCompressor;
 import edu.berkeley.nlp.lm.bits.BitList;
 import edu.berkeley.nlp.lm.bits.BitStream;
-import edu.berkeley.nlp.lm.encoding.BitCompressor;
-import edu.berkeley.nlp.lm.encoding.VariableLengthBlockCoder;
+import edu.berkeley.nlp.lm.bits.VariableLengthBitCompressor;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.values.CompressibleValueContainer;
@@ -50,10 +50,10 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	public CompressedNgramMap(final CompressibleValueContainer<T> values, long[] numNgramsForEachOrder, final ConfigOptions opts) {
 		super(values, opts);
-		offsetCoder = new VariableLengthBlockCoder(OFFSET_RADIX);
-		wordCoder = new VariableLengthBlockCoder(WORD_RADIX);
+		offsetCoder = new VariableLengthBitCompressor(OFFSET_RADIX);
+		wordCoder = new VariableLengthBitCompressor(WORD_RADIX);
 		this.offsetDeltaRadix = opts.offsetDeltaRadix;
-		suffixCoder = new VariableLengthBlockCoder(offsetDeltaRadix);
+		suffixCoder = new VariableLengthBitCompressor(offsetDeltaRadix);
 		this.compressedBlockSize = opts.compressedBlockSize;
 		initWithLengths(numNgramsForEachOrder);
 		values.setMap(this);

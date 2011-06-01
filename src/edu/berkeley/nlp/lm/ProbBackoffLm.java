@@ -23,22 +23,18 @@ public class ProbBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W> 
 	private static final long serialVersionUID = 1L;
 
 	private final NgramMap<ProbBackoffPair> map;
-
-	/**
-	 * Fixed constant returned when computing the log probability for an n-gram
-	 * whose last word is not in the vocabulary. Note that this is different
-	 * from the log prob of the <code>unk</code> tag probability.
-	 * 
-	 */
-	private final float oovWordLogProb;
+	
 
 	public ProbBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final NgramMap<ProbBackoffPair> map, final ConfigOptions opts) {
-		super(lmOrder, wordIndexer);
-		oovWordLogProb = (float) opts.unknownWordLogProb;
+		super(lmOrder, wordIndexer, (float)opts.unknownWordLogProb);
 		this.map = map;
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see edu.berkeley.nlp.lm.AbstractArrayEncodedNgramLanguageModel#getLogProb(int[], int, int)
+	 */
 	@Override
 	public float getLogProb(final int[] ngram, final int startPos_, final int endPos_) {
 		final NgramMap<ProbBackoffPair> localMap = map;
@@ -78,11 +74,19 @@ public class ProbBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W> 
 		return logProb + backoff;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see edu.berkeley.nlp.lm.AbstractArrayEncodedNgramLanguageModel#getLogProb(int[])
+	 */
 	@Override
 	public float getLogProb(final int[] ngram) {
 		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see edu.berkeley.nlp.lm.AbstractArrayEncodedNgramLanguageModel#getLogProb(java.util.List)
+	 */
 	@Override
 	public float getLogProb(final List<W> ngram) {
 		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);

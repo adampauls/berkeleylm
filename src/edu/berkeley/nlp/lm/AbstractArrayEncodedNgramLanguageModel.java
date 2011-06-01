@@ -5,15 +5,16 @@ import java.util.List;
 
 /**
  * Default implementation of all NGramLanguageModel functionality except
- * getLogProb(int[] ngram, int startPos, int endPos)
+ * {@link #getLogProb(int[], int, int)}.
  * 
- * @see getLogProb(int[] , int , int ) function.
+
  * 
  * @author adampauls
  * 
  * @param <W>
  */
-public abstract class AbstractArrayEncodedNgramLanguageModel<W> implements ArrayEncodedNgramLanguageModel<W>, Serializable
+public abstract class AbstractArrayEncodedNgramLanguageModel<W> extends AbstractNgramLanguageModel<W> implements ArrayEncodedNgramLanguageModel<W>,
+	Serializable
 {
 
 	/**
@@ -21,18 +22,8 @@ public abstract class AbstractArrayEncodedNgramLanguageModel<W> implements Array
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private final int lmOrder;
-
-	private final WordIndexer<W> wordIndexer;
-
-	public AbstractArrayEncodedNgramLanguageModel(final int lmOrder, final WordIndexer<W> wordIndexer) {
-		this.lmOrder = lmOrder;
-		this.wordIndexer = wordIndexer;
-	}
-
-	@Override
-	public int getLmOrder() {
-		return lmOrder;
+	public AbstractArrayEncodedNgramLanguageModel(final int lmOrder, final WordIndexer<W> wordIndexer, final float oovWordLogProb) {
+		super(lmOrder, wordIndexer, oovWordLogProb);
 	}
 
 	@Override
@@ -48,11 +39,6 @@ public abstract class AbstractArrayEncodedNgramLanguageModel<W> implements Array
 	@Override
 	public float getLogProb(final int[] ngram) {
 		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
-	}
-
-	@Override
-	public WordIndexer<W> getWordIndexer() {
-		return wordIndexer;
 	}
 
 	@Override

@@ -79,6 +79,8 @@ public class LmReaders
 	 * @param <W>
 	 * @param lmFile
 	 * @param compress
+	 *            Compress the LM using block compression. This LM should be
+	 *            smaller but slower.
 	 * @param wordIndexer
 	 * @param opts
 	 * @param lmOrder
@@ -97,18 +99,51 @@ public class LmReaders
 		return readLmFromGoogleNgramDir(dir, compress, new StringWordIndexer(), new ConfigOptions());
 	}
 
+	/**
+	 * Reads a stupid backoff lm from a directory with n-gram counts in the
+	 * format used by Google n-grams.
+	 * 
+	 * @param <W>
+	 * @param dir
+	 * @param compress
+	 * @param wordIndexer
+	 * @param opts
+	 * @return
+	 */
 	public static <W> StupidBackoffLm<W> readLmFromGoogleNgramDir(final String dir, boolean compress, final WordIndexer<W> wordIndexer, final ConfigOptions opts) {
 		final FirstPassCallback<LongRef> valueAddingCallback = firstPassGoogle(dir, wordIndexer, opts);
 		final LongArray[] numNgramsForEachWord = valueAddingCallback.getNumNgramsForEachWord();
 		return secondPassGoogle(opts, dir, wordIndexer, valueAddingCallback, numNgramsForEachWord, compress);
 	}
 
+	/**
+	 * Builds a context-encoded LM from raw text. This call first builds and writes a (temporary) ARPA file by calling  {@link #createKneserNeyLmFromTextFiles(List, WordIndexer, int, File)},
+	 * and the reads the resulting file. Since the temp file can be quite large, it is important that the
+	 * temp directory used by java (<code>java.io.tmpdir</code>). 
+	 * @param <W>
+	 * @param files
+	 * @param wordIndexer
+	 * @param lmOrder
+	 * @param opts
+	 * @return
+	 */
 	public static <W> ContextEncodedProbBackoffLm<W> readContextEncodedKneserNeyLmFromTextFile(List<File> files, final WordIndexer<W> wordIndexer,
 		final int lmOrder, ConfigOptions opts) {
 		File tmpFile = getTempFile();
 		return readContextEncodedKneserNeyLmFromTextFile(files, wordIndexer, lmOrder, opts, tmpFile);
 	}
 
+	/**
+	 * Builds an array-encoded LM from raw text. This call first builds and writes a (temporary) ARPA file by calling  {@link #createKneserNeyLmFromTextFiles(List, WordIndexer, int, File)},
+	 * and the reads the resulting file. Since the temp file can be quite large, it is important that the
+	 * temp directory used by java (<code>java.io.tmpdir</code>). 
+	 * @param <W>
+	 * @param files
+	 * @param wordIndexer
+	 * @param lmOrder
+	 * @param opts
+	 * @return
+	 */
 	public static <W> ProbBackoffLm<W> readKneserNeyLmFromTextFile(List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder, ConfigOptions opts,
 		boolean compress) {
 		File tmpFile = getTempFile();
@@ -128,8 +163,12 @@ public class LmReaders
 	}
 
 	/**
+	 * Estimates a Kneser-Ney language model from raw text, and writes a file
+	 * (in ARPA format)
+	 * 
 	 * @param <W>
 	 * @param files
+	 *            Files of raw text (new-line separated).
 	 * @param wordIndexer
 	 * @param lmOrder
 	 * @param arpaOutputFile

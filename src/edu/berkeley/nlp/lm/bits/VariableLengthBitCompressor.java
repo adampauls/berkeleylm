@@ -1,9 +1,7 @@
-package edu.berkeley.nlp.lm.encoding;
+package edu.berkeley.nlp.lm.bits;
 
-import edu.berkeley.nlp.lm.bits.BitList;
-import edu.berkeley.nlp.lm.bits.BitStream;
 
-public class VariableLengthBlockCoder implements BitCompressor
+public class VariableLengthBitCompressor implements BitCompressor
 {
 	/**
 	 * 
@@ -12,7 +10,7 @@ public class VariableLengthBlockCoder implements BitCompressor
 
 	private final int radix;
 
-	public VariableLengthBlockCoder(final int radix) {
+	public VariableLengthBitCompressor(final int radix) {
 		this.radix = radix;
 	}
 

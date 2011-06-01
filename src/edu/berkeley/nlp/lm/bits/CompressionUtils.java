@@ -1,7 +1,5 @@
-package edu.berkeley.nlp.lm.encoding;
+package edu.berkeley.nlp.lm.bits;
 
-import edu.berkeley.nlp.lm.bits.BitList;
-import edu.berkeley.nlp.lm.bits.BitStream;
 
 public class CompressionUtils
 {

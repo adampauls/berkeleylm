@@ -8,7 +8,8 @@ import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
 
 /**
- * Language model implementation which uses Katz-style backoff computation.
+ * Language model implementation which uses Kneser-Ney style backoff
+ * computation.
  * 
  * @author adampauls
  * 
@@ -26,23 +27,22 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 
 	private final ProbBackoffValueContainer values;
 
-	/**
-	 * Fixed constant returned when computing the log probability for an n-gram
-	 * whose last word is not in the vocabulary. Note that this is different
-	 * from the log prob of the <code>unk</code> tag probability.
-	 * 
-	 */
-	private final float oovWordLogProb;
-
 	public ContextEncodedProbBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final ContextEncodedNgramMap<ProbBackoffPair> map,
 		final ConfigOptions opts) {
-		super(lmOrder, wordIndexer);
-		oovWordLogProb = (float) opts.unknownWordLogProb;
+		super(lmOrder, wordIndexer, (float) opts.unknownWordLogProb);
 		this.map = map;
 		this.values = (ProbBackoffValueContainer) map.getValues();
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * edu.berkeley.nlp.lm.AbstractContextEncodedNgramLanguageModel#getLogProb
+	 * (long, int, int,
+	 * edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo)
+	 */
 	@Override
 	public float getLogProb(final long contextOffset, final int contextOrder, final int word, @OutputParameter final LmContextInfo outputContext) {
 		final ContextEncodedNgramMap<ProbBackoffPair> localMap = map;
@@ -70,21 +70,28 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.berkeley.nlp.lm.AbstractContextEncodedNgramLanguageModel#
+	 * getOffsetForNgram(int[], int, int)
+	 */
 	@Override
 	public LmContextInfo getOffsetForNgram(final int[] ngram, final int startPos, final int endPos) {
 		return map.getOffsetForNgram(ngram, startPos, endPos);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.berkeley.nlp.lm.AbstractContextEncodedNgramLanguageModel#
+	 * getNgramForOffset(long, int, int)
+	 */
 	@Override
 	public int[] getNgramForOffset(final long contextOffset, final int contextOrder, final int word) {
 		return map.getNgramFromContextEncoding(contextOffset, contextOrder, word);
 	}
 
-	/**
-	 * @param outputContext
-	 * @param offset
-	 * @param ngramOrder
-	 */
 	private void setOutputContext(final LmContextInfo outputContext, final long offset, final int ngramOrder) {
 		if (outputContext != null) {
 			if (ngramOrder == lmOrder - 1) {

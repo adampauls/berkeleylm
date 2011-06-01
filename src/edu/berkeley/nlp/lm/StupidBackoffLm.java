@@ -25,24 +25,22 @@ public class StupidBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W
 
 	protected final NgramMap<LongRef> map;
 
-	/**
-	 * Fixed constant returned when computing the log probability for an n-gram
-	 * whose last word is not in the vocabulary. Note that this is different
-	 * from the log prob of the <code>unk</code> tag probability.
-	 * 
-	 */
-	private final float oovWordLogProb;
-
 	private final float alpha;
 
 	public StupidBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final NgramMap<LongRef> map, final ConfigOptions opts) {
-		super(lmOrder, wordIndexer);
-		oovWordLogProb = (float) opts.unknownWordLogProb;
+		super(lmOrder, wordIndexer, (float) opts.unknownWordLogProb);
 		this.map = map;
 		this.alpha = (float) opts.stupidBackoffAlpha;
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * edu.berkeley.nlp.lm.AbstractArrayEncodedNgramLanguageModel#getLogProb
+	 * (int[], int, int)
+	 */
 	@Override
 	public float getLogProb(final int[] ngram, final int startPos_, final int endPos_) {
 		final NgramMap<LongRef> localMap = map;
@@ -75,11 +73,25 @@ public class StupidBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W
 		return ret;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * edu.berkeley.nlp.lm.AbstractArrayEncodedNgramLanguageModel#getLogProb
+	 * (int[])
+	 */
 	@Override
 	public float getLogProb(final int[] ngram) {
 		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * edu.berkeley.nlp.lm.AbstractArrayEncodedNgramLanguageModel#getLogProb
+	 * (java.util.List)
+	 */
 	@Override
 	public float getLogProb(final List<W> ngram) {
 		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);

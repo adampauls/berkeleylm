@@ -9,15 +9,17 @@ import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 /**
  * 
  * Default implementation of all ContextEncodedNgramLanguageModel functionality
- * except @see #getLogProb(long , int , int , LmStateOutput ), @see
- * #getOffsetForNgram(long , int) and @see #getNgramForOffset(long , int , int )
+ * except {@link #getLogProb(long, int, int, LmContextInfo)},
+ * {@link #getOffsetForNgram(int[], int, int), and
+ * {@link #getNgramForOffset(long, int, int)}.
  * 
  * 
  * @author adampauls
  * 
  * @param <W>
  */
-public abstract class AbstractContextEncodedNgramLanguageModel<W> implements ContextEncodedNgramLanguageModel<W>, Serializable
+public abstract class AbstractContextEncodedNgramLanguageModel<W> extends AbstractNgramLanguageModel<W> implements ContextEncodedNgramLanguageModel<W>,
+	Serializable
 {
 
 	/**
@@ -25,23 +27,8 @@ public abstract class AbstractContextEncodedNgramLanguageModel<W> implements Con
 	 */
 	private static final long serialVersionUID = 1L;
 
-	protected final int lmOrder;
-
-	private final WordIndexer<W> wordIndexer;
-
-	public AbstractContextEncodedNgramLanguageModel(final int lmOrder, final WordIndexer<W> wordIndexer) {
-		this.lmOrder = lmOrder;
-		this.wordIndexer = wordIndexer;
-	}
-
-	@Override
-	public int getLmOrder() {
-		return lmOrder;
-	}
-
-	@Override
-	public WordIndexer<W> getWordIndexer() {
-		return wordIndexer;
+	public AbstractContextEncodedNgramLanguageModel(final int lmOrder, final WordIndexer<W> wordIndexer, final float oovWordLogProb) {
+		super(lmOrder, wordIndexer, oovWordLogProb);
 	}
 
 	@Override
