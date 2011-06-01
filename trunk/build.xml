@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<project name="Berkeley LM" default="all" basedir=".">
+
+	<!-- ~~~~~ Properties, Paths, etc ~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+	<property environment="env" />
+
+	<property name="src" value="./src" />
+	<property name="test" value="./test" />
+	<property name="test-reports" value="./test-reports" />
+	<property name="lib" value="./lib" />
+	<property name="doc" value="./javadoc" />
+	<property name="jar" value="jar" />
+
+	<property name="junit-jar" value="${lib}/junit-4.6.jar" />
+
+	<!-- ~~~~~ Init build task ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+	<!-- Create the build directory for compiled class files -->
+	<target name="init" depends="clean">
+		<tstamp />
+		<mkdir dir="${jar}" />
+		<mkdir dir="${test-reports}" />
+	</target>
+
+
+
+
+	<!-- ~~~~~ Java build tasks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+	<!-- Compile the Java code. -->
+	<target name="compile" depends="init">
+		<javac compiler="javac1.6" srcdir="${src}" debug="on" encoding="utf8" sourcepath="">
+			<include name="**/*.java" />
+		</javac>
+	</target>
+	<!-- Create a JAR file -->
+	<target name="jar" depends="compile">
+		<jar destfile="${jar}/berkeleylm.jar">
+			<fileset dir="${src}">
+				<include name="**/*.class" />
+				<include name="**/*.java" />
+			</fileset>
+		</jar>
+	</target>
+
+
+
+
+
+	<!-- ~~~~~ Cleaning tasks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+	<!-- Delete the compiled files -->
+	<target name="clean">
+
+		<delete verbose="true" quiet="true">
+			<fileset dir="${src}">
+				<include name="**/*.class" />
+			</fileset>
+		</delete>
+		<delete verbose="true" quiet="true">
+			<fileset dir="${test}">
+				<include name="**/*.class" />
+			</fileset>
+		</delete>
+		<delete verbose="true" quiet="true">
+			<fileset dir="${test-reports}">
+				<include name="**/*" />
+			</fileset>
+		</delete>
+		<delete verbose="true" quiet="true">
+					<fileset dir="${jar}">
+						<include name="**/*.jar" />
+					</fileset>
+				</delete>
+	</target>
+
+
+
+
+	<!-- ~~~~~ Javadoc ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
+
+	<!-- Compile the Javadocs into web pages
+	<target name="javadoc">
+		<mkdir dir="${doc}" />
+		<javadoc packagenames="edu.berkeley.nlp.lm.*" classpath="${cli}" sourcepath="${src}" destdir="${doc}" author="true" version="true" charset="utf-8" overview="src/overview.html">
+			<link href="http://java.sun.com/j2se/1.5.0/docs/api" />
+			<link href="http://commons.apache.org/cli/api-release" />
+		</javadoc>
+	</target> -->
+
+
+	<!-- ~~~~~ Junit ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<target name="compile-test" depends="compile">
+		<javac compiler="javac1.6" srcdir="${test}" debug="on" encoding="utf8" sourcepath="" classpath="${src}:${junit-jar}">
+			<include name="**/*.java" />
+		</javac>
+	</target>
+
+	<target name="test" depends="compile-test">
+		<junit printsummary="yes" haltonfailure="no" showoutput="true">
+			<classpath>
+				<pathelement location="${test}" />
+				<pathelement location="${src}" />
+				<pathelement location="${junit-jar}" />
+				<pathelement path="${java.class.path}" />
+			</classpath>
+			<jvmarg value="-mx500m" />
+			<jvmarg value="-ea" />
+			 <formatter type="plain" />
+			<batchtest fork="yes" todir="${test-reports}">
+				<fileset dir="${test}">
+					<include name="**/*Test.java" />
+				</fileset>
+			</batchtest>
+		</junit>
+	</target>
+
+	<target name="all" depends="test,jar" />
+
+
+</project>
