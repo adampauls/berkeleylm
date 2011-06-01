@@ -1,8 +1,10 @@
 package edu.berkeley.nlp.lm;
 
+import java.io.Serializable;
 import java.util.List;
 
-public abstract class AbstractNgramLanguageModel<W> implements NgramLanguageModel<W>
+public abstract class AbstractNgramLanguageModel<W> implements NgramLanguageModel<W>, Serializable
+
 {
 
 	private static final long serialVersionUID = 1L;
