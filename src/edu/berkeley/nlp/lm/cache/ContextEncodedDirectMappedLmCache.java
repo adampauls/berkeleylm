@@ -5,7 +5,7 @@ import java.util.Arrays;
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 
-final class ContextEncodedDirectMappedLmCache implements ContextEncodedLmCache
+public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLmCache
 {
 	/**
 	 * 
