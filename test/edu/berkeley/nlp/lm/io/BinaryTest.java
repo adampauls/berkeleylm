@@ -14,7 +14,7 @@ import edu.berkeley.nlp.lm.ProbBackoffLm;
 import edu.berkeley.nlp.lm.StringWordIndexer;
 import edu.berkeley.nlp.lm.util.Logger;
 
-public class BinaryTests
+public class BinaryTest
 {
 	@Test
 	public void testContextEncodedBinary() {
