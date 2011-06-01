@@ -18,11 +18,11 @@ import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 public class ARPALmReader<W> implements LmReader<ProbBackoffPair, ARPALmReaderCallback<ProbBackoffPair>>
 {
 
-	private static final String START_SYMBOL = "<s>";
+	public static final String START_SYMBOL = "<s>";
 
-	private static final String END_SYMBOL = "</s>";
+	public static final String END_SYMBOL = "</s>";
 
-	private static final String UNK_SYMBOL = "<unk>";
+	public static final String UNK_SYMBOL = "<unk>";
 
 	private BufferedReader reader;
 
