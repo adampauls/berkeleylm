@@ -65,8 +65,9 @@ public final class CustomWidthArray implements LongArray, Serializable
 	public void ensureCapacity(final long numWords) {
 		final long numBits = numWords * width;
 		assert (numBits <= (Integer.MAX_VALUE + 1L) * Long.SIZE) : ("CustomWidthArray can only be 2^37 bits long");
-		if (numWords >= data.length) data = Arrays.copyOf(data, Math.max(numLongs(numBits), data.length * 3 / 2 + 1));
-
+		if (numLongs(numBits) >= data.length) {//
+			data = Arrays.copyOf(data, Math.max(numLongs(numBits), data.length * 3 / 2 + 1));
+		}
 	}
 
 	@Override
