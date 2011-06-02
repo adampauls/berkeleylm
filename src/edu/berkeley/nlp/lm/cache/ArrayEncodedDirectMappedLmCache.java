@@ -54,7 +54,7 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 		}
 		return Float.NaN;
 	}
-	
+
 	private boolean equals(final int[] ngram, final int startPos, final int endPos, final int[] cachedNgram, int cachedNgramStart, int cachedNgramLength) {
 		if (cachedNgramLength != endPos - startPos) return false;
 		for (int i = startPos; i < endPos; ++i) {
@@ -90,8 +90,6 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 	private int startOfStruct(final int hash) {
 		return hash * structLength;
 	}
-
-	
 
 	/*
 	 * (non-Javadoc)

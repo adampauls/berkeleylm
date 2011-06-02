@@ -16,7 +16,7 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 
 	private static final int CONTEXT_OFFSET = 2;
 
-	private static final int CONTEXT_ORDER =4;
+	private static final int CONTEXT_ORDER = 4;
 
 	private static final int OUTPUT_CONTEXT_OFFSET = 5;
 
@@ -34,18 +34,6 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	// int outputContextOrder;
 	// float prob;
 	private final int[] array;
-
-	//	private final int[] cachedWord;
-	//
-	//	private final long[] cachedContextOffset;
-	//
-	//	private final int[] cachedContextOrder;
-	//
-	//	private final long[] cachedOutputContextPrefix;
-	//
-	//	private final int[] cachedOutputContextOrder;
-	//
-	//	private final float[] cachedProb;
 
 	private final int cacheSize;
 
@@ -104,7 +92,7 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	}
 
 	private long getOutputContextOffset(int hash) {
-		return (((long) array[startOfStruct(hash) + OUTPUT_CONTEXT_OFFSET+1]) << Integer.SIZE) | array[startOfStruct(hash) + OUTPUT_CONTEXT_OFFSET];
+		return (((long) array[startOfStruct(hash) + OUTPUT_CONTEXT_OFFSET + 1]) << Integer.SIZE) | array[startOfStruct(hash) + OUTPUT_CONTEXT_OFFSET];
 	}
 
 	private long getContextOffset(int hash) {
