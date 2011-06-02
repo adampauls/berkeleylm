@@ -4,8 +4,10 @@ import edu.berkeley.nlp.lm.AbstractArrayEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ArrayEncodedNgramLanguageModel;
 
 /**
+ * This class wraps {@link ArrayEncodedNgramLanguageModel} with a cache. 
+ * 
  * This wrapper is <b>not</b> threadsafe. To use a cache in a multithreaded
- * environment, you should create one CachingLmWrapper per thread.
+ * environment, you should create one wrapper per thread.
  * 
  * @author adampauls
  * 
@@ -19,15 +21,15 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private final LmCache cache;
+	private final ArrayEncodedLmCache cache;
 
 	private final ArrayEncodedNgramLanguageModel<W> lm;
 
 	public ArrayEncodedCachingLmWrapper(final ArrayEncodedNgramLanguageModel<W> lm) {
-		this(lm, new ArrayEncodedDirectMappedLmCache(24));
+		this(lm, new ArrayEncodedDirectMappedLmCache(24, lm.getLmOrder()));
 	}
 
-	public ArrayEncodedCachingLmWrapper(final ArrayEncodedNgramLanguageModel<W> lm, final LmCache cache) {
+	public ArrayEncodedCachingLmWrapper(final ArrayEncodedNgramLanguageModel<W> lm, final ArrayEncodedLmCache cache) {
 		super(lm.getLmOrder(), lm.getWordIndexer(), Float.NaN);
 		this.cache = cache;
 		this.lm = lm;

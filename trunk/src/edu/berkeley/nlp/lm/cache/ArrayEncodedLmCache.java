@@ -2,7 +2,7 @@ package edu.berkeley.nlp.lm.cache;
 
 import java.io.Serializable;
 
-public interface LmCache extends Serializable
+public interface ArrayEncodedLmCache extends Serializable
 {
 
 	/**
