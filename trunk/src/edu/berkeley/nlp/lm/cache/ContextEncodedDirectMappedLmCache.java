@@ -12,42 +12,59 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private final int[] cachedWord;
+	private static final int WORD_OFFSET = 1;
 
-	private final long[] cachedContextOffset;
+	private static final int CONTEXT_OFFSET = 2;
 
-	private final int[] cachedContextOrder;
+	private static final int CONTEXT_ORDER =4;
 
-	private final long[] cachedOutputContextPrefix;
+	private static final int OUTPUT_CONTEXT_OFFSET = 5;
 
-	private final int[] cachedOutputContextOrder;
+	private static final int OUTPUT_CONTEXT_ORDER = 7;
 
-	private final float[] cachedProb;
+	private static final int VAL_OFFSET = 8;
+
+	private static final int STRUCT_LENGTH = 8;
+
+	// for efficiency, this array fakes a struct with fields
+	// int word;
+	// long contextOffset;
+	// int contextOrder;
+	// long outputContextOffset;
+	// int outputContextOrder;
+	// float prob;
+	private final int[] array;
+
+	//	private final int[] cachedWord;
+	//
+	//	private final long[] cachedContextOffset;
+	//
+	//	private final int[] cachedContextOrder;
+	//
+	//	private final long[] cachedOutputContextPrefix;
+	//
+	//	private final int[] cachedOutputContextOrder;
+	//
+	//	private final float[] cachedProb;
 
 	private final int cacheSize;
 
 	public ContextEncodedDirectMappedLmCache(final int cacheBits) {
 		cacheSize = (1 << cacheBits) - 1;
-		cachedWord = new int[cacheSize];
-		cachedContextOffset = new long[cacheSize];
-		cachedProb = new float[cacheSize];
-		cachedContextOrder = new int[cacheSize];
-		cachedOutputContextOrder = new int[cacheSize];
-		cachedOutputContextPrefix = new long[cacheSize];
-		Arrays.fill(cachedProb, Float.NaN);
-		Arrays.fill(cachedWord, -1);
+		array = new int[STRUCT_LENGTH * cacheSize];
+		Arrays.fill(array, Float.floatToIntBits(Float.NaN));
 	}
 
 	@Override
 	public float getCached(final long contextOffset, final int contextOrder, final int word, final int hash, @OutputParameter final LmContextInfo outputPrefix) {
 
-		final float f = cachedProb[hash];
+		final float f = getVal(hash);
 		if (!Float.isNaN(f)) {
-			final int cachedWordHere = cachedWord[hash];
-			if (cachedWordHere != -1 && equals(contextOffset, contextOrder, word, cachedContextOffset[hash], cachedWordHere, cachedContextOrder[hash])) {
+			final int cachedWordHere = getWord(hash);
+			if (cachedWordHere != -1 && equals(contextOffset, contextOrder, word, getContextOffset(hash), cachedWordHere, getContextOrder(hash))) {
 				if (outputPrefix != null) {
-					outputPrefix.order = cachedOutputContextOrder[hash];
-					outputPrefix.offset = cachedOutputContextPrefix[hash];
+					outputPrefix.order = getOutputContextOrder(hash);
+					outputPrefix.offset = getOutputContextOffset(hash);
 				}
 				return f;
 			}
@@ -64,18 +81,71 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	public void putCached(final long contextOffset, final int contextOrder, final int word, final float score, final int hash,
 		@OutputParameter final LmContextInfo outputPrefix) {
 
-		cachedWord[hash] = word;
-		cachedProb[hash] = score;
-		cachedContextOffset[hash] = contextOffset;
-		cachedContextOrder[hash] = contextOrder;
+		setWord(hash, word);
+		setVal(hash, score);
+		setContextOffset(hash, contextOffset);
+		setContextOrder(hash, contextOrder);
 		if (outputPrefix != null) {
-			cachedOutputContextOrder[hash] = outputPrefix.order;
-			cachedOutputContextPrefix[hash] = outputPrefix.offset;
+			setOutputContextOrder(hash, outputPrefix.order);
+			setOutputContextOffset(hash, outputPrefix.offset);
 		}
 	}
 
+	private int getWord(int hash) {
+		return array[startOfStruct(hash) + WORD_OFFSET];
+	}
+
+	private int getContextOrder(int hash) {
+		return array[startOfStruct(hash) + CONTEXT_ORDER];
+	}
+
+	private int getOutputContextOrder(int hash) {
+		return array[startOfStruct(hash) + OUTPUT_CONTEXT_ORDER];
+	}
+
+	private long getOutputContextOffset(int hash) {
+		return (((long) array[startOfStruct(hash) + OUTPUT_CONTEXT_OFFSET+1]) << Integer.SIZE) | array[startOfStruct(hash) + OUTPUT_CONTEXT_OFFSET];
+	}
+
+	private long getContextOffset(int hash) {
+		return (((long) array[startOfStruct(hash) + CONTEXT_OFFSET]) << Integer.SIZE) | array[startOfStruct(hash) + CONTEXT_OFFSET + 1];
+	}
+
+	private float getVal(int hash) {
+		return Float.intBitsToFloat(array[startOfStruct(hash) + VAL_OFFSET]);
+	}
+
+	private void setWord(int hash, int word) {
+		array[startOfStruct(hash) + WORD_OFFSET] = word;
+	}
+
+	private void setContextOrder(int hash, int order) {
+		array[startOfStruct(hash) + CONTEXT_ORDER] = order;
+	}
+
+	private void setOutputContextOrder(int hash, int order) {
+		array[startOfStruct(hash) + OUTPUT_CONTEXT_ORDER] = order;
+	}
+
+	private void setOutputContextOffset(int hash, long offset) {
+		array[startOfStruct(hash) + OUTPUT_CONTEXT_OFFSET] = (int) (offset);
+		array[startOfStruct(hash) + OUTPUT_CONTEXT_OFFSET + 1] = (int) (offset >>> Integer.SIZE);
+	}
+
+	private void setContextOffset(int hash, long offset) {
+		array[startOfStruct(hash) + CONTEXT_OFFSET] = (int) (offset);
+		array[startOfStruct(hash) + CONTEXT_OFFSET + 1] = (int) (offset >>> Integer.SIZE);
+	}
+
+	private void setVal(int hash, float f) {
+		array[startOfStruct(hash) + VAL_OFFSET] = Float.floatToIntBits(f);
+	}
+
+	private static int startOfStruct(int hash) {
+		return hash * STRUCT_LENGTH;
+	}
+
 	@Override
-	@SuppressWarnings("ucd")
 	public int capacity() {
 		return cacheSize;
 	}
