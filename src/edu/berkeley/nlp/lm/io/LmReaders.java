@@ -179,10 +179,21 @@ public class LmReaders
 	}
 
 	@SuppressWarnings("unchecked")
+	/**
+	 * Reads a binary file representing an LM. These will need to be cast down to either {@link ContextEncodedNgramLanguageModel}
+	 * or {@link ArrayEncodedNgramLanguageModel}.
+	 */
 	public static <W> NgramLanguageModel<W> readLmBinary(final String file) {
 		return (NgramLanguageModel<W>) IOUtils.readObjFileHard(file);
 	}
 
+	/**
+	 * Writes a binary file representing the LM using the built-in serialization. These binaries should
+	 * load much faster than ARPA files. 
+	 * @param <W>
+	 * @param lm
+	 * @param file
+	 */
 	public static <W> void writeLmBinary(NgramLanguageModel<W> lm, String file) {
 		IOUtils.writeObjFileHard(file, lm);
 	}

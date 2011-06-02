@@ -107,10 +107,11 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 		if (valueRanksCompressed[ngramOrder] == null) {
 			valueRanksCompressed[ngramOrder] = new CustomWidthArray(size, wordWidth);
 		}
+		valueRanksCompressed[ngramOrder].ensureCapacity(size + 1);
 
 		if (contextOffsets != null) {
 			if (contextOffsets[ngramOrder] == null) contextOffsets[ngramOrder] = LongArray.StaticMethods.newLongArray(Integer.MAX_VALUE, size + 1);
-
+			contextOffsets[ngramOrder].ensureCapacity(size + 1);
 		}
 	}
 
