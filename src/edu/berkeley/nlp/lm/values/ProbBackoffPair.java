@@ -3,9 +3,9 @@ package edu.berkeley.nlp.lm.values;
 public class ProbBackoffPair implements Comparable<ProbBackoffPair>
 {
 
-	static final long MANTISSA_MASK = 0x000fffffffffffffL;
+	static final int MANTISSA_MASK = 0x9fffff;
 
-	static final long REST_MASK = ~0x000fffffffffffffL;
+	static final int REST_MASK = ~MANTISSA_MASK;
 
 	@Override
 	public int hashCode() {
@@ -33,19 +33,20 @@ public class ProbBackoffPair implements Comparable<ProbBackoffPair>
 	}
 
 	private float round(final float f, final int mantissaBits) {
-		final long bits = Double.doubleToLongBits(f);
+		final int bits = Float.floatToIntBits(f);
 
-		final long mantissa = bits & MANTISSA_MASK;
-		final long rest = bits & REST_MASK;
-		final long highestBit = Long.highestOneBit(mantissa);
-		long mask = highestBit;
+		final int mantissa = bits & MANTISSA_MASK;
+		final int rest = bits & REST_MASK;
+		final int highestBit = Integer.highestOneBit(mantissa);
+		int mask = highestBit;
 		for (int i = 0; i < mantissaBits; ++i) {
 			mask >>>= 1;
 			mask |= highestBit;
 		}
-		final long maskedMantissa = mantissa & mask;
-		final double newDouble = Double.longBitsToDouble(rest | maskedMantissa);
-		return (float) newDouble;
+		final int maskedMantissa = mantissa & mask;
+		final float newFloat = Float.intBitsToFloat(rest | maskedMantissa);
+		assert Float.isNaN(f) || (Math.abs(f - newFloat) <= 1e-3f);
+		return newFloat;
 	}
 
 	@Override
