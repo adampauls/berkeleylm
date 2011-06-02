@@ -113,12 +113,17 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 	 * @param out
 	 */
 	void writeToPrintWriter(PrintWriter out) {
+		Logger.startTrack("Writing ARPA");
 		out.println();
 		out.println("\\data\\");
 		writeHeader(ngrams, lmOrder, out);
 		for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
 			out.println("\\" + (ngramOrder + 1) + "-grams:");
+			int line = 0;
+			Logger.logss("On order " + (ngramOrder + 1));
+			int linenum = 0;
 			for (Entry<KneserNeyCounts> entry : ngrams.getNgramsForOrder(ngramOrder)) {
+				if (linenum++ % 10000 == 0) Logger.logs("Writing line " + line);
 				final String ngramString = StrUtils.join(WordIndexer.StaticMethods.toList(wordIndexer, entry.key));
 
 				ProbBackoffPair val = ngramOrder == lmOrder - 1 ? getHighestOrderProb(entry.key, entry.value) : getLowerOrderProb(entry.key, 0,
@@ -137,6 +142,7 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 		}
 		out.println("\\end\\");
 		out.close();
+		Logger.endTrack();
 	}
 
 	private float interpolateProb(int[] ngram, int startPos, int endPos) {
