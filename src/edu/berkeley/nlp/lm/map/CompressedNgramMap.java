@@ -47,9 +47,10 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	private final int offsetDeltaRadix;
 
-	private CompressedMap[] maps;
+	private final CompressedMap[] maps;
 
 	private final boolean reverseTrie = true;
+	private final long[] numNgramsForEachOrder;
 
 	public CompressedNgramMap(final CompressibleValueContainer<T> values, long[] numNgramsForEachOrder, final ConfigOptions opts) {
 		super(values, opts);
@@ -58,7 +59,9 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		this.offsetDeltaRadix = opts.offsetDeltaRadix;
 		suffixCoder = new VariableLengthBitCompressor(offsetDeltaRadix);
 		this.compressedBlockSize = opts.compressedBlockSize;
-		initWithLengths(numNgramsForEachOrder);
+		this.numNgramsForEachOrder = numNgramsForEachOrder;
+		this.maps = new CompressedMap[numNgramsForEachOrder.length];
+//		initWithLengths(numNgramsForEachOrder);
 		values.setMap(this);
 
 	}
@@ -88,7 +91,13 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		final long contextOffset = reverseTrie ? getContextOffset(ngram, startPos + 1, endPos) : getContextOffset(ngram, startPos, endPos - 1);
 		if (contextOffset < 0) return -1;
 
-		final CompressedMap map = maps[ngramOrder];
+		CompressedMap map = maps[ngramOrder];
+		if (map == null) {
+			map = maps[ngramOrder] = new CompressedMap();
+			final long l = numNgramsForEachOrder[ngramOrder];
+			maps[ngramOrder].init(l);
+			values.setSizeAtLeast(l, ngramOrder);
+		}
 		long oldSize = map.size();
 		final long newOffset = map.add(combineToKey(word, contextOffset));
 		values.add(ngram, startPos, endPos, ngramOrder, map.size() - 1, contextOffset, word, val, (-1), map.size() == oldSize);
@@ -500,26 +509,26 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	@Override
 	public void initWithLengths(final List<Long> numNGrams) {
-		long[] array = new long[numNGrams.size()];
-		for (int i = 0; i < array.length; ++i) {
-			array[i] = numNGrams.get(i);
-		}
-		initWithLengths(array);
+//		long[] array = new long[numNGrams.size()];
+//		for (int i = 0; i < array.length; ++i) {
+//			array[i] = numNGrams.get(i);
+//		}
+//		initWithLengths(array);
 	}
-
-	/**
-	 * @param numNGrams
-	 */
-	private void initWithLengths(long[] numNGrams) {
-		maps = new CompressedMap[numNGrams.length];
-		for (int i = 0; i < numNGrams.length; ++i) {
-			maps[i] = new CompressedMap();
-			final long l = numNGrams[i];
-			maps[i].init(l);
-			values.setSizeAtLeast(l, i);
-
-		}
-	}
+//
+//	/**
+//	 * @param numNGrams
+//	 */
+//	private void initWithLengths(long[] numNGrams) {
+//		maps = new CompressedMap[numNGrams.length];
+//		for (int i = 0; i < numNGrams.length; ++i) {
+//			maps[i] = new CompressedMap();
+//			final long l = numNGrams[i];
+//			maps[i].init(l);
+//			values.setSizeAtLeast(l, i);
+//
+//		}
+//	}
 
 	@Override
 	public int getMaxNgramOrder() {
