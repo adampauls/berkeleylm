@@ -167,7 +167,9 @@ public class PerplexityTest
 				lm_.getLogProb(context.offset, context.order, sent[0], context);
 				float sentScore = 0.0f;
 				for (int i = 1; i < sent.length; ++i) {
+					final float score2 = lm_.getLogProb(context.offset, context.order, sent[i], null);
 					final float score = lm_.getLogProb(context.offset, context.order, sent[i], context);
+					Assert.assertEquals(score,score2, Float.MIN_VALUE);
 					sentScore += score;
 				}
 				Assert.assertEquals(sentScore, lm_.scoreSentence(Arrays.asList(split)), 1e-4);
