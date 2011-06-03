@@ -63,8 +63,10 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 				currContextOrder--;
 				currContextOffset = currContextOrder < 0 ? 0 : values.getSuffixOffset(currContextOffset, currContextOrder + 1);
 			} else {
-				outputContext.offset = 0;
-				outputContext.order = -1;
+				if (outputContext != null) {
+					outputContext.offset = 0;
+					outputContext.order = -1;
+				}
 				return oovWordLogProb;
 			}
 		}
