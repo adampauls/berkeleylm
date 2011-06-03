@@ -82,23 +82,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		values.setSizeAtLeast(maps[ngramOrder].getCapacity(), ngramOrder);
 	}
 
-	public static class Entry<T>
-	{
-		/**
-		 * @param key
-		 * @param value
-		 */
-		public Entry(int[] key, T value) {
-			super();
-			this.key = key;
-			this.value = value;
-		}
-
-		public int[] key;
-
-		public T value;
-
-	}
+	
 
 	@Override
 	public long put(final int[] ngram, int startPos, int endPos, final T val) {
@@ -312,10 +296,12 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		return maps.length;
 	}
 
+	@Override
 	public long getNumNgrams(int ngramOrder) {
 		return maps[ngramOrder].size();
 	}
 
+	@Override
 	public Iterable<Entry<T>> getNgramsForOrder(final int ngramOrder) {
 		return Iterators.able(new Iterators.Transform<Long, Entry<T>>(maps[ngramOrder].keys().iterator())
 		{

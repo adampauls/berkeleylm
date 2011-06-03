@@ -7,6 +7,7 @@ import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 
 class CompressedMap implements Serializable
 {
+
 	/**
 	 * 
 	 */
@@ -16,23 +17,34 @@ class CompressedMap implements Serializable
 	LongArray compressedKeys;
 
 	@PrintMemoryCount
-	LongArray keys;
+	private LongArray uncompressedKeys;
+
+	private long numKeys;
 
 	public long add(final long key) {
-		keys.addWithFixedCapacity(key);
-		return keys.size();
+		uncompressedKeys.addWithFixedCapacity(key);
+		return uncompressedKeys.size();
 	}
 
 	public long size() {
-		return keys.size();
+		return uncompressedKeys == null ? numKeys : uncompressedKeys.size();
 	}
 
 	public void init(final long l) {
-		keys = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, l, l);
+		uncompressedKeys = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, l, l);
 	}
 
 	public void trim() {
-		keys.trim();
+		uncompressedKeys.trim();
+	}
+
+	public void clearUncompressedKeys() {
+		numKeys = uncompressedKeys.size();
+		uncompressedKeys = null;
+	}
+
+	public LongArray getUncompressedKeys() {
+		return uncompressedKeys;
 	}
 
 }

@@ -38,6 +38,7 @@ public interface WordIndexer<W> extends Serializable
 
 	/**
 	 * Gets the word object for an index.
+	 * 
 	 * @param index
 	 * @return
 	 */
@@ -87,26 +88,43 @@ public interface WordIndexer<W> extends Serializable
 
 	public static class StaticMethods
 	{
+
+		/**
+		 * Converts an object representation to an int array.
+		 * @param <W>
+		 * @param wordIndexer
+		 * @param list
+		 * @return
+		 */
+		public static <W> int[] toArray(final WordIndexer<W> wordIndexer, List<W> list) {
+			int[] ret = new int[list.size()];
+			for (int i = 0; i < list.size(); ++i) {
+				ret[i] = wordIndexer.getIndexPossiblyUnk(list.get(i));
+			}
+			return ret;
+
+		}
+
 		/**
 		 * Converts an int representation of an n-gram to a list. Converts only
 		 * the range of the array specified by [startPos,endPos)
 		 * 
-		 * @param <T>
+		 * @param <W>
 		 * @param wordIndexer
 		 * @param intNgram
 		 * @param startPos
 		 * @param endPos
 		 * @return
 		 */
-		public static <T> List<T> toList(final WordIndexer<T> wordIndexer, final int[] intNgram, final int startPos, final int endPos) {
-			final List<T> l = new ArrayList<T>(endPos - startPos);
+		public static <W> List<W> toList(final WordIndexer<W> wordIndexer, final int[] intNgram, final int startPos, final int endPos) {
+			final List<W> l = new ArrayList<W>(endPos - startPos);
 			for (int i = startPos; i < endPos; ++i) {
 				l.add(wordIndexer.getWord(intNgram[i]));
 			}
 			return l;
 		}
 
-		public static <T> List<T> toList(final WordIndexer<T> wordIndexer, final int[] intNgram) {
+		public static <W> List<W> toList(final WordIndexer<W> wordIndexer, final int[] intNgram) {
 			return toList(wordIndexer, intNgram, 0, intNgram.length);
 		}
 	}
