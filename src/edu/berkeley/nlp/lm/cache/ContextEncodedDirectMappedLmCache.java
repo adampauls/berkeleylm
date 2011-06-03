@@ -47,12 +47,13 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	public float getCached(final long contextOffset, final int contextOrder, final int word, final int hash, @OutputParameter final LmContextInfo outputPrefix) {
 
 		final float f = getVal(hash);
-		if (!Float.isNaN(f)) {
+		final long outputContextOffset = getOutputContextOffset(hash);
+		if (!Float.isNaN(f) && (outputPrefix == null || outputContextOffset >= 0)) {
 			final int cachedWordHere = getWord(hash);
 			if (cachedWordHere != -1 && equals(contextOffset, contextOrder, word, getContextOffset(hash), cachedWordHere, getContextOrder(hash))) {
 				if (outputPrefix != null) {
 					outputPrefix.order = getOutputContextOrder(hash);
-					outputPrefix.offset = getOutputContextOffset(hash);
+					outputPrefix.offset = outputContextOffset;
 				}
 				return f;
 			}
@@ -73,10 +74,9 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 		setVal(hash, score);
 		setContextOffset(hash, contextOffset);
 		setContextOrder(hash, contextOrder);
-		if (outputPrefix != null) {
-			setOutputContextOrder(hash, outputPrefix.order);
-			setOutputContextOffset(hash, outputPrefix.offset);
-		}
+		setOutputContextOrder(hash, outputPrefix == null ? -1 : outputPrefix.order);
+		setOutputContextOffset(hash, outputPrefix == null ? -1 : outputPrefix.offset);
+
 	}
 
 	private int getWord(int hash) {
