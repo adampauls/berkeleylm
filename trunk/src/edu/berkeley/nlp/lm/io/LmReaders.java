@@ -53,24 +53,31 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * Note that this software does not (yet) support building Google count
  * directories from raw text, though this can be done using SRILM.
  * 
- * Loading language models from text files can be very slow. This software can
- * use Java's built-in serialization to build language model binaries which are
- * both smaller and faster to load. {@link MakeLmBinaryFromArpa} and
- * {@link MakeLmBinaryFromGoogle} provide <code>main()</code> methods for doing
- * this.
+ * Loading/estimating language models from text files can be very slow. This
+ * software can use Java's built-in serialization to build language model
+ * binaries which are both smaller and faster to load.
+ * {@link MakeLmBinaryFromArpa} and {@link MakeLmBinaryFromGoogle} provide
+ * <code>main()</code> methods for doing this.
  * 
  * Language models can be read into memory from ARPA formats using
  * {@link #readArrayEncodedLmFromArpa(String, boolean)} and
  * {@link #readContextEncodedLmFromArpa(String)}. The "array encoding" versus
  * "context encoding" distinction is discussed in Section 4.2 of Pauls and Klein
- * (2011). They can be read from binaries using {@link #readLmBinary(String)}. The interfaces for these 
- * language models can be found in {@link ArrayEncodedNgramLanguageModel} and {@link ContextEncodedNgramLanguageModel}. For examples of these 
- * interfaces in action, you can have a look at {@link PerplexityTest}. 
+ * (2011). Again, since loading language models from textual representations can
+ * be very slow, they can be read from binaries using
+ * {@link #readLmBinary(String)}. The interfaces for these language models can
+ * be found in {@link ArrayEncodedNgramLanguageModel} and
+ * {@link ContextEncodedNgramLanguageModel}. For examples of these interfaces in
+ * action, you can have a look at {@link PerplexityTest}.
  * 
- * To speed up queries, you can wrap language models with caches ({@link ContextEncodedCachingLmWrapper and {@link ArrayEncodedCachingLmWrapper}). 
- * These caches are described in section 4.1 of Pauls and Klein (2011). You should more or less always use these caches, since they are faster and have modest memory requirements.
- * Note, however, that the caches are <b>not</b> synchronized. The only threadsafe way to use them is to have a separate caching wrapper for each separate decoding thread (though they 
- * can of course all wrap the same underlying LM). 
+ * To speed up queries, you can wrap language models with caches (
+ * {@link ContextEncodedCachingLmWrapper and {
+ * @link ArrayEncodedCachingLmWrapper}). These caches are described in section
+ * 4.1 of Pauls and Klein (2011). You should more or less always use these
+ * caches, since they are faster and have modest memory requirements. Note,
+ * however, that the caches are <b>not</b> synchronized. The only threadsafe way
+ * to use them is to have a separate caching wrapper for each separate decoding
+ * thread (though they can of course all wrap the same underlying LM).
  * 
  * 
  * @author adampauls
@@ -255,15 +262,14 @@ public class LmReaders
 	 * @return
 	 */
 	private static File getTempFile() {
-		File tmpFile;
 		try {
-			tmpFile = File.createTempFile("berkeleylm", "arpa");
+			File tmpFile = File.createTempFile("berkeleylm", "arpa");
+			tmpFile.deleteOnExit();
+			return tmpFile;
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 
 		}
-		tmpFile.deleteOnExit();
-		return tmpFile;
 	}
 
 	/**
