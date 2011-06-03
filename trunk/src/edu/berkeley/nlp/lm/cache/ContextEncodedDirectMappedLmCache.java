@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
+import edu.berkeley.nlp.lm.util.Logger;
 
 public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLmCache
 {
@@ -26,6 +27,10 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 
 	private static final int STRUCT_LENGTH = 8;
 
+	private static long queries = 0;
+
+	private static long cacheHits = 0;
+
 	// for efficiency, this array fakes a struct with fields
 	// int word;
 	// long contextOffset;
@@ -45,7 +50,7 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 
 	@Override
 	public float getCached(final long contextOffset, final int contextOrder, final int word, final int hash, @OutputParameter final LmContextInfo outputPrefix) {
-
+		queries++;
 		final float f = getVal(hash);
 		final long outputContextOffset = getOutputContextOffset(hash);
 		if (!Float.isNaN(f) && (outputPrefix == null || outputContextOffset >= 0)) {
@@ -55,6 +60,7 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 					outputPrefix.order = getOutputContextOrder(hash);
 					outputPrefix.offset = outputContextOffset;
 				}
+				cacheHits++;
 				return f;
 			}
 		}
@@ -64,6 +70,10 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	private boolean equals(final long contextOffset, final int contextOrder, final int word, final long cachedOffsetHere, final int cachedWordHere,
 		final int cachedOrderHere) {
 		return word == cachedWordHere && contextOrder == cachedOrderHere && contextOffset == cachedOffsetHere;
+	}
+
+	public static void printCacheInfo() {
+		Logger.logss(ContextEncodedDirectMappedLmCache.class.getSimpleName() + ": cache rate was " + cacheHits / (double) queries);
 	}
 
 	@Override
