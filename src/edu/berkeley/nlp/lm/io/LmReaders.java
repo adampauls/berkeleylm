@@ -6,7 +6,9 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 
+import edu.berkeley.nlp.lm.ArrayEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ConfigOptions;
+import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ContextEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.NgramLanguageModel;
 import edu.berkeley.nlp.lm.ProbBackoffLm;
@@ -14,6 +16,8 @@ import edu.berkeley.nlp.lm.StringWordIndexer;
 import edu.berkeley.nlp.lm.StupidBackoffLm;
 import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.array.LongArray;
+import edu.berkeley.nlp.lm.cache.ArrayEncodedCachingLmWrapper;
+import edu.berkeley.nlp.lm.cache.ContextEncodedCachingLmWrapper;
 import edu.berkeley.nlp.lm.map.CompressedNgramMap;
 import edu.berkeley.nlp.lm.map.ContextEncodedNgramMap;
 import edu.berkeley.nlp.lm.map.HashNgramMap;
@@ -27,17 +31,47 @@ import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 /**
- * This class contains a number of static methods for reading/writing/estimating n-gram language models. Since most uses of this software will use this class, 
- * I will use this space to document the software as a whole. 
+ * This class contains a number of static methods for reading/writing/estimating
+ * n-gram language models. Since most uses of this software will use this class,
+ * I will use this space to document the software as a whole.
  * 
- * This software provides two main pieces of functionality: 
- * <br> (a) estimation of a language models from text inputs
- * <br> (b) an API for efficient querying language models stored in main memory.  
+ * This software provides two main pieces of functionality: <br>
+ * (a) estimation of a language models from text inputs <br>
+ * (b) an API for efficient querying language models stored in main memory, as
+ * described in "Faster and Smaller N-gram Language Models" (Pauls and Klein
+ * 2011).
  * 
- * This software supports the estimation of two types of language models: Kneser-Ney language models  (Kneser and Ney, 1995) and Stupid Backoff language models (Brants et al. 2007).
- * Kneser-Ney language models can be estimated from raw text by called {@link #createKneserNeyLmFromTextFiles(List, WordIndexer, int, File)}. This can also be done from the command-line
- * by calling main() in {@link MakeKneserNeyFromText}. A Stupid Backoff language model can be read from a directory containing n-gram counts in the format used by Google's Web1T corpus by
- * calling {@link #readLmFromGoogleNgramDir(String, boolean)}. Note that this software does not (yet) support building Google count directories from raw text, though this can be done using SRILM. 
+ * This software supports the estimation of two types of language models:
+ * Kneser-Ney language models (Kneser and Ney, 1995) and Stupid Backoff language
+ * models (Brants et al. 2007). Kneser-Ney language models can be estimated from
+ * raw text by called
+ * {@link #createKneserNeyLmFromTextFiles(List, WordIndexer, int, File)}. This
+ * can also be done from the command-line by calling <code>main()</code> in
+ * {@link MakeKneserNeyFromText}. A Stupid Backoff language model can be read
+ * from a directory containing n-gram counts in the format used by Google's
+ * Web1T corpus by calling {@link #readLmFromGoogleNgramDir(String, boolean)}.
+ * Note that this software does not (yet) support building Google count
+ * directories from raw text, though this can be done using SRILM.
+ * 
+ * Loading language models from text files can be very slow. This software can
+ * use Java's built-in serialization to build language model binaries which are
+ * both smaller and faster to load. {@link MakeLmBinaryFromArpa} and
+ * {@link MakeLmBinaryFromGoogle} provide <code>main()</code> methods for doing
+ * this.
+ * 
+ * Language models can be read into memory from ARPA formats using
+ * {@link #readArrayEncodedLmFromArpa(String, boolean)} and
+ * {@link #readContextEncodedLmFromArpa(String)}. The "array encoding" versus
+ * "context encoding" distinction is discussed in Section 4.2 of Pauls and Klein
+ * (2011). They can be read from binaries using {@link #readLmBinary(String)}. The interfaces for these 
+ * language models can be found in {@link ArrayEncodedNgramLanguageModel} and {@link ContextEncodedNgramLanguageModel}. For examples of these 
+ * interfaces in action, you can have a look at {@link PerplexityTest}. 
+ * 
+ * To speed up queries, you can wrap language models with caches ({@link ContextEncodedCachingLmWrapper and {@link ArrayEncodedCachingLmWrapper}). 
+ * These caches are described in section 4.1 of Pauls and Klein (2011). You should more or less always use these caches, since they are faster and have modest memory requirements.
+ * Note, however, that the caches are <b>not</b> synchronized. The only threadsafe way to use them is to have a separate caching wrapper for each separate decoding thread (though they 
+ * can of course all wrap the same underlying LM). 
+ * 
  * 
  * @author adampauls
  * 
@@ -127,9 +161,13 @@ public class LmReaders
 	}
 
 	/**
-	 * Builds a context-encoded LM from raw text. This call first builds and writes a (temporary) ARPA file by calling  {@link #createKneserNeyLmFromTextFiles(List, WordIndexer, int, File)},
-	 * and the reads the resulting file. Since the temp file can be quite large, it is important that the
-	 * temp directory used by java (<code>java.io.tmpdir</code>). 
+	 * Builds a context-encoded LM from raw text. This call first builds and
+	 * writes a (temporary) ARPA file by calling
+	 * {@link #createKneserNeyLmFromTextFiles(List, WordIndexer, int, File)},
+	 * and the reads the resulting file. Since the temp file can be quite large,
+	 * it is important that the temp directory used by java (
+	 * <code>java.io.tmpdir</code>).
+	 * 
 	 * @param <W>
 	 * @param files
 	 * @param wordIndexer
@@ -144,9 +182,13 @@ public class LmReaders
 	}
 
 	/**
-	 * Builds an array-encoded LM from raw text. This call first builds and writes a (temporary) ARPA file by calling  {@link #createKneserNeyLmFromTextFiles(List, WordIndexer, int, File)},
-	 * and the reads the resulting file. Since the temp file can be quite large, it is important that the
-	 * temp directory used by java (<code>java.io.tmpdir</code>). 
+	 * Builds an array-encoded LM from raw text. This call first builds and
+	 * writes a (temporary) ARPA file by calling
+	 * {@link #createKneserNeyLmFromTextFiles(List, WordIndexer, int, File)},
+	 * and the reads the resulting file. Since the temp file can be quite large,
+	 * it is important that the temp directory used by java (
+	 * <code>java.io.tmpdir</code>).
+	 * 
 	 * @param <W>
 	 * @param files
 	 * @param wordIndexer
@@ -191,15 +233,16 @@ public class LmReaders
 	@SuppressWarnings("unchecked")
 	/**
 	 * Reads a binary file representing an LM. These will need to be cast down to either {@link ContextEncodedNgramLanguageModel}
-	 * or {@link ArrayEncodedNgramLanguageModel}.
+	 * or {@link ArrayEncodedNgramLanguageModel} to be useful.
 	 */
 	public static <W> NgramLanguageModel<W> readLmBinary(final String file) {
 		return (NgramLanguageModel<W>) IOUtils.readObjFileHard(file);
 	}
 
 	/**
-	 * Writes a binary file representing the LM using the built-in serialization. These binaries should
-	 * load much faster than ARPA files. 
+	 * Writes a binary file representing the LM using the built-in
+	 * serialization. These binaries should load much faster than ARPA files.
+	 * 
 	 * @param <W>
 	 * @param lm
 	 * @param file
