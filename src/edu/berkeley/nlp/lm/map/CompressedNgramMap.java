@@ -69,7 +69,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		final long hash = combineToKey(word, contextOffset);
 		final int ngramOrder = contextNgramOrder + 1;
 		final LongArray compressedKeys = (maps[ngramOrder]).compressedKeys;
-		final long currIndex = decompressSearch(compressedKeys, compressedKeys.size(), hash, ngramOrder, outputVal);
+		final long currIndex = decompressSearch(compressedKeys, hash, ngramOrder, outputVal);
 		return currIndex;
 
 	}
@@ -107,7 +107,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 				final long hash = combineToKey(firstWord, lastSuffix);
 
 				final LongArray compressedKeys = (maps[ngramOrder]).compressedKeys;
-				final long currIndex = decompressSearch(compressedKeys, compressedKeys.size(), hash, ngramOrder, null);
+				final long currIndex = decompressSearch(compressedKeys, hash, ngramOrder, null);
 				if (currIndex < 0) return -1;
 				lastSuffix = currIndex;
 			}
@@ -342,8 +342,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		final long searchOffset) {
 
 		final long firstKey = compressed.get(pos);
-		final short bitLength = readShort(compressed.get((pos + 1)));
-		final BitStream bits = new BitStream(compressed, pos + 1, Short.SIZE, bitLength);
+		final BitStream bits = getCompressedBits(compressed, pos + 1);
 		final long offset = offsetCoder.decompress(bits);
 		final boolean wordBitOn = bits.nextBit();
 
@@ -388,14 +387,29 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	}
 
+	/**
+	 * @param compressed
+	 * @param pos
+	 * @return
+	 */
+	private BitStream getCompressedBits(final LongArray compressed, final long pos) {
+		final short bitLength = readShort(compressed.get(pos));
+		final BitStream bits = new BitStream(compressed, pos, Short.SIZE, bitLength);
+		return bits;
+	}
+
 	private short readShort(final long l) {
 		return (short) (l >>> (Long.SIZE - Short.SIZE));
 	}
 
-	private long decompressSearch(final LongArray compressed, final long compressedSize, final long searchKey, final int ngramOrder, final T outputVal) {
+	private long decompressSearch(final LongArray compressed, final long searchKey, final int ngramOrder, final T outputVal) {
+		return decompressSearch(compressed, searchKey, ngramOrder, outputVal, -1);
+	}
+
+	private long decompressSearch(final LongArray compressed, final long searchKey, final int ngramOrder, final T outputVal, final long searchOffset) {
 		final long fromIndex = 0;
-		final long toIndex = ((compressedSize / compressedBlockSize) - 1);
-		final long low = binarySearchBlocks(compressed, compressedSize, searchKey, fromIndex, toIndex);
+		final long toIndex = ((compressed.size() / compressedBlockSize) - 1);
+		final long low = binarySearchBlocks(compressed, compressed.size(), searchKey, fromIndex, toIndex, searchOffset);
 		if (low < 0) return -1;
 
 		final long index = decompressLinearSearch(compressed, low, searchKey, ngramOrder, outputVal, -1);
@@ -407,14 +421,16 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	 * @param searchKey
 	 * @return
 	 */
-	private long binarySearchBlocks(final LongArray compressed, final long size, final long searchKey, final long low_, final long high_) {
+	private long binarySearchBlocks(final LongArray compressed, final long size, final long searchKey, final long low_, final long high_,
+		final long searchOffset) {
 		long low = low_;
 		long high = high_;
 		assert size % compressedBlockSize == 0;
 
 		while (low <= high) {
 			final long mid = (low + high) >>> 1;
-			final long midVal = compressed.get(mid * compressedBlockSize);
+			final long currPos = mid * compressedBlockSize;
+			final long midVal = searchOffset >= 0 ? offsetCoder.decompress(getCompressedBits(compressed, currPos + 1)) : compressed.get(currPos);
 			final int compare = compareLongsRaw(midVal, searchKey);
 			if (compare < 0) //midVal < key
 				low = mid + 1;
@@ -521,8 +537,6 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 					long currOffset = 0;
 
-					long currBlock = 0;
-
 					@Override
 					public boolean hasNext() {
 						return currOffset == maps[ngramOrder].size();
@@ -530,23 +544,19 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 					@Override
 					public edu.berkeley.nlp.lm.map.NgramMap.Entry<T> next() {
-						return null;
-//						T scratch_ = values.getScratchValue();
-//						long offset = currOffset;
-//						for (int i = ngramOrder; i >= 0; --i) {
-//						final T scratch = i == ngramOrder ? scratch_ : null;
-//						long found = decompressLinearSearch(maps[i].compressedKeys, currBlock, -1, ngramOrder, scratch, currOffset);
-//						if (found >= 0) {
-//							currOffset++;
-//						} else if (i == ngramOrder) {
-//							currBlock += compressedBlockSize;
-//							found = decompressLinearSearch(maps[i].compressedKeys, currBlock, -1, ngramOrder, scratch, currOffset);
-//							assert found >= 0;
-//						}
-//						if (found < 0) return null;
-//						}
-//						
-//						return new Entry<T>(;
+						T scratch_ = values.getScratchValue();
+						long offset = currOffset;
+						int[] ngram = new int[ngramOrder + 1];
+						for (int i = ngramOrder; i >= 0; --i) {
+							final T scratch = i == ngramOrder ? scratch_ : null;
+							long foundKey = decompressSearch(maps[i].compressedKeys, -1, i, scratch, offset);
+							assert foundKey >= 0;
+							ngram[reverseTrie ? (ngramOrder - i) : i] = AbstractNgramMap.wordOf(foundKey);
+							offset = AbstractNgramMap.contextOffsetOf(foundKey);
+						}
+						currOffset++;
+
+						return new Entry<T>(ngram, scratch_);
 					}
 
 					@Override
