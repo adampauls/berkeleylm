@@ -27,9 +27,6 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 
 	private static final int STRUCT_LENGTH = 8;
 
-	private static long queries = 0;
-
-	private static long cacheHits = 0;
 
 	// for efficiency, this array fakes a struct with fields
 	// int word;
@@ -50,7 +47,6 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 
 	@Override
 	public float getCached(final long contextOffset, final int contextOrder, final int word, final int hash, @OutputParameter final LmContextInfo outputPrefix) {
-		queries++;
 		final float f = getVal(hash);
 		final long outputContextOffset = getOutputContextOffset(hash);
 		if (!Float.isNaN(f) && (outputPrefix == null || outputContextOffset >= 0)) {
@@ -60,7 +56,6 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 					outputPrefix.order = getOutputContextOrder(hash);
 					outputPrefix.offset = outputContextOffset;
 				}
-				cacheHits++;
 				return f;
 			}
 		}
@@ -70,10 +65,6 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	private boolean equals(final long contextOffset, final int contextOrder, final int word, final long cachedOffsetHere, final int cachedWordHere,
 		final int cachedOrderHere) {
 		return word == cachedWordHere && contextOrder == cachedOrderHere && contextOffset == cachedOffsetHere;
-	}
-
-	public static void printCacheInfo() {
-		Logger.logss(ContextEncodedDirectMappedLmCache.class.getSimpleName() + ": cache rate was " + cacheHits / (double) queries);
 	}
 
 	@Override
@@ -102,11 +93,20 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	}
 
 	private long getOutputContextOffset(int hash) {
-		return (((long) array[startOfStruct(hash) + OUTPUT_CONTEXT_OFFSET + 1]) << Integer.SIZE) | array[startOfStruct(hash) + OUTPUT_CONTEXT_OFFSET];
+		return getLong(hash, OUTPUT_CONTEXT_OFFSET);
 	}
 
 	private long getContextOffset(int hash) {
-		return (((long) array[startOfStruct(hash) + CONTEXT_OFFSET]) << Integer.SIZE) | array[startOfStruct(hash) + CONTEXT_OFFSET + 1];
+		return getLong(hash, CONTEXT_OFFSET);
+	}
+
+	/**
+	 * @param hash
+	 * @param off
+	 * @return
+	 */
+	private long getLong(int hash, final int off) {
+		return (((long) array[startOfStruct(hash) + off + 1]) << Integer.SIZE) | array[startOfStruct(hash) + off];
 	}
 
 	private float getVal(int hash) {
@@ -126,13 +126,23 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	}
 
 	private void setOutputContextOffset(int hash, long offset) {
-		array[startOfStruct(hash) + OUTPUT_CONTEXT_OFFSET] = (int) (offset);
-		array[startOfStruct(hash) + OUTPUT_CONTEXT_OFFSET + 1] = (int) (offset >>> Integer.SIZE);
+		final int off = OUTPUT_CONTEXT_OFFSET;
+		setLong(hash, offset, off);
+	}
+
+	/**
+	 * @param hash
+	 * @param l
+	 * @param off
+	 */
+	private void setLong(int hash, long l, final int off) {
+		array[startOfStruct(hash) + off] = (int) (l);
+		array[startOfStruct(hash) + off + 1] = (int) (l >>> Integer.SIZE);
 	}
 
 	private void setContextOffset(int hash, long offset) {
-		array[startOfStruct(hash) + CONTEXT_OFFSET] = (int) (offset);
-		array[startOfStruct(hash) + CONTEXT_OFFSET + 1] = (int) (offset >>> Integer.SIZE);
+		final int off = CONTEXT_OFFSET;
+		setLong(hash, offset, off);
 	}
 
 	private void setVal(int hash, float f) {
