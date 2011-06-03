@@ -27,7 +27,17 @@ import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 /**
- * Factory methods for reading/writing language models.
+ * This class contains a number of static methods for reading/writing/estimating n-gram language models. Since most uses of this software will use this class, 
+ * I will use this space to document the software as a whole. 
+ * 
+ * This software provides two main pieces of functionality: 
+ * <br> (a) estimation of a language models from text inputs
+ * <br> (b) an API for efficient querying language models stored in main memory.  
+ * 
+ * This software supports the estimation of two types of language models: Kneser-Ney language models  (Kneser and Ney, 1995) and Stupid Backoff language models (Brants et al. 2007).
+ * Kneser-Ney language models can be estimated from raw text by called {@link #createKneserNeyLmFromTextFiles(List, WordIndexer, int, File)}. This can also be done from the command-line
+ * by calling main() in {@link MakeKneserNeyFromText}. A Stupid Backoff language model can be read from a directory containing n-gram counts in the format used by Google's Web1T corpus by
+ * calling {@link #readLmFromGoogleNgramDir(String, boolean)}. Note that this software does not (yet) support building Google count directories from raw text, though this can be done using SRILM. 
  * 
  * @author adampauls
  * 
