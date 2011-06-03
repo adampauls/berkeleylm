@@ -1,6 +1,7 @@
 package edu.berkeley.nlp.lm.map;
 
 import java.io.Serializable;
+import java.util.Iterator;
 import java.util.List;
 
 import edu.berkeley.nlp.lm.ConfigOptions;
@@ -9,6 +10,8 @@ import edu.berkeley.nlp.lm.bits.BitCompressor;
 import edu.berkeley.nlp.lm.bits.BitList;
 import edu.berkeley.nlp.lm.bits.BitStream;
 import edu.berkeley.nlp.lm.bits.VariableLengthBitCompressor;
+import edu.berkeley.nlp.lm.collections.Iterators;
+import edu.berkeley.nlp.lm.map.NgramMap.Entry;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.values.CompressibleValueContainer;
@@ -120,7 +123,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	 */
 	@Override
 	public void handleNgramsFinished(final int justFinishedOrder) {
-		final LongArray currKeys = maps[justFinishedOrder - 1].keys;
+		final LongArray currKeys = maps[justFinishedOrder - 1].getUncompressedKeys();
 		final long currSize = currKeys.size();
 		sort(currKeys, 0, currSize - 1, justFinishedOrder - 1);
 		maps[justFinishedOrder - 1].trim();
@@ -138,9 +141,9 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	}
 
 	private void compress(final int ngramOrder) {
-		(maps[ngramOrder]).compressedKeys = compress(maps[ngramOrder].keys, maps[ngramOrder].keys.size(), ngramOrder);
+		(maps[ngramOrder]).compressedKeys = compress(maps[ngramOrder].getUncompressedKeys(), maps[ngramOrder].size(), ngramOrder);
 		((CompressibleValueContainer<T>) values).clearStorageAfterCompression(ngramOrder);
-		maps[ngramOrder].keys = null;
+		maps[ngramOrder].clearUncompressedKeys();
 	}
 
 	private LongArray compress(final LongArray uncompressed, final long uncompressedSize, final int ngramOrder) {
@@ -322,7 +325,22 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		return headerBits;
 	}
 
-	private long decompressLinearSearch(final LongArray compressed, final long pos, final long searchKey, final int ngramOrder, final T outputVal) {
+	/**
+	 * searchOffset >= 0 means we are looking for a specific offset and ignore
+	 * searchKey if searchOffset >= 0, we return the key, else we return the
+	 * offset for searchKey
+	 * 
+	 * @param compressed
+	 * @param pos
+	 * @param searchKey
+	 * @param ngramOrder
+	 * @param outputVal
+	 * @param searchOffset
+	 * @return
+	 */
+	private long decompressLinearSearch(final LongArray compressed, final long pos, final long searchKey, final int ngramOrder, final T outputVal,
+		final long searchOffset) {
+
 		final long firstKey = compressed.get(pos);
 		final short bitLength = readShort(compressed.get((pos + 1)));
 		final BitStream bits = new BitStream(compressed, pos + 1, Short.SIZE, bitLength);
@@ -331,7 +349,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 		int currWord = wordOf(firstKey);
 		long currSuffix = contextOffsetOf(firstKey);
-		final boolean foundKeyFirst = firstKey == searchKey;
+		final boolean foundKeyFirst = searchOffset >= 0 ? searchOffset == offset : firstKey == searchKey;
 
 		final CompressibleValueContainer<T> compressibleValues = (CompressibleValueContainer<T>) values;
 		compressibleValues.decompress(bits, ngramOrder, !foundKeyFirst, outputVal);
@@ -357,13 +375,13 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 			currKey = combineToKey(newWord, nextSuffix);
 			currWord = newWord;
 			currSuffix = nextSuffix;
-			final boolean foundKey = currKey == searchKey;
+			final long indexFound = offset + k;
+			final boolean foundKey = searchOffset >= 0 ? searchOffset == offset : currKey == searchKey;
 			compressibleValues.decompress(bits, ngramOrder, !foundKey, outputVal);
-			if (foundKey) {
-				final long indexFound = offset + k;
-				return indexFound;
-			}
-			if (currKey > searchKey) return -1;
+			if (foundKey) { return searchOffset >= 0 ? currKey : indexFound; }
+			if (searchOffset >= 0) {
+				if (searchOffset > indexFound) return -1;
+			} else if (currKey > searchKey) return -1;
 
 		}
 		return -1;
@@ -380,7 +398,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		final long low = binarySearchBlocks(compressed, compressedSize, searchKey, fromIndex, toIndex);
 		if (low < 0) return -1;
 
-		final long index = decompressLinearSearch(compressed, low, searchKey, ngramOrder, outputVal);
+		final long index = decompressLinearSearch(compressed, low, searchKey, ngramOrder, outputVal, -1);
 		return index;
 	}
 
@@ -490,6 +508,59 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	@Override
 	public int getMaxNgramOrder() {
 		return maps.length;
+	}
+
+	public Iterable<Entry<T>> getNgramsForOrder(final int ngramOrder) {
+		return new Iterable<Entry<T>>()
+		{
+
+			@Override
+			public Iterator<edu.berkeley.nlp.lm.map.NgramMap.Entry<T>> iterator() {
+				return new Iterator<edu.berkeley.nlp.lm.map.NgramMap.Entry<T>>()
+				{
+
+					long currOffset = 0;
+
+					long currBlock = 0;
+
+					@Override
+					public boolean hasNext() {
+						return currOffset == maps[ngramOrder].size();
+					}
+
+					@Override
+					public edu.berkeley.nlp.lm.map.NgramMap.Entry<T> next() {
+						return null;
+//						T scratch_ = values.getScratchValue();
+//						long offset = currOffset;
+//						for (int i = ngramOrder; i >= 0; --i) {
+//						final T scratch = i == ngramOrder ? scratch_ : null;
+//						long found = decompressLinearSearch(maps[i].compressedKeys, currBlock, -1, ngramOrder, scratch, currOffset);
+//						if (found >= 0) {
+//							currOffset++;
+//						} else if (i == ngramOrder) {
+//							currBlock += compressedBlockSize;
+//							found = decompressLinearSearch(maps[i].compressedKeys, currBlock, -1, ngramOrder, scratch, currOffset);
+//							assert found >= 0;
+//						}
+//						if (found < 0) return null;
+//						}
+//						
+//						return new Entry<T>(;
+					}
+
+					@Override
+					public void remove() {
+						throw new UnsupportedOperationException("Method not yet implemented");
+					}
+				};
+			}
+		};
+	}
+
+	@Override
+	public long getNumNgrams(int ngramOrder) {
+		return maps[ngramOrder].size();
 	}
 
 }

@@ -21,5 +21,27 @@ public interface NgramMap<T>
 	public long getValueAndOffset(final long contextOffset, final int contextOrder, int word, @OutputParameter T currProbVal);
 
 	public int getMaxNgramOrder();
+	
+	public long getNumNgrams(int ngramOrder);
+
+	public Iterable<Entry<T>> getNgramsForOrder(final int ngramOrder);
+
+	public static class Entry<T>
+	{
+		/**
+		 * @param key
+		 * @param value
+		 */
+		public Entry(int[] key, T value) {
+			super();
+			this.key = key;
+			this.value = value;
+		}
+
+		public int[] key;
+
+		public T value;
+
+	}
 
 }
