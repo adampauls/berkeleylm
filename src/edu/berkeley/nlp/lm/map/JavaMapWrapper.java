@@ -21,6 +21,8 @@ public class JavaMapWrapper<W, T> extends AbstractMap<List<W>, T>
 
 	private final WordIndexer<W> wordIndexer;
 
+	private final IterableWrapper<T, W> iterableWrapper;
+
 	/**
 	 * 
 	 * @param map
@@ -31,6 +33,7 @@ public class JavaMapWrapper<W, T> extends AbstractMap<List<W>, T>
 		this.map = map;
 		this.ngramOrder = ngramOrder;
 		this.wordIndexer = wordIndexer;
+		iterableWrapper = new IterableWrapper<T, W>(map, wordIndexer, ngramOrder);
 	}
 
 	@Override
@@ -72,37 +75,14 @@ public class JavaMapWrapper<W, T> extends AbstractMap<List<W>, T>
 
 			@Override
 			public Iterator<java.util.Map.Entry<List<W>, T>> iterator() {
-				return new Iterators.Transform<NgramMap.Entry<T>, java.util.Map.Entry<List<W>, T>>(map.getNgramsForOrder(ngramOrder).iterator())
-				{
 
-					@Override
-					protected java.util.Map.Entry<List<W>, T> transform(final edu.berkeley.nlp.lm.map.NgramMap.Entry<T> next) {
-						return new java.util.Map.Entry<List<W>, T>()
-						{
-
-							@Override
-							public List<W> getKey() {
-								final List<W> ngram = WordIndexer.StaticMethods.toList(wordIndexer, next.key);
-								return ngram;
-							}
-
-							@Override
-							public T getValue() {
-								return next.value;
-							}
-
-							@Override
-							public T setValue(T arg0) {
-								throw new UnsupportedOperationException("Method not yet implemented");
-							}
-						};
-					}
-				};
+				return iterableWrapper.iterator();
 			}
 
 			@Override
 			public int size() {
-				return JavaMapWrapper.this.size();
+				// warning: if there are more than 2^31 n-grams for this order, this will cause trouble.
+				return (int) iterableWrapper.size();
 			}
 		};
 	}
