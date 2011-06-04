@@ -365,7 +365,7 @@ public class LmReaders
 	private static <W> NgramMap<ProbBackoffPair> buildMapArpa(final ConfigOptions opts, final String lmFile, final int lmOrder,
 		final WordIndexer<W> wordIndexer, final FirstPassCallback<ProbBackoffPair> valueAddingCallback, final LongArray[] numNgramsForEachWord,
 		final boolean contextEncoded, final boolean reversed, final boolean compress) {
-		final ARPALmReader_<W> lmReader = new ARPALmReader_<W>(lmFile, wordIndexer, lmOrder);
+		final ArpaLmReader<W> lmReader = new ArpaLmReader<W>(lmFile, wordIndexer, lmOrder);
 		final ProbBackoffValueContainer values = new ProbBackoffValueContainer(valueAddingCallback.getIndexer(), opts.valueRadix, contextEncoded);
 		assert !(contextEncoded && compress) : "Compression is not supported by context-encoded LMs";
 		final NgramMap<ProbBackoffPair> map = buildMapCommon(opts, wordIndexer, numNgramsForEachWord, valueAddingCallback.getNumNgramsForEachOrder(), reversed,
@@ -399,7 +399,7 @@ public class LmReaders
 
 	private static <W> FirstPassCallback<ProbBackoffPair> firstPassArpa(final String lmFile, final int lmOrder, final WordIndexer<W> wordIndexer,
 		final boolean reverse) {
-		final ARPALmReader_<W> arpaLmReader = new ARPALmReader_<W>(lmFile, wordIndexer, lmOrder);
+		final ArpaLmReader<W> arpaLmReader = new ArpaLmReader<W>(lmFile, wordIndexer, lmOrder);
 		final FirstPassCallback<ProbBackoffPair> valueAddingCallback = firstPassCommon(arpaLmReader, reverse);
 		return valueAddingCallback;
 	}
