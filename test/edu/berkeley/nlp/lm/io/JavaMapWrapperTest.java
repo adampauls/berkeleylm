@@ -23,6 +23,8 @@ public class JavaMapWrapperTest
 			final JavaMapWrapper<String, LongRef> map = new JavaMapWrapper<String, LongRef>(lm.getNgramMap(), lm.getWordIndexer(), order);
 			final JavaMapWrapper<String, LongRef> map2 = new JavaMapWrapper<String, LongRef>(lm2.getNgramMap(), lm2.getWordIndexer(), order);
 			if (order == 2) Assert.assertEquals(map.get(Arrays.asList(",", "the", "(")).value, 50);
+			if (order == 2) Assert.assertTrue(map.containsKey(Arrays.asList(",", "the", "(")));
+			if (order == 2) Assert.assertFalse(map.containsKey(Arrays.asList("the", "the", "(")));
 			if (order == 0) Assert.assertEquals(map.get(Arrays.asList("the")).value, 19401194714L);
 			if (order == 2) Assert.assertEquals(map2.get(Arrays.asList(",", "the", "(")).value, 50);
 			if (order == 0) Assert.assertEquals(map2.get(Arrays.asList("the")).value, 19401194714L);
