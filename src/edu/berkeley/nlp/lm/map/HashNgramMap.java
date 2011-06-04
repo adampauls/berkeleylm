@@ -308,7 +308,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 			@Override
 			protected Entry<T> transform(Long next) {
-				long offset = contextOffsetOf(next);
+				long offset = next;
 				final T val = values.getScratchValue();
 				values.getFromOffset(offset, ngramOrder, val);
 				return new Entry<T>(getNgramForOffset(offset, ngramOrder), val);

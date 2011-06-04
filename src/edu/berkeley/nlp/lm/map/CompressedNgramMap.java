@@ -50,6 +50,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	private final CompressedMap[] maps;
 
 	private final boolean reverseTrie = true;
+
 	private final long[] numNgramsForEachOrder;
 
 	public CompressedNgramMap(final CompressibleValueContainer<T> values, long[] numNgramsForEachOrder, final ConfigOptions opts) {
@@ -61,7 +62,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		this.compressedBlockSize = opts.compressedBlockSize;
 		this.numNgramsForEachOrder = numNgramsForEachOrder;
 		this.maps = new CompressedMap[numNgramsForEachOrder.length];
-//		initWithLengths(numNgramsForEachOrder);
+		//		initWithLengths(numNgramsForEachOrder);
 		values.setMap(this);
 
 	}
@@ -361,7 +362,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 		final CompressibleValueContainer<T> compressibleValues = (CompressibleValueContainer<T>) values;
 		compressibleValues.decompress(bits, ngramOrder, !foundKeyFirst, outputVal);
-		if (foundKeyFirst) return offset;
+		if (foundKeyFirst) return searchOffset >= 0 ? firstKey : offset;
 
 		long currKey = -1;
 
@@ -383,12 +384,12 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 			currKey = combineToKey(newWord, nextSuffix);
 			currWord = newWord;
 			currSuffix = nextSuffix;
-			final long indexFound = offset + k;
-			final boolean foundKey = searchOffset >= 0 ? searchOffset == offset : currKey == searchKey;
+			final long currOffset = offset + k;
+			final boolean foundKey = searchOffset >= 0 ? searchOffset == currOffset : currKey == searchKey;
 			compressibleValues.decompress(bits, ngramOrder, !foundKey, outputVal);
-			if (foundKey) { return searchOffset >= 0 ? currKey : indexFound; }
+			if (foundKey) { return searchOffset >= 0 ? currKey : currOffset; }
 			if (searchOffset >= 0) {
-				if (searchOffset > indexFound) return -1;
+				if (currOffset > searchOffset) return -1;
 			} else if (currKey > searchKey) return -1;
 
 		}
@@ -421,7 +422,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		final long low = binarySearchBlocks(compressed, compressed.size(), searchKey, fromIndex, toIndex, searchOffset);
 		if (low < 0) return -1;
 
-		final long index = decompressLinearSearch(compressed, low, searchKey, ngramOrder, outputVal, -1);
+		final long index = decompressLinearSearch(compressed, low, searchKey, ngramOrder, outputVal, searchOffset);
 		return index;
 	}
 
@@ -432,6 +433,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	 */
 	private long binarySearchBlocks(final LongArray compressed, final long size, final long searchKey, final long low_, final long high_,
 		final long searchOffset) {
+		final long toFind = searchOffset >= 0 ? searchOffset : searchKey;
 		long low = low_;
 		long high = high_;
 		assert size % compressedBlockSize == 0;
@@ -440,7 +442,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 			final long mid = (low + high) >>> 1;
 			final long currPos = mid * compressedBlockSize;
 			final long midVal = searchOffset >= 0 ? offsetCoder.decompress(getCompressedBits(compressed, currPos + 1)) : compressed.get(currPos);
-			final int compare = compareLongsRaw(midVal, searchKey);
+			final int compare = compareLongsRaw(midVal, toFind);
 			if (compare < 0) //midVal < key
 				low = mid + 1;
 			else if (compare > 0) // midVal > key
@@ -509,26 +511,27 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	@Override
 	public void initWithLengths(final List<Long> numNGrams) {
-//		long[] array = new long[numNGrams.size()];
-//		for (int i = 0; i < array.length; ++i) {
-//			array[i] = numNGrams.get(i);
-//		}
-//		initWithLengths(array);
+		//		long[] array = new long[numNGrams.size()];
+		//		for (int i = 0; i < array.length; ++i) {
+		//			array[i] = numNGrams.get(i);
+		//		}
+		//		initWithLengths(array);
 	}
-//
-//	/**
-//	 * @param numNGrams
-//	 */
-//	private void initWithLengths(long[] numNGrams) {
-//		maps = new CompressedMap[numNGrams.length];
-//		for (int i = 0; i < numNGrams.length; ++i) {
-//			maps[i] = new CompressedMap();
-//			final long l = numNGrams[i];
-//			maps[i].init(l);
-//			values.setSizeAtLeast(l, i);
-//
-//		}
-//	}
+
+	//
+	//	/**
+	//	 * @param numNGrams
+	//	 */
+	//	private void initWithLengths(long[] numNGrams) {
+	//		maps = new CompressedMap[numNGrams.length];
+	//		for (int i = 0; i < numNGrams.length; ++i) {
+	//			maps[i] = new CompressedMap();
+	//			final long l = numNGrams[i];
+	//			maps[i].init(l);
+	//			values.setSizeAtLeast(l, i);
+	//
+	//		}
+	//	}
 
 	@Override
 	public int getMaxNgramOrder() {
@@ -548,7 +551,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 					@Override
 					public boolean hasNext() {
-						return currOffset == maps[ngramOrder].size();
+						return currOffset < maps[ngramOrder].size();
 					}
 
 					@Override

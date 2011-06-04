@@ -2,10 +2,10 @@ package edu.berkeley.nlp.lm.map;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.collections.Iterators;
-import edu.berkeley.nlp.lm.map.HashMap.KeyIterator;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.MurmurHash;
@@ -141,7 +141,10 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	 */
 	int getWordForContext(long contextOffset) {
 		int binarySearch = Arrays.binarySearch(wordRangesLow, contextOffset);
-		return binarySearch >= 0 ? binarySearch : (-binarySearch - 2);
+		binarySearch = binarySearch >= 0 ? binarySearch : (-binarySearch - 2);
+		while (binarySearch < wordRangesLow.length - 1 && wordRangesLow[binarySearch] == wordRangesLow[binarySearch + 1])
+			binarySearch++;
+		return binarySearch;
 	}
 
 	@Override
@@ -161,7 +164,9 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 
 	@Override
 	public Iterable<Long> keys() {
-		throw new UnsupportedOperationException("Method not yet implemented.");
+		return Iterators.able(new KeyIterator(keys));
 	}
+
+	
 
 }

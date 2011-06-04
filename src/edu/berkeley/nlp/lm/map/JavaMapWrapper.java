@@ -79,7 +79,8 @@ public class JavaMapWrapper<W, T> extends AbstractMap<List<W>, T>
 
 							@Override
 							public List<W> getKey() {
-								return WordIndexer.StaticMethods.toList(wordIndexer, next.key);
+								final List<W> ngram = WordIndexer.StaticMethods.toList(wordIndexer, next.key);
+								return ngram;
 							}
 
 							@Override
