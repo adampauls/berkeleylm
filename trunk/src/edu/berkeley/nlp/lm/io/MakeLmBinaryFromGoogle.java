@@ -17,7 +17,7 @@ import edu.berkeley.nlp.lm.util.Logger;
  * a stupid-backoff language model language model and writes it to disk.
  * Language model binaries are significantly smaller and faster to load. Note:
  * actually running this code on the full Google-ngrams corpus can be very slow
- * and memory intenstive -- on our machines, it takes about 32GB of memory and
+ * and memory intensive -- on our machines, it takes about 32GB of memory and
  * 15 hours.
  * 
  * Note that if the input/output files have a .gz suffix, they will be

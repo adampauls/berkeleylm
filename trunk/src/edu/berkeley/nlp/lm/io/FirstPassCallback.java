@@ -17,7 +17,7 @@ import edu.berkeley.nlp.lm.util.Logger;
  * @param <V>
  *            Value type
  */
-public final class FirstPassCallback<V extends Comparable<V>> implements ARPALmReaderCallback<V>
+public final class FirstPassCallback<V extends Comparable<V>> implements ARPALmReaderCallback_<V>
 {
 
 	private Counter<V> valueCounter;

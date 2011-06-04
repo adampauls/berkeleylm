@@ -10,7 +10,7 @@ import java.util.List;
  * @param <V>
  *            Value type for each n-gram (either count of prob/backoff)
  */
-public interface ARPALmReaderCallback<V> extends NgramOrderedLmReaderCallback<V>
+public interface ARPALmReaderCallback_<V> extends NgramOrderedLmReaderCallback<V>
 {
 
 	/**

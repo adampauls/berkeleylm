@@ -76,7 +76,7 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 				final boolean manuallySortVocab = false;
 				final String sortedVocabPath = ngramFiles[0].getPath();
 				if (manuallySortVocab) {
-					addWordsToIndexerManuallySorted(sortedVocabPath);
+					addWordsToIndexerManuallySorted(sortedVocabPath, wordIndexer);
 				} else {
 					addWordToIndexer(sortedVocabPath);
 				}
@@ -172,9 +172,9 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 	}
 
 	/**
-	 * @param sortedVocabPath
+	 * @param sortedVocabPath should be vocab_cs.gz (not vocab.gz)
 	 */
-	private void addWordsToIndexerManuallySorted(final String sortedVocabPath) {
+	public static <W> void addWordsToIndexerManuallySorted(final String sortedVocabPath, final WordIndexer<W> wordIndexer) {
 		final Counter<String> counts = new Counter<String>();
 		try {
 			for (final String line : Iterators.able(IOUtils.lineIterator(sortedVocabPath))) {
