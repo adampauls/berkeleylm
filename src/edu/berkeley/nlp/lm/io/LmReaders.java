@@ -83,8 +83,9 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * to use them is to have a separate caching wrapper for each separate decoding
  * thread (though they can of course all wrap the same underlying LM).
  * 
- * This software also support a java Map wrapper around an n-gram collection. 
- * You can read a map wrapper using {@link #readGoogleLmBinary(String, WordIndexer, String)}. 
+ * This software also support a java Map wrapper around an n-gram collection.
+ * You can read a map wrapper using
+ * {@link #readNgramMapFromGoogleNgramDir(String, boolean, WordIndexer)}.
  * 
  * 
  * @author adampauls
@@ -153,13 +154,30 @@ public class LmReaders
 		return secondPassArrayEncoded(opts, lmFile, lmOrder, wordIndexer, valueAddingCallback, numNgramsForEachWord, reverse, compress);
 	}
 
-	public static Map<List<String>, LongRef> readNgramMapFromGoogleNgramDir(final String dir, boolean compress) {
+	public static NgramMapWrapper<String, LongRef> readNgramMapFromGoogleNgramDir(final String dir, boolean compress) {
 		return readNgramMapFromGoogleNgramDir(dir, compress, new StringWordIndexer());
 	}
 
-	public static <W> Map<List<W>, LongRef> readNgramMapFromGoogleNgramDir(final String dir, boolean compress, WordIndexer<W> wordIndexer) {
+	public static <W> NgramMapWrapper<W, LongRef> readNgramMapFromGoogleNgramDir(final String dir, boolean compress, WordIndexer<W> wordIndexer) {
 		StupidBackoffLm<W> lm = readLmFromGoogleNgramDir(dir, compress, wordIndexer, new ConfigOptions());
 		return new NgramMapWrapper<W, LongRef>(lm.getNgramMap(), lm.getWordIndexer());
+	}
+
+	public static NgramMapWrapper<String, LongRef> readNgramMapFromBinary(final String binary, String vocabFile) {
+		return readNgramMapFromBinary(binary, vocabFile, new StringWordIndexer());
+	}
+
+	/**
+	 * 
+	 * @param vocabFile
+	 *            should be the vocab_cs.gz file from the Google n-gram corpus.
+	 * @return
+	 */
+	public static <W> NgramMapWrapper<W, LongRef> readNgramMapFromBinary(final String binary, String vocabFile, WordIndexer<W> wordIndexer) {
+		GoogleLmReader.addWordsToIndexerManuallySorted(vocabFile, wordIndexer);
+		@SuppressWarnings("unchecked")
+		NgramMap<LongRef> map = (NgramMap<LongRef>) IOUtils.readObjFileHard(binary);
+		return new NgramMapWrapper<W, LongRef>(map, wordIndexer);
 	}
 
 	public static StupidBackoffLm<String> readLmFromGoogleNgramDir(final String dir, boolean compress) {

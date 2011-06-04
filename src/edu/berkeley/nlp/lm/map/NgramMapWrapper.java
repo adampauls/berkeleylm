@@ -95,4 +95,14 @@ public class NgramMapWrapper<W, V> extends AbstractMap<List<W>, V>
 		};
 	}
 
+	/**
+	 * 
+	 * @param ngramOrder
+	 *            0-based (0 means unigrams)
+	 * @return
+	 */
+	public Map<List<W>, V> getMapForOrder(int ngramOrder) {
+		return ngramsForOrder[ngramOrder];
+	}
+
 }
