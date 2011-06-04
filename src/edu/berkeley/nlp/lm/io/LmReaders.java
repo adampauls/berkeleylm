@@ -47,7 +47,7 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * raw text by called
  * {@link #createKneserNeyLmFromTextFiles(List, WordIndexer, int, File)}. This
  * can also be done from the command-line by calling <code>main()</code> in
- * {@link MakeKneserNeyFromText}. A Stupid Backoff language model can be read
+ * {@link MakeKneserNeyArpaFromText}. A Stupid Backoff language model can be read
  * from a directory containing n-gram counts in the format used by Google's
  * Web1T corpus by calling {@link #readLmFromGoogleNgramDir(String, boolean)}.
  * Note that this software does not (yet) support building Google count
@@ -71,13 +71,15 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * action, you can have a look at {@link PerplexityTest}.
  * 
  * To speed up queries, you can wrap language models with caches (
- * {@link ContextEncodedCachingLmWrapper and {
+ * {@link ContextEncodedCachingLmWrapper and
+ * 
  * @link ArrayEncodedCachingLmWrapper}). These caches are described in section
- * 4.1 of Pauls and Klein (2011). You should more or less always use these
- * caches, since they are faster and have modest memory requirements. Note,
- * however, that the caches are <b>not</b> synchronized. The only threadsafe way
- * to use them is to have a separate caching wrapper for each separate decoding
- * thread (though they can of course all wrap the same underlying LM).
+ *       4.1 of Pauls and Klein (2011). You should more or less always use these
+ *       caches, since they are faster and have modest memory requirements.
+ *       Note, however, that the caches are <b>not</b> synchronized. The only
+ *       threadsafe way to use them is to have a separate caching wrapper for
+ *       each separate decoding thread (though they can of course all wrap the
+ *       same underlying LM).
  * 
  * 
  * @author adampauls
@@ -237,13 +239,35 @@ public class LmReaders
 		reader.parse(new KneserNeyLmReaderCallback<W>(arpaOutputFile, wordIndexer, lmOrder));
 	}
 
-	@SuppressWarnings("unchecked")
+	public static StupidBackoffLm<String> readGoogleLmBinary(final String file, final String sortedVocabFile) {
+		return readGoogleLmBinary(file, new StringWordIndexer(), sortedVocabFile);
+	}
+
 	/**
-	 * Reads a binary file representing an LM. These will need to be cast down to either {@link ContextEncodedNgramLanguageModel}
-	 * or {@link ArrayEncodedNgramLanguageModel} to be useful.
+	 * Reads in a binarized
+	 * 
+	 * @param <W>
+	 * @param file
+	 * @param wordIndexer
+	 * @param sortedVocabFile
+	 * @return
+	 */
+	public static <W> StupidBackoffLm<W> readGoogleLmBinary(final String file, final WordIndexer<W> wordIndexer, final String sortedVocabFile) {
+		GoogleLmReader.addWordsToIndexerManuallySorted(sortedVocabFile, wordIndexer);
+		@SuppressWarnings("unchecked")
+		NgramMap<LongRef> map = (NgramMap<LongRef>) IOUtils.readObjFileHard(file);
+		return new StupidBackoffLm<W>(map.getMaxNgramOrder(), wordIndexer, map, new ConfigOptions());
+	}
+
+	/**
+	 * Reads a binary file representing an LM. These will need to be cast down
+	 * to either {@link ContextEncodedNgramLanguageModel} or
+	 * {@link ArrayEncodedNgramLanguageModel} to be useful.
 	 */
 	public static <W> NgramLanguageModel<W> readLmBinary(final String file) {
-		return (NgramLanguageModel<W>) IOUtils.readObjFileHard(file);
+		@SuppressWarnings("unchecked")
+		final NgramLanguageModel<W> lm = (NgramLanguageModel<W>) IOUtils.readObjFileHard(file);
+		return lm;
 	}
 
 	/**
@@ -341,7 +365,7 @@ public class LmReaders
 	private static <W> NgramMap<ProbBackoffPair> buildMapArpa(final ConfigOptions opts, final String lmFile, final int lmOrder,
 		final WordIndexer<W> wordIndexer, final FirstPassCallback<ProbBackoffPair> valueAddingCallback, final LongArray[] numNgramsForEachWord,
 		final boolean contextEncoded, final boolean reversed, final boolean compress) {
-		final ARPALmReader<W> lmReader = new ARPALmReader<W>(lmFile, wordIndexer, lmOrder);
+		final ARPALmReader_<W> lmReader = new ARPALmReader_<W>(lmFile, wordIndexer, lmOrder);
 		final ProbBackoffValueContainer values = new ProbBackoffValueContainer(valueAddingCallback.getIndexer(), opts.valueRadix, contextEncoded);
 		assert !(contextEncoded && compress) : "Compression is not supported by context-encoded LMs";
 		final NgramMap<ProbBackoffPair> map = buildMapCommon(opts, wordIndexer, numNgramsForEachWord, valueAddingCallback.getNumNgramsForEachOrder(), reversed,
@@ -375,7 +399,7 @@ public class LmReaders
 
 	private static <W> FirstPassCallback<ProbBackoffPair> firstPassArpa(final String lmFile, final int lmOrder, final WordIndexer<W> wordIndexer,
 		final boolean reverse) {
-		final ARPALmReader<W> arpaLmReader = new ARPALmReader<W>(lmFile, wordIndexer, lmOrder);
+		final ARPALmReader_<W> arpaLmReader = new ARPALmReader_<W>(lmFile, wordIndexer, lmOrder);
 		final FirstPassCallback<ProbBackoffPair> valueAddingCallback = firstPassCommon(arpaLmReader, reverse);
 		return valueAddingCallback;
 	}

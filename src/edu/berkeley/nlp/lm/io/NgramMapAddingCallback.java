@@ -13,7 +13,7 @@ import edu.berkeley.nlp.lm.util.Logger;
  * @param <V>
  *            Value type
  */
-public final class NgramMapAddingCallback<V> implements ARPALmReaderCallback<V>
+public final class NgramMapAddingCallback<V> implements ARPALmReaderCallback_<V>
 {
 	private final NgramMap<V> map;
 

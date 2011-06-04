@@ -11,6 +11,7 @@ import java.util.Set;
 import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.collections.Iterators;
 import edu.berkeley.nlp.lm.map.NgramMap.Entry;
+import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 
 /**
@@ -24,6 +25,7 @@ import edu.berkeley.nlp.lm.values.ProbBackoffPair;
  */
 public class JavaMapWrapper<W, T> extends AbstractMap<List<W>, T>
 {
+
 	private final NgramMap<T> map;
 
 	private final int ngramOrder;
@@ -58,6 +60,31 @@ public class JavaMapWrapper<W, T> extends AbstractMap<List<W>, T>
 
 	}
 
+	@Override
+	public Set<java.util.Map.Entry<List<W>, T>> entrySet() {
+		return new AbstractSet<java.util.Map.Entry<List<W>, T>>()
+		{
+
+			@Override
+			public Iterator<java.util.Map.Entry<List<W>, T>> iterator() {
+				return iterableWrapper.iterator();
+			}
+
+			@Override
+			public int size() {
+				final long size = iterableWrapper.size();
+				if (size > Integer.MAX_VALUE)
+					Logger.warn(JavaMapWrapper.class.getSimpleName() + " doesn't like maps with size greater than Integer.MAX_VALUE");
+				return (int) size;
+			}
+		};
+	}
+
+	@Override
+	public boolean containsKey(Object key) {
+		return get(key) != null;
+	}
+
 	/**
 	 * @param scratch
 	 * @param ngram
@@ -75,24 +102,6 @@ public class JavaMapWrapper<W, T> extends AbstractMap<List<W>, T>
 			probContextOrder++;
 		}
 		return scratch;
-	}
-
-	@Override
-	public Set<java.util.Map.Entry<List<W>, T>> entrySet() {
-		return new AbstractSet<java.util.Map.Entry<List<W>, T>>()
-		{
-
-			@Override
-			public Iterator<java.util.Map.Entry<List<W>, T>> iterator() {
-				return iterableWrapper.iterator();
-			}
-
-			@Override
-			public int size() {
-				// warning: if there are more than 2^31 n-grams for this order, this will cause trouble.
-				return (int) iterableWrapper.size();
-			}
-		};
 	}
 
 }

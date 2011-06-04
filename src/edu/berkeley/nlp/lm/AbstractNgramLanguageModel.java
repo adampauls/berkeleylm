@@ -3,6 +3,8 @@ package edu.berkeley.nlp.lm;
 import java.io.Serializable;
 import java.util.List;
 
+import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
+
 public abstract class AbstractNgramLanguageModel<W> implements NgramLanguageModel<W>, Serializable
 
 {
@@ -11,6 +13,7 @@ public abstract class AbstractNgramLanguageModel<W> implements NgramLanguageMode
 
 	protected final int lmOrder;
 
+	@PrintMemoryCount
 	private final WordIndexer<W> wordIndexer;
 
 	/**
