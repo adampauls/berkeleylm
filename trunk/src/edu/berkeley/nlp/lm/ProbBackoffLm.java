@@ -91,5 +91,9 @@ public class ProbBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W> 
 	public float getLogProb(final List<W> ngram) {
 		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
 	}
+	
+	public NgramMap<ProbBackoffPair> getNgramMap() {
+		return map;
+	}
 
 }

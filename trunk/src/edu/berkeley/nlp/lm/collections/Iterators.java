@@ -45,7 +45,7 @@ public class Iterators
 	 * The IteratorIterator loops through the iterator associated with each key
 	 * until all the keys are used up.
 	 */
-	private static class IteratorIterator<T> implements Iterator<T>
+	public static class IteratorIterator<T> implements Iterator<T>
 	{
 		Iterator<T> current = null;
 

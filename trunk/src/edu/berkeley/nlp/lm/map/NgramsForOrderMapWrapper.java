@@ -15,24 +15,24 @@ import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 
 /**
- * Wraps an NgramMap as a Java Map. This collection is read-only, and riddled
- * with inefficient boxing and unboxing.
+ * Wraps an NgramMap as a Java Map, but only ngrams of a particular order. This collection is read-only. It is also uses
+ * a lot inefficient boxing and unboxing.
  * 
  * @author adampauls
  * 
  * @param <W>
- * @param <T>
+ * @param <V>
  */
-public class JavaMapWrapper<W, T> extends AbstractMap<List<W>, T>
+public class NgramsForOrderMapWrapper<W, V> extends AbstractMap<List<W>, V>
 {
 
-	private final NgramMap<T> map;
+	private final NgramMap<V> map;
 
 	private final int ngramOrder;
 
 	private final WordIndexer<W> wordIndexer;
 
-	private final IterableWrapper<T, W> iterableWrapper;
+	private final NgramsForOrderIterableWrapper<W,V> iterableWrapper;
 
 	/**
 	 * 
@@ -40,15 +40,15 @@ public class JavaMapWrapper<W, T> extends AbstractMap<List<W>, T>
 	 * @param ngramOrder
 	 *            0-based, i.e. 0 means unigrams
 	 */
-	public JavaMapWrapper(NgramMap<T> map, WordIndexer<W> wordIndexer, int ngramOrder) {
+	public NgramsForOrderMapWrapper(NgramMap<V> map, WordIndexer<W> wordIndexer, int ngramOrder) {
 		this.map = map;
 		this.ngramOrder = ngramOrder;
 		this.wordIndexer = wordIndexer;
-		iterableWrapper = new IterableWrapper<T, W>(map, wordIndexer, ngramOrder);
+		iterableWrapper = new NgramsForOrderIterableWrapper<W, V>(map, wordIndexer, ngramOrder);
 	}
 
 	@Override
-	public T get(Object arg0) {
+	public V get(Object arg0) {
 		if (!(arg0 instanceof List)) return null;
 		@SuppressWarnings("unchecked")
 		List<W> l = (List<W>) arg0;
@@ -60,13 +60,20 @@ public class JavaMapWrapper<W, T> extends AbstractMap<List<W>, T>
 
 	}
 
+	
+
 	@Override
-	public Set<java.util.Map.Entry<List<W>, T>> entrySet() {
-		return new AbstractSet<java.util.Map.Entry<List<W>, T>>()
+	public boolean containsKey(Object key) {
+		return get(key) != null;
+	}
+	
+	@Override
+	public Set<java.util.Map.Entry<List<W>, V>> entrySet() {
+		return new AbstractSet<java.util.Map.Entry<List<W>, V>>()
 		{
 
 			@Override
-			public Iterator<java.util.Map.Entry<List<W>, T>> iterator() {
+			public Iterator<java.util.Map.Entry<List<W>, V>> iterator() {
 				return iterableWrapper.iterator();
 			}
 
@@ -74,26 +81,21 @@ public class JavaMapWrapper<W, T> extends AbstractMap<List<W>, T>
 			public int size() {
 				final long size = iterableWrapper.size();
 				if (size > Integer.MAX_VALUE)
-					Logger.warn(JavaMapWrapper.class.getSimpleName() + " doesn't like maps with size greater than Integer.MAX_VALUE");
+					Logger.warn(NgramsForOrderMapWrapper.class.getSimpleName() + " doesn't like maps with size greater than Integer.MAX_VALUE");
 				return (int) size;
 			}
 		};
-	}
-
-	@Override
-	public boolean containsKey(Object key) {
-		return get(key) != null;
 	}
 
 	/**
 	 * @param scratch
 	 * @param ngram
 	 */
-	private T getForArray(int[] ngram) {
+	private V getForArray(int[] ngram) {
 		long probContext = 0L;
 		int probContextOrder = -1;
-		T scratch = map.getValues().getScratchValue();
-		NgramMap<T> localMap = map;
+		V scratch = map.getValues().getScratchValue();
+		NgramMap<V> localMap = map;
 		int endPos_ = ngram.length;
 		int startPos_ = 0;
 		for (int i = endPos_ - 1; i >= startPos_; --i) {

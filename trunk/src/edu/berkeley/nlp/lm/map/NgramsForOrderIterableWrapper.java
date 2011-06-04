@@ -12,13 +12,13 @@ import edu.berkeley.nlp.lm.collections.Iterators;
  * is a little inefficient due to the boxing and temporary object allocation necessary to conform to Java's interfaces. 
  * @author adampauls
  *
- * @param <T>
+ * @param <V>
  * @param <W>
  */
-public class IterableWrapper<T, W> implements Iterable<java.util.Map.Entry<List<W>, T>>
+public class NgramsForOrderIterableWrapper<W, V> implements Iterable<java.util.Map.Entry<List<W>, V>>
 {
 
-	private final NgramMap<T> map;
+	private final NgramMap<V> map;
 
 	private final int ngramOrder;
 
@@ -30,20 +30,20 @@ public class IterableWrapper<T, W> implements Iterable<java.util.Map.Entry<List<
 	 * @param ngramOrder
 	 *            0-based, i.e. 0 means unigrams
 	 */
-	public IterableWrapper(NgramMap<T> map, WordIndexer<W> wordIndexer, int ngramOrder) {
+	public NgramsForOrderIterableWrapper(NgramMap<V> map, WordIndexer<W> wordIndexer, int ngramOrder) {
 		this.map = map;
 		this.ngramOrder = ngramOrder;
 		this.wordIndexer = wordIndexer;
 	}
 
 	@Override
-	public Iterator<Entry<List<W>, T>> iterator() {
-		return new Iterators.Transform<NgramMap.Entry<T>, java.util.Map.Entry<List<W>, T>>(map.getNgramsForOrder(ngramOrder).iterator())
+	public Iterator<Entry<List<W>, V>> iterator() {
+		return new Iterators.Transform<NgramMap.Entry<V>, java.util.Map.Entry<List<W>, V>>(map.getNgramsForOrder(ngramOrder).iterator())
 		{
 
 			@Override
-			protected Entry<List<W>, T> transform(final edu.berkeley.nlp.lm.map.NgramMap.Entry<T> next) {
-				return new java.util.Map.Entry<List<W>, T>()
+			protected Entry<List<W>, V> transform(final edu.berkeley.nlp.lm.map.NgramMap.Entry<V> next) {
+				return new java.util.Map.Entry<List<W>, V>()
 				{
 
 					@Override
@@ -53,12 +53,12 @@ public class IterableWrapper<T, W> implements Iterable<java.util.Map.Entry<List<
 					}
 
 					@Override
-					public T getValue() {
+					public V getValue() {
 						return next.value;
 					}
 
 					@Override
-					public T setValue(T arg0) {
+					public V setValue(V arg0) {
 						throw new UnsupportedOperationException("Method not yet implemented");
 					}
 				};
