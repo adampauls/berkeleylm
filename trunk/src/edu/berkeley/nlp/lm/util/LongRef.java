@@ -39,4 +39,8 @@ public class LongRef implements Comparable<LongRef>, Serializable
 		return Double.compare(value, arg0.value);
 	}
 
+	public String toString() {
+		return "" + value;
+	}
+
 }
