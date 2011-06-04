@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import edu.berkeley.nlp.lm.ArrayEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ConfigOptions;
@@ -22,6 +23,7 @@ import edu.berkeley.nlp.lm.map.CompressedNgramMap;
 import edu.berkeley.nlp.lm.map.ContextEncodedNgramMap;
 import edu.berkeley.nlp.lm.map.HashNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap;
+import edu.berkeley.nlp.lm.map.NgramMapWrapper;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.LongRef;
 import edu.berkeley.nlp.lm.values.CompressibleValueContainer;
@@ -35,11 +37,13 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * n-gram language models. Since most uses of this software will use this class,
  * I will use this space to document the software as a whole.
  * 
- * This software provides two main pieces of functionality: <br>
+ * This software provides three main pieces of functionality: <br>
  * (a) estimation of a language models from text inputs <br>
- * (b) an API for efficient querying language models stored in main memory, as
- * described in "Faster and Smaller N-gram Language Models" (Pauls and Klein
- * 2011).
+ * (b) data structures for efficiently storing large collections of n-grams in
+ * memory <br>
+ * (c) an API for efficient querying language models derived from n-gram
+ * collections. Most of the techniques in the paper are described in
+ * "Faster and Smaller N-gram Language Models" (Pauls and Klein 2011).
  * 
  * This software supports the estimation of two types of language models:
  * Kneser-Ney language models (Kneser and Ney, 1995) and Stupid Backoff language
@@ -47,8 +51,8 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * raw text by called
  * {@link #createKneserNeyLmFromTextFiles(List, WordIndexer, int, File)}. This
  * can also be done from the command-line by calling <code>main()</code> in
- * {@link MakeKneserNeyArpaFromText}. A Stupid Backoff language model can be read
- * from a directory containing n-gram counts in the format used by Google's
+ * {@link MakeKneserNeyArpaFromText}. A Stupid Backoff language model can be
+ * read from a directory containing n-gram counts in the format used by Google's
  * Web1T corpus by calling {@link #readLmFromGoogleNgramDir(String, boolean)}.
  * Note that this software does not (yet) support building Google count
  * directories from raw text, though this can be done using SRILM.
@@ -71,15 +75,16 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * action, you can have a look at {@link PerplexityTest}.
  * 
  * To speed up queries, you can wrap language models with caches (
- * {@link ContextEncodedCachingLmWrapper and
+ * {@link ContextEncodedCachingLmWrapper} and
+ * {@link ArrayEncodedCachingLmWrapper}). These caches are described in section
+ * 4.1 of Pauls and Klein (2011). You should more or less always use these
+ * caches, since they are faster and have modest memory requirements. Note,
+ * however, that the caches are <b>not</b> synchronized. The only threadsafe way
+ * to use them is to have a separate caching wrapper for each separate decoding
+ * thread (though they can of course all wrap the same underlying LM).
  * 
- * @link ArrayEncodedCachingLmWrapper}). These caches are described in section
- *       4.1 of Pauls and Klein (2011). You should more or less always use these
- *       caches, since they are faster and have modest memory requirements.
- *       Note, however, that the caches are <b>not</b> synchronized. The only
- *       threadsafe way to use them is to have a separate caching wrapper for
- *       each separate decoding thread (though they can of course all wrap the
- *       same underlying LM).
+ * This software also support a java Map wrapper around an n-gram collection. 
+ * You can read a map wrapper using {@link #readGoogleLmBinary(String, WordIndexer, String)}. 
  * 
  * 
  * @author adampauls
@@ -146,6 +151,15 @@ public class LmReaders
 		final FirstPassCallback<ProbBackoffPair> valueAddingCallback = firstPassArpa(lmFile, lmOrder, wordIndexer, reverse);
 		final LongArray[] numNgramsForEachWord = valueAddingCallback.getNumNgramsForEachWord();
 		return secondPassArrayEncoded(opts, lmFile, lmOrder, wordIndexer, valueAddingCallback, numNgramsForEachWord, reverse, compress);
+	}
+
+	public static Map<List<String>, LongRef> readNgramMapFromGoogleNgramDir(final String dir, boolean compress) {
+		return readNgramMapFromGoogleNgramDir(dir, compress, new StringWordIndexer());
+	}
+
+	public static <W> Map<List<W>, LongRef> readNgramMapFromGoogleNgramDir(final String dir, boolean compress, WordIndexer<W> wordIndexer) {
+		StupidBackoffLm<W> lm = readLmFromGoogleNgramDir(dir, compress, wordIndexer, new ConfigOptions());
+		return new NgramMapWrapper<W, LongRef>(lm.getNgramMap(), lm.getWordIndexer());
 	}
 
 	public static StupidBackoffLm<String> readLmFromGoogleNgramDir(final String dir, boolean compress) {

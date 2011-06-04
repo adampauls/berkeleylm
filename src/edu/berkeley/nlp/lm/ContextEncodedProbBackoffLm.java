@@ -3,6 +3,7 @@ package edu.berkeley.nlp.lm;
 import java.io.Serializable;
 
 import edu.berkeley.nlp.lm.map.ContextEncodedNgramMap;
+import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
@@ -92,6 +93,10 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 	@Override
 	public int[] getNgramForOffset(final long contextOffset, final int contextOrder, final int word) {
 		return map.getNgramFromContextEncoding(contextOffset, contextOrder, word);
+	}
+
+	public NgramMap<ProbBackoffPair> getNgramMap() {
+		return map;
 	}
 
 	private void setOutputContext(final LmContextInfo outputContext, final long offset, final int ngramOrder) {
