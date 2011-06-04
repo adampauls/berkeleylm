@@ -51,9 +51,9 @@ public class MakeKneserNeyArpaFromText
 		Logger.setGlobalLogger(new Logger.SystemLogger(System.out, System.err));
 		Logger.startTrack("Reading text files " + inputFiles + " and writing to file " + outputFile);
 		final StringWordIndexer wordIndexer = new StringWordIndexer();
-		wordIndexer.setStartSymbol(ARPALmReader_.START_SYMBOL);
-		wordIndexer.setEndSymbol(ARPALmReader_.END_SYMBOL);
-		wordIndexer.setUnkSymbol(ARPALmReader_.UNK_SYMBOL);
+		wordIndexer.setStartSymbol(ArpaLmReader.START_SYMBOL);
+		wordIndexer.setEndSymbol(ArpaLmReader.END_SYMBOL);
+		wordIndexer.setUnkSymbol(ArpaLmReader.UNK_SYMBOL);
 		LmReaders.createKneserNeyLmFromTextFiles(inputFiles, wordIndexer, lmOrder, new File(outputFile));
 		Logger.endTrack();
 	}

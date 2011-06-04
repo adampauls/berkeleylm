@@ -15,7 +15,7 @@ import edu.berkeley.nlp.lm.values.ProbBackoffPair;
  * @author Alex Bouchard-Cote
  * @author Adam Pauls
  */
-public class ARPALmReader_<W> implements LmReader<ProbBackoffPair, ARPALmReaderCallback_<ProbBackoffPair>>
+public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCallback<ProbBackoffPair>>
 {
 
 	public static final String START_SYMBOL = "<s>";
@@ -41,7 +41,7 @@ public class ARPALmReader_<W> implements LmReader<ProbBackoffPair, ARPALmReaderC
 
 	private final String file;
 
-	private ARPALmReaderCallback_<ProbBackoffPair> callback;
+	private ArpaLmReaderCallback<ProbBackoffPair> callback;
 
 	/**
 	 * 
@@ -57,7 +57,7 @@ public class ARPALmReader_<W> implements LmReader<ProbBackoffPair, ARPALmReaderC
 	 * 
 	 * @param reader
 	 */
-	public ARPALmReader_(final String file, final WordIndexer<W> wordIndexer, final int maxNgramOrder) {
+	public ArpaLmReader(final String file, final WordIndexer<W> wordIndexer, final int maxNgramOrder) {
 		this.file = file;
 		this.wordIndexer = wordIndexer;
 		this.maxOrder = maxNgramOrder;
@@ -69,7 +69,7 @@ public class ARPALmReader_<W> implements LmReader<ProbBackoffPair, ARPALmReaderC
 	 * 
 	 */
 	@Override
-	public void parse(final ARPALmReaderCallback_<ProbBackoffPair> callback_) {
+	public void parse(final ArpaLmReaderCallback<ProbBackoffPair> callback_) {
 		this.callback = callback_;
 		this.reader = IOUtils.openInHard(file);
 		Logger.startTrack("Parsing ARPA language model file");
