@@ -7,6 +7,14 @@ import java.util.Map.Entry;
 import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.collections.Iterators;
 
+/**
+ * Wraps an NgramMap as an Iterable, so it is easy to iterate over the n-grams of a particular order. Using this interface
+ * is a little inefficient due to the boxing and temporary object allocation necessary to conform to Java's interfaces. 
+ * @author adampauls
+ *
+ * @param <T>
+ * @param <W>
+ */
 public class IterableWrapper<T, W> implements Iterable<java.util.Map.Entry<List<W>, T>>
 {
 

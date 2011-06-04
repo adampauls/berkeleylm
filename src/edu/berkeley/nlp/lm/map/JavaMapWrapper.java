@@ -13,6 +13,15 @@ import edu.berkeley.nlp.lm.collections.Iterators;
 import edu.berkeley.nlp.lm.map.NgramMap.Entry;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 
+/**
+ * Wraps an NgramMap as a Java Map. This collection is read-only, and riddled
+ * with inefficient boxing and unboxing.
+ * 
+ * @author adampauls
+ * 
+ * @param <W>
+ * @param <T>
+ */
 public class JavaMapWrapper<W, T> extends AbstractMap<List<W>, T>
 {
 	private final NgramMap<T> map;
@@ -75,7 +84,6 @@ public class JavaMapWrapper<W, T> extends AbstractMap<List<W>, T>
 
 			@Override
 			public Iterator<java.util.Map.Entry<List<W>, T>> iterator() {
-
 				return iterableWrapper.iterator();
 			}
 
