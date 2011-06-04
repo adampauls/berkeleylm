@@ -36,9 +36,12 @@ public class JavaMapWrapper<W, T> extends AbstractMap<List<W>, T>
 	@Override
 	public T get(Object arg0) {
 		if (!(arg0 instanceof List)) return null;
+		@SuppressWarnings("unchecked")
 		List<W> l = (List<W>) arg0;
 
+		if (l.size() != ngramOrder + 1) return null;
 		int[] ngram = WordIndexer.StaticMethods.toArray(wordIndexer, l);
+
 		return getForArray(ngram);
 
 	}
