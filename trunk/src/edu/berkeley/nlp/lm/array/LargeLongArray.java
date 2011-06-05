@@ -1,5 +1,6 @@
 package edu.berkeley.nlp.lm.array;
 
+import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -249,6 +250,14 @@ final class LargeLongArray implements Serializable, LongArray
 	@Override
 	public void incrementCount(long index, long count) {
 		LongArray.StaticMethods.incrementCount(this, index, count);
+	}
+
+	@SuppressWarnings("unused")
+	private Object readResolve() throws ObjectStreamException {
+		System.gc();
+		System.gc();
+		System.gc();
+		return this;
 	}
 
 }

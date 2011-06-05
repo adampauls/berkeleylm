@@ -209,11 +209,11 @@ final class IntSmallLongArray implements Serializable, LongArray
 		LongArray.StaticMethods.incrementCount(this, index, count);
 	}
 
+	@SuppressWarnings("unused")
 	private Object readResolve() throws ObjectStreamException {
 		System.gc();
-		long totalMem = Runtime.getRuntime().totalMemory();
-		long freeMem = Runtime.getRuntime().freeMemory();
-		Logger.logss("memory is " + ((totalMem - freeMem) / (1 << 20)) + " and reading array with size " + data.length);
+		System.gc();
+		System.gc();
 		return this;
 	}
 
