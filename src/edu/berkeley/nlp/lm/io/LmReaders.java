@@ -175,6 +175,7 @@ public class LmReaders
 	 */
 	public static <W> NgramMapWrapper<W, LongRef> readNgramMapFromBinary(final String binary, String vocabFile, WordIndexer<W> wordIndexer) {
 		GoogleLmReader.addWordsToIndexerManuallySorted(vocabFile, wordIndexer);
+		wordIndexer.trimAndLock();
 		@SuppressWarnings("unchecked")
 		NgramMap<LongRef> map = (NgramMap<LongRef>) IOUtils.readObjFileHard(binary);
 		return new NgramMapWrapper<W, LongRef>(map, wordIndexer);
@@ -286,6 +287,7 @@ public class LmReaders
 	 */
 	public static <W> StupidBackoffLm<W> readGoogleLmBinary(final String file, final WordIndexer<W> wordIndexer, final String sortedVocabFile) {
 		GoogleLmReader.addWordsToIndexerManuallySorted(sortedVocabFile, wordIndexer);
+		wordIndexer.trimAndLock();
 		@SuppressWarnings("unchecked")
 		NgramMap<LongRef> map = (NgramMap<LongRef>) IOUtils.readObjFileHard(file);
 		return new StupidBackoffLm<W>(map.getMaxNgramOrder(), wordIndexer, map, new ConfigOptions());
