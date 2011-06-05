@@ -1,7 +1,10 @@
 package edu.berkeley.nlp.lm.array;
 
+import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Arrays;
+
+import edu.berkeley.nlp.lm.util.Logger;
 
 final class SmallLongArray implements Serializable, LongArray
 {
@@ -158,7 +161,7 @@ final class SmallLongArray implements Serializable, LongArray
 		setAndGrowIfNeeded(size, val);
 		return true;
 	}
-	
+
 	@Override
 	public boolean addWithFixedCapacity(final long val) {
 		setGrowHelp(size, val, false);
@@ -206,6 +209,14 @@ final class SmallLongArray implements Serializable, LongArray
 	@Override
 	public void incrementCount(long index, long count) {
 		LongArray.StaticMethods.incrementCount(this, index, count);
+	}
+
+	private Object readResolve() throws ObjectStreamException {
+		System.gc();
+		long totalMem = Runtime.getRuntime().totalMemory();
+		long freeMem = Runtime.getRuntime().freeMemory();
+		Logger.logss("memory is " + ((totalMem - freeMem) / 1 << 20) + " and reading array with size " + data.length);
+		return this;
 	}
 
 }

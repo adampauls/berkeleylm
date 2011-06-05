@@ -1,7 +1,10 @@
 package edu.berkeley.nlp.lm.array;
 
+import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Arrays;
+
+import edu.berkeley.nlp.lm.util.Logger;
 
 /**
  * An array with a custom word "width" in bits. Only handles arrays with 2^37
@@ -135,7 +138,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 	public boolean add(final long value) {
 		return addHelp(value, true);
 	}
-	
+
 	@Override
 	public boolean addWithFixedCapacity(final long value) {
 		return addHelp(value, false);
@@ -231,6 +234,14 @@ public final class CustomWidthArray implements LongArray, Serializable
 	@Override
 	public void incrementCount(long index, long count) {
 		LongArray.StaticMethods.incrementCount(this, index, count);
+	}
+
+	private Object readResolve() throws ObjectStreamException {
+		System.gc();
+		long totalMem = Runtime.getRuntime().totalMemory();
+		long freeMem = Runtime.getRuntime().freeMemory();
+		Logger.logss("memory is " + ((totalMem - freeMem) / 1 << 20) + " and reading array with size " + data.length);
+		return this;
 	}
 
 }
