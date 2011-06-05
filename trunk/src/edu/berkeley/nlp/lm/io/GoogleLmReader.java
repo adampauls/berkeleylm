@@ -146,9 +146,7 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 
 		}
 		callback.cleanup();
-		wordIndexer.setStartSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(START_SYMBOL)));
-		wordIndexer.setEndSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(END_SYMBOL)));
-		wordIndexer.setUnkSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(UNK_SYMBOL)));
+	
 
 	}
 
@@ -169,6 +167,16 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 			throw new RuntimeException(e);
 
 		}
+		addSpecialSymbols();
+	}
+
+	/**
+	 * 
+	 */
+	private void addSpecialSymbols() {
+		wordIndexer.setStartSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(START_SYMBOL)));
+		wordIndexer.setEndSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(END_SYMBOL)));
+		wordIndexer.setUnkSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(UNK_SYMBOL)));
 	}
 
 	/**
@@ -194,6 +202,9 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 		for (final Entry<String, Double> entry : counts.getEntriesSortedByDecreasingCount()) {
 			wordIndexer.getOrAddIndexFromString(entry.getKey());
 		}
+		wordIndexer.setStartSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(START_SYMBOL)));
+		wordIndexer.setEndSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(END_SYMBOL)));
+		wordIndexer.setUnkSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(UNK_SYMBOL)));
 	}
 
 }
