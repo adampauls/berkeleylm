@@ -240,7 +240,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 		System.gc();
 		long totalMem = Runtime.getRuntime().totalMemory();
 		long freeMem = Runtime.getRuntime().freeMemory();
-		Logger.logss("memory is " + ((totalMem - freeMem) / 1 << 20) + " and reading array with size " + data.length);
+		Logger.logss("memory is " + ((totalMem - freeMem) / (1 << 20)) + " and reading array with size " + data.length);
 		return this;
 	}
 
