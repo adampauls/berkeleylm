@@ -16,8 +16,8 @@ import edu.berkeley.nlp.lm.util.Logger;
  * Given a language model in ARPA format, builds a binary representation of the
  * language model and writes it to disk. Language model binaries are
  * significantly smaller and faster to load than ARPA files.
- * 
- * Note that if the input/output files have a .gz suffix, they will be
+ * <p>
+ * Note that if the input/output files have a <code>.gz</code> suffix, they will be
  * unzipped/zipped as necessary.
  * 
  * @author adampauls

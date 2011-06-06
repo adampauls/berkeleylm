@@ -5,7 +5,7 @@ import edu.berkeley.nlp.lm.ArrayEncodedNgramLanguageModel;
 
 /**
  * This class wraps {@link ArrayEncodedNgramLanguageModel} with a cache.
- * 
+ * <p>
  * This wrapper is <b>not</b> threadsafe. To use a cache in a multithreaded
  * environment, you should create one wrapper per thread.
  * 

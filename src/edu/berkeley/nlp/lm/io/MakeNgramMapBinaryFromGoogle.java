@@ -20,7 +20,7 @@ import edu.berkeley.nlp.lm.util.Logger;
  * Since these binaries are useless without the vocabulary provided with the
  * Google n-gram corpus, we can distribute them without incurring the wrath of
  * the LDC.
- * 
+ * <p>
  * These binaries can be read in used
  * {@link LmReaders#readGoogleLmBinary(String, edu.berkeley.nlp.lm.WordIndexer, String)}
  * 

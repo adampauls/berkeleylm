@@ -8,7 +8,7 @@ import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 
 /**
  * This class wraps {@link ContextEncodedNgramLanguageModel} with a cache.
- * 
+ * <p>
  * This wrapper is <b>not</b> threadsafe. To use a cache in a multithreaded
  * environment, you should create one wrapper per thread.
  * 

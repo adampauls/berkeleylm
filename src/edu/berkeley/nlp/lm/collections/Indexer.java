@@ -13,8 +13,7 @@ import java.util.concurrent.Semaphore;
  * @author Dan Klein
  * @author Adam Pauls
  */
-@SuppressWarnings("rawtypes")
-public class Indexer<E extends Comparable> implements Serializable
+public class Indexer<E extends Comparable<E>> implements Serializable
 {
 	private static final long serialVersionUID = -8769544079136550516L;
 
