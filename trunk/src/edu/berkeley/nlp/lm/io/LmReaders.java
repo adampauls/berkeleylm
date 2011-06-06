@@ -51,7 +51,8 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * raw text by called
  * {@link #createKneserNeyLmFromTextFiles(List, WordIndexer, int, File)}. This
  * can also be done from the command-line by calling <code>main()</code> in
- * {@link MakeKneserNeyArpaFromText}. A Stupid Backoff language model can be
+ * {@link MakeKneserNeyArpaFromText}. See the <code>examples</code> folder for a script
+ * which demonstrates its use. A Stupid Backoff language model can be
  * read from a directory containing n-gram counts in the format used by Google's
  * Web1T corpus by calling {@link #readLmFromGoogleNgramDir(String, boolean)}.
  * Note that this software does not (yet) support building Google count
@@ -61,7 +62,8 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * software can use Java's built-in serialization to build language model
  * binaries which are both smaller and faster to load.
  * {@link MakeLmBinaryFromArpa} and {@link MakeLmBinaryFromGoogle} provide
- * <code>main()</code> methods for doing this.
+ * <code>main()</code> methods for doing this. See the <code>examples</code> folder for scripts
+ * which demonstrate their use. 
  * 
  * Language models can be read into memory from ARPA formats using
  * {@link #readArrayEncodedLmFromArpa(String, boolean)} and
