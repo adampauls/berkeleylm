@@ -2,6 +2,7 @@ package edu.berkeley.nlp.lm;
 
 import java.io.Serializable;
 
+import edu.berkeley.nlp.lm.io.KneserNeyLmReaderCallback;
 import edu.berkeley.nlp.lm.util.Annotations.Option;
 
 /**
@@ -36,7 +37,10 @@ public class ConfigOptions implements Serializable
 	@Option(gloss = "Backoff constant used for stupid backoff")
 	public double stupidBackoffAlpha = 0.4;
 
-	@Option(gloss = "Number of threads to use while reading directories in the format used by Google N-grams. 0 means no threading is used")
-	public int numGoogleLoadThreads = 0;
+	@Option(gloss = "Discounts used in estimating Kneser-Ney language models (one for each order)")
+	public double[] kneserNeyDiscounts = KneserNeyLmReaderCallback.defaultDiscounts();
+
+	@Option(gloss = "Minimum token counts used in estimating Kneser-Ney language models (one for each order). Note that for some internal reasons, these counts are *only* applied to the highest- and second-highest order n-grams (for example, if you estimate a 5-gram language model, only 4- and 5-grams will be thresholded.")
+	public double[] kneserNeyMinCounts = KneserNeyLmReaderCallback.defaultMinCounts();
 
 }

@@ -84,14 +84,12 @@ public class NgramMapWrapper<W, V> extends AbstractMap<List<W>, V>
 
 			@Override
 			public int size() {
-				long size = 0;
-				for (NgramsForOrderMapWrapper<W, V> map : ngramsForOrder) {
-					size += map.size();
-				}
-				if (size > Integer.MAX_VALUE)
+				if (longSize() > Integer.MAX_VALUE)
 					Logger.warn(NgramMapWrapper.class.getSimpleName() + " doesn't like maps with size greater than Integer.MAX_VALUE");
-				return (int) size;
+
+				return (int) longSize();
 			}
+
 		};
 	}
 
@@ -103,6 +101,17 @@ public class NgramMapWrapper<W, V> extends AbstractMap<List<W>, V>
 	 */
 	public Map<List<W>, V> getMapForOrder(int ngramOrder) {
 		return ngramsForOrder[ngramOrder];
+	}
+
+	/**
+	 * @return
+	 */
+	public long longSize() {
+		long size = 0;
+		for (NgramsForOrderMapWrapper<W, V> map : ngramsForOrder) {
+			size += map.size();
+		}
+		return size;
 	}
 
 }

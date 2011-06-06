@@ -14,7 +14,6 @@ import edu.berkeley.nlp.lm.collections.Counter;
 import edu.berkeley.nlp.lm.collections.Iterators;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.LongRef;
-import edu.berkeley.nlp.lm.util.WorkQueue;
 
 /**
  * Reads in n-gram count collections in the format that the Google n-grams Web1T
@@ -32,16 +31,15 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 
 	private static final String UNK_SYMBOL = "<UNK>";
 
+	private static final String sortedVocabFile = "vocab_cs.gz";
+
 	private final String rootDir;
 
 	private final WordIndexer<W> wordIndexer;
 
-	private final ConfigOptions opts;
-
-	public GoogleLmReader(final String rootDir, final WordIndexer<W> wordIndexer, final ConfigOptions opts) {
+	public GoogleLmReader(final String rootDir, final WordIndexer<W> wordIndexer, @SuppressWarnings("unused") final ConfigOptions opts) {
 		this.rootDir = rootDir;
 
-		this.opts = opts;
 		this.wordIndexer = wordIndexer;
 
 	}
@@ -58,102 +56,82 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 			}
 		}));
 		Collections.sort(listFiles);
-		int ngramOrder_ = 0;
-		final String sortedVocabFile = "vocab_cs.gz";
-		final int numGoogleLoadThreads = opts.numGoogleLoadThreads;
+		int ngramOrder = 0;
+
 		for (final File ngramDir : listFiles) {
-			final int ngramOrder__ = ngramOrder_;
+			final int ngramOrder_ = ngramOrder;
 			final File[] ngramFiles = ngramDir.listFiles(new FilenameFilter()
 			{
 
 				@Override
 				public boolean accept(final File dir, final String name) {
-					return ngramOrder__ == 0 ? name.equals(sortedVocabFile) : name.endsWith(".gz");
+					return ngramOrder_ == 0 ? name.equals(sortedVocabFile) : name.endsWith(".gz");
 				}
 			});
-			if (ngramOrder_ == 0) {
+			if (ngramOrder == 0) {
 				if (ngramFiles.length != 1) throw new RuntimeException("Could not find expected vocab file " + sortedVocabFile);
-				final boolean manuallySortVocab = false;
 				final String sortedVocabPath = ngramFiles[0].getPath();
-				if (manuallySortVocab) {
-					addWordsToIndexerManuallySorted(sortedVocabPath, wordIndexer);
-				} else {
-					addWordToIndexer(sortedVocabPath);
-				}
+				addToIndexer(wordIndexer, sortedVocabPath);
 			}
 			Logger.startTrack("Reading ngrams of order " + (ngramOrder_ + 1));
-			final WorkQueue wq = new WorkQueue(numGoogleLoadThreads, true);
 			for (final File ngramFile_ : ngramFiles) {
 				final File ngramFile = ngramFile_;
-				final int ngramOrder = ngramOrder_;
-				wq.execute(new Runnable()
-				{
-					@Override
-					public void run() {
-						if (numGoogleLoadThreads == 0) Logger.startTrack("Reading ngrams from file " + ngramFile);
-						try {
-							int k = 0;
-							for (String line : Iterators.able(IOUtils.lineIterator(ngramFile.getPath()))) {
-								if (numGoogleLoadThreads == 0) if (k % 1000 == 0) Logger.logs("Line " + k);
-								k++;
-								line = line.trim();
-								parseLine(line);
-							}
-						} catch (final NumberFormatException e) {
-							throw new RuntimeException(e);
-
-						} catch (final IOException e) {
-							throw new RuntimeException(e);
-
-						}
-						if (numGoogleLoadThreads == 0)
-							Logger.endTrack();
-						else {
-							Logger.logss("Finished file " + ngramFile);
-
-						}
+				Logger.startTrack("Reading ngrams from file " + ngramFile);
+				try {
+					int k = 0;
+					for (String line : Iterators.able(IOUtils.lineIterator(ngramFile.getPath()))) {
+						if (k % 1000 == 0) Logger.logs("Line " + k);
+						k++;
+						line = line.trim();
+						parseLine(line, ngramOrder, callback);
 					}
+				} catch (final NumberFormatException e) {
+					throw new RuntimeException(e);
 
-					/**
-					 * @param callback
-					 * @param ngramOrder
-					 * @param line
-					 * @return
-					 */
-					private void parseLine(final String line) {
-						final int tabIndex = line.indexOf('\t');
+				} catch (final IOException e) {
+					throw new RuntimeException(e);
 
-						int spaceIndex = 0;
-						final int[] ngram = new int[ngramOrder + 1];
-						final String words = line.substring(0, tabIndex);
-						for (int i = 0;; ++i) {
-							int nextIndex = line.indexOf(' ', spaceIndex);
-							if (nextIndex < 0) nextIndex = words.length();
-							final String word = words.substring(spaceIndex, nextIndex);
-							ngram[i] = wordIndexer.getOrAddIndexFromString(word);
-
-							if (nextIndex == words.length()) break;
-							spaceIndex = nextIndex + 1;
-						}
-						final long count = Long.parseLong(line.substring(tabIndex + 1));
-						callback.call(ngram, 0, ngram.length, new LongRef(count), words);
-					}
-				});
+				}
+				Logger.endTrack();
 			}
-			wq.finishWork();
+
 			Logger.endTrack();
-			callback.handleNgramOrderFinished(++ngramOrder_);
+			callback.handleNgramOrderFinished(++ngramOrder);
 
 		}
 		callback.cleanup();
-	
 
+	}
+
+	/**
+	 * @param callback
+	 * @param ngramOrder
+	 * @param line
+	 * @return
+	 */
+	private void parseLine(final String line, final int ngramOrder, final NgramOrderedLmReaderCallback<LongRef> callback) {
+		final int tabIndex = line.indexOf('\t');
+
+		int spaceIndex = 0;
+		final int[] ngram = new int[ngramOrder + 1];
+		final String words = line.substring(0, tabIndex);
+		for (int i = 0;; ++i) {
+			int nextIndex = line.indexOf(' ', spaceIndex);
+			if (nextIndex < 0) nextIndex = words.length();
+			final String word = words.substring(spaceIndex, nextIndex);
+			ngram[i] = wordIndexer.getOrAddIndexFromString(word);
+
+			if (nextIndex == words.length()) break;
+			spaceIndex = nextIndex + 1;
+		}
+		final long count = Long.parseLong(line.substring(tabIndex + 1));
+		callback.call(ngram, 0, ngram.length, new LongRef(count), words);
 	}
 
 	/**
 	 * @param sortedVocabPath
 	 */
-	private void addWordToIndexer(final String sortedVocabPath) {
+	public static <W> void addToIndexer(WordIndexer<W> wordIndexer, final String sortedVocabPath) {
 		try {
 			for (final String line : Iterators.able(IOUtils.lineIterator(sortedVocabPath))) {
 				final String[] parts = line.split("\t");
@@ -167,41 +145,13 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 			throw new RuntimeException(e);
 
 		}
-		addSpecialSymbols();
+		addSpecialSymbols(wordIndexer);
 	}
 
 	/**
 	 * 
 	 */
-	private void addSpecialSymbols() {
-		wordIndexer.setStartSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(START_SYMBOL)));
-		wordIndexer.setEndSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(END_SYMBOL)));
-		wordIndexer.setUnkSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(UNK_SYMBOL)));
-	}
-
-	/**
-	 * @param sortedVocabPath should be vocab_cs.gz (not vocab.gz)
-	 */
-	public static <W> void addWordsToIndexerManuallySorted(final String sortedVocabPath, final WordIndexer<W> wordIndexer) {
-		final Counter<String> counts = new Counter<String>();
-		try {
-			for (final String line : Iterators.able(IOUtils.lineIterator(sortedVocabPath))) {
-				final String[] parts = line.split("\t");
-				final String word = parts[0];
-				final long count = Long.parseLong(parts[1]);
-				wordIndexer.getOrAddIndexFromString(word);
-				counts.setCount(word, count);//
-			}
-		} catch (final NumberFormatException e) {
-			throw new RuntimeException(e);
-
-		} catch (final IOException e) {
-			throw new RuntimeException(e);
-
-		}
-		for (final Entry<String, Double> entry : counts.getEntriesSortedByDecreasingCount()) {
-			wordIndexer.getOrAddIndexFromString(entry.getKey());
-		}
+	private static <W> void addSpecialSymbols(WordIndexer<W> wordIndexer) {
 		wordIndexer.setStartSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(START_SYMBOL)));
 		wordIndexer.setEndSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(END_SYMBOL)));
 		wordIndexer.setUnkSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(UNK_SYMBOL)));
