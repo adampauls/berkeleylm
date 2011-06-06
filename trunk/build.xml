@@ -9,7 +9,7 @@
 	<property name="test" value="./test" />
 	<property name="test-reports" value="./test-reports" />
 	<property name="lib" value="./lib" />
-	<property name="doc" value="./javadoc" />
+	<property name="doc" value="./doc" />
 	<property name="jar" value="jar" />
 
 	<property name="junit-jar" value="${lib}/junit-4.6.jar" />
@@ -20,6 +20,7 @@
 	<target name="init" depends="clean">
 		<tstamp />
 		<mkdir dir="${jar}" />
+		<mkdir dir="${doc}" />
 		<mkdir dir="${test-reports}" />
 	</target>
 
@@ -69,10 +70,15 @@
 			</fileset>
 		</delete>
 		<delete verbose="true" quiet="true">
+			<fileset dir="${doc}">
+				<include name="**/*" />
+			</fileset>
+		</delete>
+		<delete verbose="true" quiet="true">
 					<fileset dir="${jar}">
 						<include name="**/*.jar" />
 					</fileset>
-				</delete>
+		</delete>
 	</target>
 
 
@@ -80,14 +86,12 @@
 
 	<!-- ~~~~~ Javadoc ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
 
-	<!-- Compile the Javadocs into web pages
 	<target name="javadoc">
 		<mkdir dir="${doc}" />
-		<javadoc packagenames="edu.berkeley.nlp.lm.*" classpath="${cli}" sourcepath="${src}" destdir="${doc}" author="true" version="true" charset="utf-8" overview="src/overview.html">
-			<link href="http://java.sun.com/j2se/1.5.0/docs/api" />
-			<link href="http://commons.apache.org/cli/api-release" />
+		<javadoc packagenames="edu.berkeley.nlp.lm.*" classpath="${cli}" sourcepath="${src}" destdir="${doc}" author="true" version="true" charset="utf-8">
+			<link href="http://download.oracle.com/javase/6/docs/api/" />
 		</javadoc>
-	</target> -->
+	</target> 
 
 
 	<!-- ~~~~~ Junit ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
@@ -116,7 +120,7 @@
 		</junit>
 	</target>
 
-	<target name="all" depends="test,jar" />
+	<target name="all" depends="test,jar, javadoc" />
 
 
 </project>
