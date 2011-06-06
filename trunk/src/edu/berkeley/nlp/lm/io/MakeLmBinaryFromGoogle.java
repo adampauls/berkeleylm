@@ -19,8 +19,8 @@ import edu.berkeley.nlp.lm.util.Logger;
  * actually running this code on the full Google-ngrams corpus can be very slow
  * and memory intensive -- on our machines, it takes about 32GB of memory and
  * 15 hours.
- * 
- * Note that if the input/output files have a .gz suffix, they will be
+ * <p>
+ * Note that if the input/output files have a <code>.gz</code> suffix, they will be
  * unzipped/zipped as necessary.
  * 
  * @author adampauls

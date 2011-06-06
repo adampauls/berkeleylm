@@ -18,11 +18,11 @@ import edu.berkeley.nlp.lm.util.Logger;
  * Estimates a Kneser-Ney language model from raw text, and writes the language
  * model out in ARPA-format. This is meant to closely resemble the functionality
  * of SRILM's
- * <code>ngram-count -text &lt;text file&gt; -ukndiscount -lm &lt;outputfile&gt;), 
+ * <code>ngram-count -text &lt;text file&gt; -ukndiscount -lm &lt;outputfile&gt;)</code>, 
  * with two main exceptions: 
  * <br> (a) rather than calculating the discount for each n-gram order from counts, we use a constant discount of 0.75 for all orders
  * <br> (b) Count thresholding is currently not implemented (SRILM by default thresholds counts for n-grams with n > 3). 
- * 
+ * <p>
  * Note that if the input/output files have a .gz suffix, they will be unzipped/zipped as necessary.
  * 
  * @author adampauls

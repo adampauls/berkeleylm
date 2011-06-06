@@ -18,15 +18,15 @@ import java.util.Set;
  * linear probing (lookups involve hashing) Feature 2: Sometimes, we want
  * several maps with the same set of keys. If we lock the map, we can share the
  * same keys between several maps, which saves space.
- * 
+ * <p>
  * Note: in the sorted list, we first sort the keys by hash code, and then for
  * equal hash code, we sort by the objects values. We hope that hash code
  * collisions will be rare enough that we won't have to resort to comparing
  * objects.
- * 
+ * <p>
  * Typical usage: - Construct a map using a hash table. - To save space, switch
  * to a sorted list representation.
- * 
+ * <p>
  * Will get runtime exception if try to used sorted list and keys are not
  * comparable.
  * 

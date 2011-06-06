@@ -41,7 +41,7 @@ public class Iterators
 	/**
 	 * Wraps a two-level iteration scenario in an iterator. Each key of the keys
 	 * iterator returns an iterator (via the factory) over T's.
-	 * 
+	 * <p>
 	 * The IteratorIterator loops through the iterator associated with each key
 	 * until all the keys are used up.
 	 */
