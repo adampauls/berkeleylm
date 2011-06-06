@@ -41,8 +41,8 @@ public class MakeLmBinaryFromGoogle
 		if (argv.length != 2) usage();
 		Logger.setGlobalLogger(new Logger.SystemLogger(System.out, System.err));
 		Logger.startTrack("Reading Lm File " + argv[0] + " . . . ");
-		final String lmFile = argv[1];
-		final NgramLanguageModel<String> lm = LmReaders.readLmFromGoogleNgramDir(lmFile, true);
+		final String googleDir = argv[0];
+		final NgramLanguageModel<String> lm = LmReaders.readLmFromGoogleNgramDir(googleDir, true);
 		Logger.endTrack();
 		final String outFile = argv[1];
 		Logger.startTrack("Writing to file " + outFile + " . . . ");
