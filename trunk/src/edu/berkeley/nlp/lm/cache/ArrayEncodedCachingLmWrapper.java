@@ -4,7 +4,7 @@ import edu.berkeley.nlp.lm.AbstractArrayEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ArrayEncodedNgramLanguageModel;
 
 /**
- * This class wraps {@link ArrayEncodedNgramLanguageModel} with a cache. 
+ * This class wraps {@link ArrayEncodedNgramLanguageModel} with a cache.
  * 
  * This wrapper is <b>not</b> threadsafe. To use a cache in a multithreaded
  * environment, you should create one wrapper per thread.
@@ -25,11 +25,11 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 
 	private final ArrayEncodedNgramLanguageModel<W> lm;
 
-	public ArrayEncodedCachingLmWrapper(final ArrayEncodedNgramLanguageModel<W> lm) {
+	private ArrayEncodedCachingLmWrapper(final ArrayEncodedNgramLanguageModel<W> lm) {
 		this(lm, new ArrayEncodedDirectMappedLmCache(24, lm.getLmOrder()));
 	}
 
-	public ArrayEncodedCachingLmWrapper(final ArrayEncodedNgramLanguageModel<W> lm, final ArrayEncodedLmCache cache) {
+	private ArrayEncodedCachingLmWrapper(final ArrayEncodedNgramLanguageModel<W> lm, final ArrayEncodedLmCache cache) {
 		super(lm.getLmOrder(), lm.getWordIndexer(), Float.NaN);
 		this.cache = cache;
 		this.lm = lm;
@@ -55,6 +55,30 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 			hashCode = 13 * hashCode + curr;
 		}
 		return hashCode;
+	}
+
+	/**
+	 * To use a cache in a multithreaded environment, you should create one
+	 * wrapper per threadÍ.
+	 * 
+	 * @param <T>
+	 * @param lm
+	 * @return
+	 */
+	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheNotThreadSafe(ArrayEncodedNgramLanguageModel<W> lm) {
+		return new ArrayEncodedCachingLmWrapper<W>(lm);
+	}
+
+	/**
+	 * To use a cache in a multithreaded environment, you should create one
+	 * wrapper per threadÍ.
+	 * 
+	 * @param <T>
+	 * @param lm
+	 * @return
+	 */
+	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheNotThreadSafe(ArrayEncodedNgramLanguageModel<W> lm, ArrayEncodedLmCache cache) {
+		return new ArrayEncodedCachingLmWrapper<W>(lm, cache);
 	}
 
 }
