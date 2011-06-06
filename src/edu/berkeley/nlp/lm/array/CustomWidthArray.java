@@ -7,8 +7,8 @@ import java.util.Arrays;
 import edu.berkeley.nlp.lm.util.Logger;
 
 /**
- * An array with a custom word "width" in bits. Only handles arrays with 2^37
- * bits. Borrows heavily from Sux4J (http://sux.dsi.unimi.it/)
+ * An array with a custom word "width" in bits. Borrows heavily from Sux4J
+ * (http://sux.dsi.unimi.it/)
  * 
  * @author adampauls
  * 
@@ -31,20 +31,20 @@ public final class CustomWidthArray implements LongArray, Serializable
 
 	private final long fullMask;
 
-	private long[] data;
+	private final LongArray data;
 
-	private final static int numLongs(final long size) {
-		assert (size + WORD_MASK) >>> LOG2_BITS_PER_WORD <= Integer.MAX_VALUE;
-		return (int) ((size + WORD_MASK) >>> LOG2_BITS_PER_WORD);
+	private final static long numLongs(final long size) {
+		//		assert (size + WORD_MASK) >>> LOG2_BITS_PER_WORD <= Integer.MAX_VALUE;
+		return ((size + WORD_MASK) >>> LOG2_BITS_PER_WORD);
 	}
 
-	private final static int word(final long index) {
-		assert index >>> LOG2_BITS_PER_WORD <= Integer.MAX_VALUE;
-		return (int) (index >>> LOG2_BITS_PER_WORD);
+	private final static long word(final long index) {
+		//		assert index >>> LOG2_BITS_PER_WORD <= Integer.MAX_VALUE;
+		return (index >>> LOG2_BITS_PER_WORD);
 	}
 
-	private final static int bit(final long index) {
-		return (int) (index & WORD_MASK);
+	private final static long bit(final long index) {
+		return (index & WORD_MASK);
 	}
 
 	private final static long mask(final long index) {
@@ -53,11 +53,10 @@ public final class CustomWidthArray implements LongArray, Serializable
 
 	public CustomWidthArray(final long numWords, final int width) {
 		final long numBits = numWords * width;
-		assert (numBits <= (Integer.MAX_VALUE + 1L) * Long.SIZE) : ("CustomWidthArray can only be 2^37 bits long");
-		data = new long[numLongs(numBits)];
-
-		this.width = width;
+		//		assert (numBits <= (Integer.MAX_VALUE + 1L) * Long.SIZE) : ("CustomWidthArray can only be 2^37 bits long");
+		data = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, numLongs(numBits));// new long[numLongs(numBits)];
 		size = 0;
+		this.width = width;
 		fullMask = width == Long.SIZE ? -1 : (1L << width) - 1;
 	}
 
@@ -67,10 +66,10 @@ public final class CustomWidthArray implements LongArray, Serializable
 
 	public void ensureCapacity(final long numWords) {
 		final long numBits = numWords * width;
-		assert (numBits <= (Integer.MAX_VALUE + 1L) * Long.SIZE) : ("CustomWidthArray can only be 2^37 bits long");
-		if (numLongs(numBits) >= data.length) {//
-			data = Arrays.copyOf(data, Math.max(numLongs(numBits), data.length * 3 / 2 + 1));
-		}
+		//		assert (numBits <= (Integer.MAX_VALUE + 1L) * Long.SIZE) : ("CustomWidthArray can only be 2^37 bits long");
+		final long numLongs = numLongs(numBits);
+		data.ensureCapacity(numLongs);
+		if (numLongs > data.size()) data.setAndGrowIfNeeded(numLongs - 1, 0);
 	}
 
 	@Override
@@ -84,14 +83,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 	@Override
 	public void trimToSize(final long sizeHere) {
 		final long numBits = sizeHere * width;
-		//		if (data.length == numLongs(numBits)) return false;
-		data = Arrays.copyOf(data, numLongs(numBits));
-		//		return true;
-	}
-
-	public void clear() {
-		Arrays.fill(data, 0, word(size - 1) + 1, 0);
-		size = 0;
+		data.trimToSize(numLongs(numBits));
 	}
 
 	private void rangeCheck(final long index) {
@@ -100,38 +92,39 @@ public final class CustomWidthArray implements LongArray, Serializable
 
 	public boolean getBit(final long index) {
 		rangeCheck(index);
-		return (data[word(index)] & mask(index)) != 0;
+		return (data.get(word(index)) & mask(index)) != 0;
 	}
 
 	public boolean set(final long index, final boolean value) {
 		rangeCheck(index);
-		final int word = word(index);
+		final long word = word(index);
 		final long mask = mask(index);
-		final boolean oldValue = (data[word] & mask) != 0;
+		final long currVal = data.get(word);
+		final boolean oldValue = (currVal & mask) != 0;
 		if (value)
-			data[word] |= mask;
+			data.set(word, currVal | mask);
 		else
-			data[word] &= ~mask;
+			data.set(word, currVal & ~mask);
 		return oldValue != value;
 	}
 
 	public void set(final long index) {
 		rangeCheck(index);
-		data[word(index)] |= mask(index);
+		data.set(word(index), data.get(word(index)) | mask(index));
 	}
 
 	public void clear(final long index) {
 		rangeCheck(index);
-		data[word(index)] &= ~mask(index);
+		data.set(word(index), data.get(word(index)) & ~mask(index));
 	}
 
 	private long getLong(final long from, final long to) {
 		final long l = Long.SIZE - (to - from);
-		final int startWord = word(from);
-		final int startBit = bit(from);
+		final long startWord = word(from);
+		final long startBit = bit(from);
 		if (l == Long.SIZE) return 0;
-		if (startBit <= l) return data[startWord] << l - startBit >>> l;
-		return data[startWord] >>> startBit | data[startWord + 1] << Long.SIZE + l - startBit >>> l;
+		if (startBit <= l) return data.get(startWord) << l - startBit >>> l;
+		return data.get(startWord) >>> startBit | data.get(startWord + 1) << Long.SIZE + l - startBit >>> l;
 	}
 
 	@Override
@@ -152,15 +145,15 @@ public final class CustomWidthArray implements LongArray, Serializable
 		assert !(width < Long.SIZE && (value & -1L << width) != 0) : "The specified value (" + value
 			+ ") is larger than the maximum value for the given width (" + width + ")";
 		final long length = this.size * width;
-		final int startWord = word(length);
-		final int startBit = bit(length);
+		final long startWord = word(length);
+		final long startBit = bit(length);
 		if (growCapacity) ensureCapacity(this.size + 1);
 
 		if (startBit + width <= Long.SIZE)
-			data[startWord] |= value << startBit;
+			data.set(startWord, data.get(startWord) | (value << startBit));
 		else {
-			data[startWord] |= value << startBit;
-			data[startWord + 1] = value >>> BITS_PER_WORD - startBit;
+			data.set(startWord, data.get(startWord) | (value << startBit));
+			data.set(startWord + 1, value >>> BITS_PER_WORD - startBit);
 		}
 
 		this.size++;
@@ -185,24 +178,23 @@ public final class CustomWidthArray implements LongArray, Serializable
 		rangeCheck(index);
 		if (width == 0) return;
 		if (width != Long.SIZE && value > fullMask) throw new IllegalArgumentException("Value too large: " + value);
-		final long bits[] = data;
 		final long start = index * width;
-		final int startWord = word(start);
-		final int endWord = word(start + width - 1);
-		final int startBit = bit(start);
+		final long startWord = word(start);
+		final long endWord = word(start + width - 1);
+		final long startBit = bit(start);
 
 		if (startWord == endWord) {
-			bits[startWord] &= ~(fullMask << startBit);
-			bits[startWord] |= value << startBit;
-			assert value == (bits[startWord] >>> startBit & fullMask);
+			data.set(startWord, data.get(startWord) & ~(fullMask << startBit));
+			data.set(startWord, data.get(startWord) | (value << startBit));
+			assert value == (data.get(startWord) >>> startBit & fullMask);
 		} else {
 			// Here startBit > 0.
-			bits[startWord] &= (1L << startBit) - 1;
-			bits[startWord] |= value << startBit;
-			bits[endWord] &= -(1L << width - BITS_PER_WORD + startBit);
-			bits[endWord] |= value >>> BITS_PER_WORD - startBit;
+			data.set(startWord, data.get(startWord) & ((1L << startBit) - 1));
+			data.set(startWord, data.get(startWord) | (value << startBit));
+			data.set(endWord, data.get(endWord) & (-(1L << width - BITS_PER_WORD + startBit)));
+			data.set(endWord, data.get(endWord) | (value >>> BITS_PER_WORD - startBit));
 
-			assert value == (bits[startWord] >>> startBit | bits[endWord] << (BITS_PER_WORD - startBit) & fullMask);
+			assert value == (data.get(startWord) >>> startBit | data.get(endWord) << (BITS_PER_WORD - startBit) & fullMask);
 		}
 	}
 
@@ -223,7 +215,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 	@Override
 	public void fill(final long l, final long initialCapacity) {
 		final long numBits = initialCapacity * width;
-		Arrays.fill(data, 0, numLongs(numBits), l);
+		data.fill(numLongs(numBits), l);
 	}
 
 	@Override

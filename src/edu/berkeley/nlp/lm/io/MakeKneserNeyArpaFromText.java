@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.ContextEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.NgramLanguageModel;
 import edu.berkeley.nlp.lm.StringWordIndexer;
@@ -54,7 +55,7 @@ public class MakeKneserNeyArpaFromText
 		wordIndexer.setStartSymbol(ArpaLmReader.START_SYMBOL);
 		wordIndexer.setEndSymbol(ArpaLmReader.END_SYMBOL);
 		wordIndexer.setUnkSymbol(ArpaLmReader.UNK_SYMBOL);
-		LmReaders.createKneserNeyLmFromTextFiles(inputFiles, wordIndexer, lmOrder, new File(outputFile));
+		LmReaders.createKneserNeyLmFromTextFiles(inputFiles, wordIndexer, lmOrder, new File(outputFile), new ConfigOptions());
 		Logger.endTrack();
 	}
 

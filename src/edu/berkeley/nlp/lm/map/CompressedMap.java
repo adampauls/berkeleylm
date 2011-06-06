@@ -1,6 +1,7 @@
 package edu.berkeley.nlp.lm.map;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;

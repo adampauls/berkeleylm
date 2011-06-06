@@ -15,6 +15,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.StringWordIndexer;
 import edu.berkeley.nlp.lm.collections.Iterators;
 import edu.berkeley.nlp.lm.map.HashNgramMap;
@@ -26,22 +27,22 @@ public class KneserNeyFromTextReaderTest
 
 	@Test
 	public void testBigram() {
-		doTest("tiny_test_bigram", new float[] { 0.75f, 0.33333f });
+		doTest("tiny_test_bigram", new double[] { 0.75f, 0.33333f });
 	}
 
 	@Test
 	public void testTrigram() {
-		doTest("tiny_test_trigram", new float[] { 0.75f, 0.6f, 0.6f });
+		doTest("tiny_test_trigram", new double[] { 0.75f, 0.6f, 0.6f });
 	}
 
 	@Test
 	public void testFivegram() {
-		doTest("tiny_test_fivegram", new float[] { 0.4f, 0.5f, 0.5f, 0.538462f, 0.454545f });
+		doTest("tiny_test_fivegram", new double[] { 0.4f, 0.5f, 0.5f, 0.538462f, 0.454545f });
 	}
 
 	@Test
 	public void testBig() {
-		doTest("big_test", new float[] { 0.755639f, 0.891934f, 0.944268f, 0.955941f, 0.359436f });
+		doTest("big_test", new double[] { 0.755639f, 0.891934f, 0.944268f, 0.955941f, 0.359436f });
 	}
 
 	/**
@@ -49,7 +50,7 @@ public class KneserNeyFromTextReaderTest
 	 * @param order
 	 * @param discounts
 	 */
-	private void doTest(String prefix, final float[] discounts) {
+	private void doTest(String prefix, final double[] discounts) {
 		final StringWordIndexer wordIndexer = new StringWordIndexer();
 		int order = discounts.length;
 		wordIndexer.setStartSymbol("<s>");
@@ -59,7 +60,10 @@ public class KneserNeyFromTextReaderTest
 		File goldArpaFile = FileUtils.getFile(prefix + ".arpa");
 		StringWriter stringWriter = new StringWriter();
 		final TextReader<String> reader = new TextReader<String>(Arrays.asList(txtFile), wordIndexer, order);
-		reader.parse(new KneserNeyLmReaderCallback<String>(new PrintWriter(stringWriter), wordIndexer, order, discounts));
+		ConfigOptions opts = new ConfigOptions();
+		opts.kneserNeyDiscounts = discounts;
+		opts.kneserNeyMinCounts = new double[] { 1, 1, 1, 1, 1, 1, 1 };
+		reader.parse(new KneserNeyLmReaderCallback<String>(new PrintWriter(stringWriter), wordIndexer, order, opts));
 		List<String> arpaLines = new ArrayList<String>(Arrays.asList(stringWriter.toString().split("\n")));
 		sortAndRemoveBlankLines(arpaLines);
 		List<String> goldArpaLines = getLines(goldArpaFile);

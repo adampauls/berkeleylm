@@ -49,6 +49,8 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 	//		       = D n(_*) / n(*_*)
 	//
 
+	private static final int MAX_ORDER = 10;
+
 	private static final float DEFAULT_DISCOUNT = 0.75f;
 
 	private int lmOrder;
@@ -68,7 +70,6 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 	 * For simplicity, our code just uses a constant discount for each order of
 	 * 0.75. However, other discounts can be specified.
 	 */
-	private float[] discounts;
 
 	private WordIndexer<W> wordIndexer;
 
@@ -76,18 +77,27 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 
 	private HashNgramMap<KneserNeyCounts> ngrams;
 
+	private ConfigOptions opts;
+
 	public KneserNeyLmReaderCallback(File outputFile, WordIndexer<W> wordIndexer, int maxOrder) {
-		this(outputFile, wordIndexer, maxOrder, constantArray(maxOrder, DEFAULT_DISCOUNT));
+		this(outputFile, wordIndexer, maxOrder, new ConfigOptions());
 	}
 
-	public KneserNeyLmReaderCallback(File outputFile, WordIndexer<W> wordIndexer, int maxOrder, float[] discounts) {
-		this(IOUtils.openOutHard(outputFile), wordIndexer, maxOrder, discounts);
+	public KneserNeyLmReaderCallback(File outputFile, WordIndexer<W> wordIndexer, int maxOrder, ConfigOptions opts) {
+		this(IOUtils.openOutHard(outputFile), wordIndexer, maxOrder, opts);
 	}
 
-	KneserNeyLmReaderCallback(PrintWriter outputFile, WordIndexer<W> wordIndexer, int maxOrder, float[] discounts) {
+	public KneserNeyLmReaderCallback(PrintWriter outputFile, WordIndexer<W> wordIndexer, int maxOrder, ConfigOptions opts) {
 		this.outputFile = outputFile;
 		this.lmOrder = maxOrder;
-		this.discounts = discounts;
+		if (maxOrder >= MAX_ORDER) throw new IllegalArgumentException("Reguested n-grams of order " + maxOrder + " but we only allow up to " + 10);
+		this.opts = opts;
+		double last = Double.NEGATIVE_INFINITY;
+		for (double c : opts.kneserNeyMinCounts) {
+			if (c < last)
+				throw new IllegalArgumentException("Please ensure that ConfigOptions.kneserNeyMinCounts is monotonic (value was "
+					+ Arrays.toString(opts.kneserNeyMinCounts) + ")");
+		}
 		this.wordIndexer = wordIndexer;
 		final KneseryNeyCountValueContainer values = new KneseryNeyCountValueContainer(lmOrder);
 		ngrams = HashNgramMap.createExplicitWordHashNgramMap(values, new ConfigOptions(), lmOrder, false);
@@ -124,6 +134,7 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 			int linenum = 0;
 			for (Entry<KneserNeyCounts> entry : ngrams.getNgramsForOrder(ngramOrder)) {
 				if (linenum++ % 10000 == 0) Logger.logs("Writing line " + line);
+				if (ngramOrder >= lmOrder - 2 && entry.value.tokenCounts < opts.kneserNeyMinCounts[ngramOrder]) continue;
 				final String ngramString = StrUtils.join(WordIndexer.StaticMethods.toList(wordIndexer, entry.key));
 
 				ProbBackoffPair val = ngramOrder == lmOrder - 1 ? getHighestOrderProb(entry.key, entry.value) : getLowerOrderProb(entry.key, 0,
@@ -154,7 +165,7 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 
 	private ProbBackoffPair getHighestOrderProb(int[] key, KneserNeyCounts value) {
 		KneserNeyCounts rightDotCounts = getCounts(key, 0, key.length - 1);
-		final float D = discounts[key.length - 1];
+		final float D = (float) opts.kneserNeyDiscounts[key.length - 1];
 		float prob = Math.max(0.0f, value.tokenCounts - D) / rightDotCounts.tokenCounts;
 		return new ProbBackoffPair(prob, 1.0f);
 	}
@@ -164,11 +175,11 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 		KneserNeyCounts counts = getCounts(ngram, startPos, endPos);
 		KneserNeyCounts prefixCounts = getCounts(ngram, startPos, endPos - 1);
 
-		final float probDiscount = ((endPos - startPos == 1) ? 0.0f : discounts[endPos - startPos - 1]);
+		final float probDiscount = ((endPos - startPos == 1) ? 0.0f : (float) opts.kneserNeyDiscounts[endPos - startPos - 1]);
 		float prob = Math.max(0.0f, counts.leftDotTypeCounts - probDiscount) / prefixCounts.dotdotTypeCounts;
 
 		final long backoffDenom = endPos - startPos == lmOrder - 1 ? counts.tokenCounts : counts.dotdotTypeCounts;
-		final float backoffDiscount = discounts[endPos - startPos];
+		final float backoffDiscount = (float) opts.kneserNeyDiscounts[endPos - startPos];
 		float backoff = backoffDenom == 0.0f ? 1.0f : backoffDiscount * counts.rightDotTypeCounts / backoffDenom;
 		return new ProbBackoffPair((prob), (backoff));
 	}
@@ -214,8 +225,17 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 		out.println();
 	}
 
-	static float[] constantArray(int n, float f) {
-		float[] ret = new float[n];
+	public static double[] defaultDiscounts() {
+		return constantArray(MAX_ORDER, DEFAULT_DISCOUNT);
+	}
+
+	public static double[] defaultMinCounts() {
+		//same as SRILM
+		return new double[] { 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2 };
+	}
+
+	private static double[] constantArray(int n, double f) {
+		double[] ret = new double[n];
 		Arrays.fill(ret, f);
 		return ret;
 	}

@@ -169,12 +169,12 @@ public class LmReaders
 
 	/**
 	 * 
-	 * @param vocabFile
+	 * @param sortedVocabFile
 	 *            should be the vocab_cs.gz file from the Google n-gram corpus.
 	 * @return
 	 */
-	public static <W> NgramMapWrapper<W, LongRef> readNgramMapFromBinary(final String binary, String vocabFile, WordIndexer<W> wordIndexer) {
-		GoogleLmReader.addWordsToIndexerManuallySorted(vocabFile, wordIndexer);
+	public static <W> NgramMapWrapper<W, LongRef> readNgramMapFromBinary(final String binary, String sortedVocabFile, WordIndexer<W> wordIndexer) {
+		GoogleLmReader.addToIndexer(wordIndexer, sortedVocabFile);
 		wordIndexer.trimAndLock();
 		@SuppressWarnings("unchecked")
 		NgramMap<LongRef> map = (NgramMap<LongRef>) IOUtils.readObjFileHard(binary);
@@ -246,13 +246,13 @@ public class LmReaders
 
 	public static <W> ContextEncodedProbBackoffLm<W> readContextEncodedKneserNeyLmFromTextFile(List<File> files, final WordIndexer<W> wordIndexer,
 		final int lmOrder, ConfigOptions opts, File tmpFile) {
-		createKneserNeyLmFromTextFiles(files, wordIndexer, lmOrder, tmpFile);
+		createKneserNeyLmFromTextFiles(files, wordIndexer, lmOrder, tmpFile, opts);
 		return readContextEncodedLmFromArpa(tmpFile.getPath(), wordIndexer, opts, lmOrder);
 	}
 
 	public static <W> ProbBackoffLm<W> readKneserNeyLmFromTextFile(List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder, boolean compress,
 		ConfigOptions opts, File tmpFile) {
-		createKneserNeyLmFromTextFiles(files, wordIndexer, lmOrder, tmpFile);
+		createKneserNeyLmFromTextFiles(files, wordIndexer, lmOrder, tmpFile, opts);
 		return readArrayEncodedLmFromArpa(tmpFile.getPath(), compress, wordIndexer, opts, lmOrder);
 	}
 
@@ -267,9 +267,10 @@ public class LmReaders
 	 * @param lmOrder
 	 * @param arpaOutputFile
 	 */
-	public static <W> void createKneserNeyLmFromTextFiles(List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder, File arpaOutputFile) {
+	public static <W> void createKneserNeyLmFromTextFiles(List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder, File arpaOutputFile,
+		ConfigOptions opts) {
 		final TextReader<W> reader = new TextReader<W>(files, wordIndexer, lmOrder);
-		reader.parse(new KneserNeyLmReaderCallback<W>(arpaOutputFile, wordIndexer, lmOrder));
+		reader.parse(new KneserNeyLmReaderCallback<W>(arpaOutputFile, wordIndexer, lmOrder, opts));
 	}
 
 	public static StupidBackoffLm<String> readGoogleLmBinary(final String file, final String sortedVocabFile) {
@@ -286,7 +287,7 @@ public class LmReaders
 	 * @return
 	 */
 	public static <W> StupidBackoffLm<W> readGoogleLmBinary(final String file, final WordIndexer<W> wordIndexer, final String sortedVocabFile) {
-		GoogleLmReader.addWordsToIndexerManuallySorted(sortedVocabFile, wordIndexer);
+		GoogleLmReader.addToIndexer(wordIndexer, sortedVocabFile);
 		wordIndexer.trimAndLock();
 		@SuppressWarnings("unchecked")
 		NgramMap<LongRef> map = (NgramMap<LongRef>) IOUtils.readObjFileHard(file);
