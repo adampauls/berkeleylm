@@ -1,10 +1,21 @@
 package edu.berkeley.nlp.lm.cache;
 
 import edu.berkeley.nlp.lm.AbstractContextEncodedNgramLanguageModel;
+import edu.berkeley.nlp.lm.ArrayEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 
+/**
+ * This class wraps {@link ContextEncodedNgramLanguageModel} with a cache.
+ * 
+ * This wrapper is <b>not</b> threadsafe. To use a cache in a multithreaded
+ * environment, you should create one wrapper per thread.
+ * 
+ * @author adampauls
+ * 
+ * @param <W>
+ */
 public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgramLanguageModel<T>
 {
 
@@ -17,11 +28,11 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 
 	private final ContextEncodedNgramLanguageModel<T> lm;
 
-	public ContextEncodedCachingLmWrapper(final ContextEncodedNgramLanguageModel<T> lm) {
+	private ContextEncodedCachingLmWrapper(final ContextEncodedNgramLanguageModel<T> lm) {
 		this(lm, new ContextEncodedDirectMappedLmCache(24));
 	}
 
-	public ContextEncodedCachingLmWrapper(final ContextEncodedNgramLanguageModel<T> lm, final ContextEncodedLmCache cache) {
+	private ContextEncodedCachingLmWrapper(final ContextEncodedNgramLanguageModel<T> lm, final ContextEncodedLmCache cache) {
 		super(lm.getLmOrder(), lm.getWordIndexer(), Float.NaN);
 		this.lm = lm;
 		this.contextCache = cache;
@@ -62,6 +73,30 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 	@Override
 	public int[] getNgramForOffset(long contextOffset, int contextOrder, int word) {
 		return lm.getNgramForOffset(contextOffset, contextOrder, word);
+	}
+
+	/**
+	 * To use a cache in a multithreaded environment, you should create one
+	 * wrapper per threadÍ.
+	 * 
+	 * @param <T>
+	 * @param lm
+	 * @return
+	 */
+	public static <T> ContextEncodedCachingLmWrapper<T> wrapWithCacheNotThreadSafe(ContextEncodedNgramLanguageModel<T> lm) {
+		return new ContextEncodedCachingLmWrapper<T>(lm);
+	}
+
+	/**
+	 * To use a cache in a multithreaded environment, you should create one
+	 * wrapper per threadÍ.
+	 * 
+	 * @param <T>
+	 * @param lm
+	 * @return
+	 */
+	public static <T> ContextEncodedCachingLmWrapper<T> wrapWithCacheNotThreadSafe(ContextEncodedNgramLanguageModel<T> lm, ContextEncodedLmCache cache) {
+		return new ContextEncodedCachingLmWrapper<T>(lm, cache);
 	}
 
 }

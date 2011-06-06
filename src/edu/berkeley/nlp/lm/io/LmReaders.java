@@ -36,7 +36,7 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * This class contains a number of static methods for reading/writing/estimating
  * n-gram language models. Since most uses of this software will use this class,
  * I will use this space to document the software as a whole.
- * 
+ *  <p>
  * This software provides three main pieces of functionality: <br>
  * (a) estimation of a language models from text inputs <br>
  * (b) data structures for efficiently storing large collections of n-grams in
@@ -44,7 +44,7 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * (c) an API for efficient querying language models derived from n-gram
  * collections. Most of the techniques in the paper are described in
  * "Faster and Smaller N-gram Language Models" (Pauls and Klein 2011).
- * 
+ * <p>
  * This software supports the estimation of two types of language models:
  * Kneser-Ney language models (Kneser and Ney, 1995) and Stupid Backoff language
  * models (Brants et al. 2007). Kneser-Ney language models can be estimated from
@@ -57,14 +57,14 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * Web1T corpus by calling {@link #readLmFromGoogleNgramDir(String, boolean)}.
  * Note that this software does not (yet) support building Google count
  * directories from raw text, though this can be done using SRILM.
- * 
+ *  <p>
  * Loading/estimating language models from text files can be very slow. This
  * software can use Java's built-in serialization to build language model
  * binaries which are both smaller and faster to load.
  * {@link MakeLmBinaryFromArpa} and {@link MakeLmBinaryFromGoogle} provide
  * <code>main()</code> methods for doing this. See the <code>examples</code> folder for scripts
  * which demonstrate their use. 
- * 
+ *  <p>
  * Language models can be read into memory from ARPA formats using
  * {@link #readArrayEncodedLmFromArpa(String, boolean)} and
  * {@link #readContextEncodedLmFromArpa(String)}. The "array encoding" versus
@@ -75,7 +75,7 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * be found in {@link ArrayEncodedNgramLanguageModel} and
  * {@link ContextEncodedNgramLanguageModel}. For examples of these interfaces in
  * action, you can have a look at {@link PerplexityTest}.
- * 
+ *  <p>
  * To speed up queries, you can wrap language models with caches (
  * {@link ContextEncodedCachingLmWrapper} and
  * {@link ArrayEncodedCachingLmWrapper}). These caches are described in section
@@ -84,7 +84,7 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * however, that the caches are <b>not</b> synchronized. The only threadsafe way
  * to use them is to have a separate caching wrapper for each separate decoding
  * thread (though they can of course all wrap the same underlying LM).
- * 
+ *  <p>
  * This software also support a java Map wrapper around an n-gram collection.
  * You can read a map wrapper using
  * {@link #readNgramMapFromGoogleNgramDir(String, boolean, WordIndexer)}.
