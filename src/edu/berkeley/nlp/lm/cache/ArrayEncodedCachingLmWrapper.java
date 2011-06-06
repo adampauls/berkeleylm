@@ -24,6 +24,30 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 	private final ArrayEncodedLmCache cache;
 
 	private final ArrayEncodedNgramLanguageModel<W> lm;
+	
+	/**
+	 * To use a cache in a multithreaded environment, you should create one
+	 * wrapper per thread.
+	 * 
+	 * @param <T>
+	 * @param lm
+	 * @return
+	 */
+	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheNotThreadSafe(ArrayEncodedNgramLanguageModel<W> lm) {
+		return new ArrayEncodedCachingLmWrapper<W>(lm);
+	}
+
+	/**
+	 * To use a cache in a multithreaded environment, you should create one
+	 * wrapper per thread.
+	 * 
+	 * @param <T>
+	 * @param lm
+	 * @return
+	 */
+	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheNotThreadSafe(ArrayEncodedNgramLanguageModel<W> lm, ArrayEncodedLmCache cache) {
+		return new ArrayEncodedCachingLmWrapper<W>(lm, cache);
+	}
 
 	private ArrayEncodedCachingLmWrapper(final ArrayEncodedNgramLanguageModel<W> lm) {
 		this(lm, new ArrayEncodedDirectMappedLmCache(24, lm.getLmOrder()));
@@ -43,42 +67,18 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 		if (!Float.isNaN(f)) return f;
 		f = lm.getLogProb(ngram, startPos, endPos);
 		cache.putCached(ngram, startPos, endPos, f, hash);
-
 		return f;
 	}
 
 	private static int hash(final int[] key, final int startPos, final int endPos) {
 		int hashCode = 1;
 		for (int i = startPos; i < endPos; ++i) {
-
 			final int curr = key[i];
 			hashCode = 13 * hashCode + curr;
 		}
 		return hashCode;
 	}
 
-	/**
-	 * To use a cache in a multithreaded environment, you should create one
-	 * wrapper per threadÍ.
-	 * 
-	 * @param <T>
-	 * @param lm
-	 * @return
-	 */
-	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheNotThreadSafe(ArrayEncodedNgramLanguageModel<W> lm) {
-		return new ArrayEncodedCachingLmWrapper<W>(lm);
-	}
-
-	/**
-	 * To use a cache in a multithreaded environment, you should create one
-	 * wrapper per threadÍ.
-	 * 
-	 * @param <T>
-	 * @param lm
-	 * @return
-	 */
-	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheNotThreadSafe(ArrayEncodedNgramLanguageModel<W> lm, ArrayEncodedLmCache cache) {
-		return new ArrayEncodedCachingLmWrapper<W>(lm, cache);
-	}
+	
 
 }
