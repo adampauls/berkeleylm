@@ -90,7 +90,9 @@ public interface WordIndexer<W> extends Serializable
 	{
 
 		/**
-		 * Converts an object representation to an int array.
+		 * Converts an object representation to an int array. Does not add to
+		 * the indexer.
+		 * 
 		 * @param <W>
 		 * @param wordIndexer
 		 * @param list
@@ -100,6 +102,24 @@ public interface WordIndexer<W> extends Serializable
 			int[] ret = new int[list.size()];
 			for (int i = 0; i < list.size(); ++i) {
 				ret[i] = wordIndexer.getIndexPossiblyUnk(list.get(i));
+			}
+			return ret;
+
+		}
+
+		/**
+		 * Converts an string representation to an int array, adding to the
+		 * indexer.
+		 * 
+		 * @param <W>
+		 * @param wordIndexer
+		 * @param list
+		 * @return
+		 */
+		public static <W> int[] toArrayFromStrings(final WordIndexer<W> wordIndexer, List<String> list) {
+			int[] ret = new int[list.size()];
+			for (int i = 0; i < list.size(); ++i) {
+				ret[i] = wordIndexer.getOrAddIndexFromString(list.get(i));
 			}
 			return ret;
 

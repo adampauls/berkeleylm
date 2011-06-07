@@ -132,6 +132,10 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 	 * @param sortedVocabPath
 	 */
 	public static <W> void addToIndexer(WordIndexer<W> wordIndexer, final String sortedVocabPath) {
+		if (!(new File(sortedVocabPath).getName().equals(sortedVocabFile))) {
+			Logger.warn("You have specified that " + sortedVocabPath + " is the count-sorted vocab file for Google n-grams, but it is usually named "
+				+ sortedVocabFile);
+		}
 		try {
 			for (final String line : Iterators.able(IOUtils.lineIterator(sortedVocabPath))) {
 				final String[] parts = line.split("\t");
