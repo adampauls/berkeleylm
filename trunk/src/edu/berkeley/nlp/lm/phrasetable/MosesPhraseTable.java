@@ -27,6 +27,8 @@ public class MosesPhraseTable
 
 	public static class TargetSideTranslation
 	{
+
+		// only stores the first 4 features from a moses file (i.e. does not store the bias)
 		float[] features;
 
 		int[] trgWords;
