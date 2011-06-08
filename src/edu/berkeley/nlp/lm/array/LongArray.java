@@ -14,7 +14,7 @@ public interface LongArray
 	public abstract long size();
 
 	public abstract boolean addWithFixedCapacity(long val);
-	
+
 	public abstract boolean add(long val);
 
 	public abstract void trimToSize(long size);
@@ -29,7 +29,9 @@ public interface LongArray
 
 		public static LongArray newLongArray(final long maxKeySize, final long maxNumKeys, final long initCapacity) {
 			if (maxNumKeys <= Integer.MAX_VALUE) {
-				if (maxKeySize <= Integer.MAX_VALUE) {
+				if (maxKeySize <= Byte.MAX_VALUE) {
+					return new ByteSmallLongArray(initCapacity);
+				} else if (maxKeySize <= Integer.MAX_VALUE) {
 					return new IntSmallLongArray(initCapacity);
 				} else {
 					return new SmallLongArray(initCapacity);

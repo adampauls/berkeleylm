@@ -5,10 +5,10 @@ import java.util.List;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
-public interface NgramMap<T>
+public interface NgramMap<V>
 {
 
-	public long put(int[] ngram, int startPos, int endPos, T val);
+	public long put(int[] ngram, int startPos, int endPos, V val);
 
 	public void handleNgramsFinished(int justFinishedOrder);
 
@@ -16,15 +16,15 @@ public interface NgramMap<T>
 
 	public void initWithLengths(List<Long> numNGrams);
 
-	public ValueContainer<T> getValues();
+	public ValueContainer<V> getValues();
 
-	public long getValueAndOffset(final long contextOffset, final int contextOrder, int word, @OutputParameter T currProbVal);
+	public long getValueAndOffset(final long contextOffset, final int contextOrder, int word, @OutputParameter V currProbVal);
 
 	public int getMaxNgramOrder();
 	
 	public long getNumNgrams(int ngramOrder);
 
-	public Iterable<Entry<T>> getNgramsForOrder(final int ngramOrder);
+	public Iterable<Entry<V>> getNgramsForOrder(final int ngramOrder);
 
 	public static class Entry<T>
 	{
