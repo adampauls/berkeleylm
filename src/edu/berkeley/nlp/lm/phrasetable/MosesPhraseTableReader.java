@@ -75,7 +75,8 @@ public class MosesPhraseTableReader<W> implements LmReader<PhraseTableCounts, Mo
 			int sepIndex = wordIndexer.getOrAddIndexFromString(SEP_WORD);
 			String[] featStrings = parts[2].trim().split("\\s+");
 			float[] features = new float[featStrings.length];
-			for (int i = 0; i < featStrings.length; i++) {
+			// we skip the last feature since it is the bias, and is always the same.
+			for (int i = 0; i < featStrings.length - 1; i++) {
 				try {
 					Float val = Float.parseFloat(featStrings[i]);
 					if (val.isInfinite() || val.isNaN()) {
