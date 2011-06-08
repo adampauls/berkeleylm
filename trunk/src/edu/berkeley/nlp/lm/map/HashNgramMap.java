@@ -82,8 +82,6 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		values.setSizeAtLeast(maps[ngramOrder].getCapacity(), ngramOrder);
 	}
 
-	
-
 	@Override
 	public long put(final int[] ngram, int startPos, int endPos, final T val) {
 		final int ngramOrder = endPos - startPos - 1;
@@ -125,7 +123,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		ret[reversed ? 0 : (ret.length - 1)] = word_;
 		for (int i = 0; i <= contextOrder; ++i) {
 			final int ngramOrder = contextOrder - i;
-			long key = maps[ngramOrder].getKey(contextOffset_);
+			long key = getKey(contextOffset_, ngramOrder);
 			contextOffset_ = AbstractNgramMap.contextOffsetOf(key);
 
 			word_ = AbstractNgramMap.wordOf(key);
@@ -134,7 +132,26 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		return ret;
 	}
 
-	private int[] getNgramForOffset(long offset, int ngramOrder) {
+	public int getNextWord(long offset, final int ngramOrder) {
+		return AbstractNgramMap.wordOf(getKey(offset, ngramOrder));
+	}
+
+	public long getNextContextOffset(long offset, final int ngramOrder) {
+		return AbstractNgramMap.contextOffsetOf(getKey(offset, ngramOrder));
+	}
+
+	/**
+	 * Gets the "key" (word + context offset) for a given offset
+	 * 
+	 * @param contextOffset_
+	 * @param ngramOrder
+	 * @return
+	 */
+	private long getKey(long offset, final int ngramOrder) {
+		return maps[ngramOrder].getKey(offset);
+	}
+
+	public int[] getNgramForOffset(long offset, int ngramOrder) {
 		int[] ret = new int[ngramOrder + 1];
 		long offset_ = offset;
 		for (int i = 0; i <= ngramOrder; ++i) {
@@ -208,6 +225,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final int ngramOrder = endPos - startPos - 1;
 		final HashMap currMap = maps[ngramOrder];
 		final long key = getKey(ngram, startPos, endPos);
+		if (key < 0) return -1;
 		final long index = currMap.getOffset(key);
 		return index;
 	}
@@ -273,7 +291,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	 */
 	public long getPrefixOffset(long offset, int ngramOrder) {
 		if (ngramOrder == 0) return -1;
-		return AbstractNgramMap.contextOffsetOf(maps[ngramOrder].getKey(offset));
+		return AbstractNgramMap.contextOffsetOf(getKey(offset, ngramOrder));
 	}
 
 	private long getKey(final int[] ngram, final int startPos, final int endPos) {
