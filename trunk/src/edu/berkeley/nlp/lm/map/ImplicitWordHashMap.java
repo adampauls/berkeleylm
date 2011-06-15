@@ -28,10 +28,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	private final LongArray keys;
 
 	@PrintMemoryCount
-	private final long[] wordRangesLow;
+	private final long[] wordRanges;
 
-	@PrintMemoryCount
-	private final long[] wordRangesHigh;
 
 	private long numFilled = 0;
 
@@ -39,8 +37,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 
 	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final double loadFactor) {
 		final long numWords = numNgramsForEachWord.size();
-		wordRangesLow = new long[(int) numWords];
-		wordRangesHigh = new long[(int) numWords];
+		wordRanges = new long[(int) numWords];
 		final long totalNumNgrams = setWordRanges(numNgramsForEachWord, loadFactor, numWords);
 		keys = LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
 		Logger.logss("No word key size " + totalNumNgrams);
@@ -58,8 +55,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		int word = AbstractNgramMap.wordOf(key);
 		final long hash = hash(key, word);
 		if (hash < 0) return -1L;
-		final long rangeStart = wordRangesLow[word];
-		final long rangeEnd = wordRangesHigh[word];
+		final long rangeStart = wordRanges[word];
+		final long rangeEnd = endOfRange(word);
 		long i = keys.linearSearch(key, rangeStart, rangeEnd, hash, EMPTY_KEY, true);
 		if (keys.get(i) == EMPTY_KEY) numFilled++;
 		setKey(i, key);
@@ -76,10 +73,9 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	private long setWordRanges(final LongArray numNgramsForEachWord, final double maxLoadFactor, final long numWords) {
 		long currStart = 0;
 		for (int w = 0; w < numWords; ++w) {
-			wordRangesLow[w] = currStart;
+			wordRanges[w] = currStart;
 			final long numNgrams = numNgramsForEachWord.get(w);
 			currStart += numNgrams <= 3 ? numNgrams : Math.round(numNgrams * 1.0 / maxLoadFactor);
-			wordRangesHigh[w] = currStart;
 
 		}
 		return currStart;
@@ -96,8 +92,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		int word = AbstractNgramMap.wordOf(key);
 		final long hash = hash(key, word);
 		if (hash < 0) return -1L;
-		final long rangeStart = wordRangesLow[word];
-		final long rangeEnd = wordRangesHigh[word];
+		final long rangeStart = wordRanges[word];
+		final long rangeEnd = endOfRange(word);
 		final long startIndex = hash;
 		assert startIndex >= rangeStart;
 		assert startIndex < rangeEnd;
@@ -116,13 +112,22 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		final long hashed = (MurmurHash.hashOneLong(key, 31));
 		long hash1 = hashed;
 		if (hash1 < 0) hash1 = -hash1;
-		if (wordRangesLow == null) return (int) (hash1 % getCapacity());
-		if (firstWord >= wordRangesLow.length) return -1;
-		final long startOfRange = wordRangesLow[firstWord];
-		final long numHashPositions = wordRangesHigh[firstWord] - startOfRange;
+		if (wordRanges == null) return (int) (hash1 % getCapacity());
+		if (firstWord >= wordRanges.length) return -1;
+		final long startOfRange = wordRanges[firstWord];
+		final long endOfRange = endOfRange(firstWord);
+		final long numHashPositions = endOfRange - startOfRange;
 		if (numHashPositions == 0) return -1;
 		hash1 = (hash1 % numHashPositions);
 		return hash1 + startOfRange;
+	}
+
+	/**
+	 * @param word
+	 * @return
+	 */
+	private long endOfRange(final int word) {
+		return (word == wordRanges.length -1) ? getCapacity() : wordRanges[word+1];
 	}
 
 	/*
@@ -140,9 +145,9 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	 * @see edu.berkeley.nlp.lm.map.HashMap#getWordForContext(long)
 	 */
 	int getWordForContext(long contextOffset) {
-		int binarySearch = Arrays.binarySearch(wordRangesLow, contextOffset);
+		int binarySearch = Arrays.binarySearch(wordRanges, contextOffset);
 		binarySearch = binarySearch >= 0 ? binarySearch : (-binarySearch - 2);
-		while (binarySearch < wordRangesLow.length - 1 && wordRangesLow[binarySearch] == wordRangesLow[binarySearch + 1])
+		while (binarySearch < wordRanges.length - 1 && wordRanges[binarySearch] == wordRanges[binarySearch + 1])
 			binarySearch++;
 		return binarySearch;
 	}
