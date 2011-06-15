@@ -13,6 +13,7 @@ import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.phrasetable.PhraseTableValueContainer.FeaturePhraseTableValues;
 import edu.berkeley.nlp.lm.phrasetable.PhraseTableValueContainer.PhraseTableValues;
 import edu.berkeley.nlp.lm.phrasetable.PhraseTableValueContainer.TargetTranslationsValues;
+import edu.berkeley.nlp.lm.util.Logger;
 
 /**
  * 
@@ -29,9 +30,9 @@ public class MosesPhraseTable
 	{
 
 		// only stores the first 4 features from a moses file (i.e. does not store the bias)
-		float[] features;
+		public float[] features;
 
-		int[] trgWords;
+		public int[] trgWords;
 
 		public String toString() {
 			return Arrays.toString(trgWords) + " :: " + Arrays.toString(features);
@@ -66,6 +67,10 @@ public class MosesPhraseTable
 			final long currOffset = scratch.targetTranslationOffsets[i];
 			final int currOrder = scratch.targetTranslationOrders[i];
 			map.getValues().getFromOffset(currOffset, currOrder, features);
+			if (features.features == null) {
+				Logger.warn("Should probably fix");
+				continue;
+			}
 			TargetSideTranslation tr = new TargetSideTranslation();
 			tr.features = Arrays.copyOf(features.features, features.features.length);
 			int sepIndex = 0;

@@ -95,7 +95,6 @@ public class StringWordIndexer implements WordIndexer<String>
 	@Override
 	public int getIndexPossiblyUnk(final String word) {
 		final int id = sparseIndexer.indexOf(word);
-		assert unkIndex >= 0;
 		return id < 0 ? unkIndex : id;
 
 	}
