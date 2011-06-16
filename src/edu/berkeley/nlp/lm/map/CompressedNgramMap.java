@@ -1,6 +1,8 @@
 package edu.berkeley.nlp.lm.map;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -29,13 +31,9 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	private static final int OFFSET_RADIX = 33;
 
-	private static final int WORD_RADIX = 2;
-
 	private final BitCompressor offsetCoder;
 
-	private final BitCompressor wordCoder;
-
-	private final BitCompressor suffixCoder;
+	private final BitCompressor contextOffsetCoder;
 
 	private double totalKeyBitsFinal = 0;
 
@@ -56,13 +54,11 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	public CompressedNgramMap(final CompressibleValueContainer<T> values, long[] numNgramsForEachOrder, final ConfigOptions opts) {
 		super(values, opts);
 		offsetCoder = new VariableLengthBitCompressor(OFFSET_RADIX);
-		wordCoder = new VariableLengthBitCompressor(WORD_RADIX);
 		this.offsetDeltaRadix = opts.offsetDeltaRadix;
-		suffixCoder = new VariableLengthBitCompressor(offsetDeltaRadix);
+		contextOffsetCoder = new VariableLengthBitCompressor(offsetDeltaRadix);
 		this.compressedBlockSize = opts.compressedBlockSize;
 		this.numNgramsForEachOrder = numNgramsForEachOrder;
 		this.maps = new CompressedMap[numNgramsForEachOrder.length];
-		//		initWithLengths(numNgramsForEachOrder);
 		values.setMap(this);
 
 	}
@@ -150,7 +146,31 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		throw new RuntimeException();
 	}
 
+	private long[] findWordRanges(final int ngramOrder) {
+		List<Long> lows = new ArrayList<Long>();
+		LongArray keys = maps[ngramOrder].getUncompressedKeys();
+		long keySize = keys.size();
+		int lastWord = -1;
+		for (long i = 0; i <= keySize; ++i) {
+			final int currWord = i == keySize ? -1 : AbstractNgramMap.wordOf(keys.get(i));
+			if (currWord < 0 || currWord != lastWord) {
+				if (currWord >= 0) {
+					while (currWord >= lows.size()) {
+						lows.add(i);
+					}
+				}
+			}
+			lastWord = currWord;
+		}
+		long[] ret = new long[lows.size()];
+		for (int i = 0; i < lows.size(); ++i)
+			ret[i] = lows.get(i);
+		return ret;
+	}
+
 	private void compress(final int ngramOrder) {
+
+		maps[ngramOrder].wordRanges = findWordRanges(ngramOrder);
 		(maps[ngramOrder]).compressedKeys = compress(maps[ngramOrder].getUncompressedKeys(), maps[ngramOrder].size(), ngramOrder);
 		((CompressibleValueContainer<T>) values).clearStorageAfterCompression(ngramOrder);
 		maps[ngramOrder].clearUncompressedKeys();
@@ -176,60 +196,43 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 			final BitList offsetBits = offsetCoder.compress(uncompressedPos);
 
 			final BitList firstValueBits = compressibleValues.getCompressed(uncompressedPos, ngramOrder);
-			BitList headerBits = new BitList();
+			BitList headerBits = makeHeader(offsetBits, firstValueBits);
 			BitList bodyBits = new BitList();
 			long numKeyBits = 0;
 			long numValueBits = 0;
 			long currUncompressedPos = -1;
 
-			// try compression assuming all words are the same (wordBitOn = false), and if that fails,
-			// roll back and try with wordBitOn = true
-			OUTER: for (boolean wordBitOn = false, done = false; !done; wordBitOn = true) {
-				numKeyBits = 0;
-				numValueBits = 0;
-				long lastFirstWord = wordOf(firstKey);
-				long lastSuffixPart = contextOffsetOf(firstKey);
-				headerBits = makeHeader(offsetBits, firstValueBits, wordBitOn);
-				bodyBits = new BitList();
+			numKeyBits = 0;
+			numValueBits = 0;
+			long lastFirstWord = wordOf(firstKey);
+			long lastContextOffset = contextOffsetOf(firstKey);
 
+			for (currUncompressedPos = uncompressedPos + 1; currUncompressedPos < uncompressedSize; ++currUncompressedPos) {
 				final BitList currBits = new BitList();
-				for (currUncompressedPos = uncompressedPos + 1; currUncompressedPos < uncompressedSize; ++currUncompressedPos) {
-					final long currKey = uncompressed.get(currUncompressedPos);
-					final long currFirstWord = wordOf(currKey);
-					final long currSuffixPart = contextOffsetOf(currKey);
+				final long currKey = uncompressed.get(currUncompressedPos);
+				final long currFirstWord = wordOf(currKey);
+				final long currContextOffset = contextOffsetOf(currKey);
 
-					final long wordDelta = currFirstWord - lastFirstWord;
-					final long suffixDelta = currSuffixPart - lastSuffixPart;
-					currBits.clear();
-					if (wordDelta > 0 && !wordBitOn) continue OUTER;
-					if (wordBitOn) {
-						final BitList keyBits = wordCoder.compress(wordDelta);
-						currBits.addAll(keyBits);
-						if (wordDelta > 0) {
-							final BitList suffixBits = suffixCoder.compress(currSuffixPart);
-							currBits.addAll(suffixBits);
-						} else {
-							final BitList suffixBits = suffixCoder.compress(suffixDelta);
-							currBits.addAll(suffixBits);
-						}
-					} else {
-
-						final BitList suffixBits = suffixCoder.compress(suffixDelta);
-						currBits.addAll(suffixBits);
-					}
-
-					numKeyBits += currBits.size();
-					lastFirstWord = currFirstWord;
-					numValueBits += compressValue(ngramOrder, currUncompressedPos, currBits);
-
-					lastSuffixPart = currSuffixPart;
-					if (blockFull(currBlockBits, bodyBits, headerBits, currBits)) {
-						break;
-					}
-
-					bodyBits.addAll(currBits);
+				final boolean wordChanged = currFirstWord != lastFirstWord;
+				if (wordChanged) {
+					final BitList suffixBits = contextOffsetCoder.compress(currContextOffset);
+					currBits.addAll(suffixBits);
+				} else {
+					final long suffixDelta = currContextOffset - lastContextOffset;
+					final BitList suffixBits = contextOffsetCoder.compress(suffixDelta);
+					currBits.addAll(suffixBits);
 				}
-				done = true;
+
+				numKeyBits += currBits.size();
+				lastFirstWord = currFirstWord;
+				numValueBits += compressValue(ngramOrder, currUncompressedPos, currBits);
+
+				lastContextOffset = currContextOffset;
+				if (blockFull(currBlockBits, bodyBits, headerBits, currBits)) {
+					break;
+				}
+
+				bodyBits.addAll(currBits);
 			}
 
 			uncompressedPos = currUncompressedPos;
@@ -325,12 +328,10 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	 * @param wordBitOn
 	 * @return
 	 */
-	private BitList makeHeader(final BitList offsetBits, final BitList firstValueBits, final boolean wordBitOn) {
-		BitList headerBits;
-		headerBits = new BitList();
-
+	private BitList makeHeader(final BitList offsetBits, final BitList firstValueBits) {
+		BitList headerBits = new BitList();
 		headerBits.addAll(offsetBits);
-		headerBits.add(wordBitOn);
+		//		headerBits.add(wordBitOn);
 		headerBits.addAll(firstValueBits);
 		return headerBits;
 	}
@@ -349,15 +350,14 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	 * @return
 	 */
 	private long decompressLinearSearch(final LongArray compressed, final long pos, final long searchKey, final int ngramOrder, final T outputVal,
-		final long searchOffset) {
+		final long searchOffset, long[] wordRanges) {
 
 		final long firstKey = compressed.get(pos);
 		final BitStream bits = getCompressedBits(compressed, pos + 1);
 		final long offset = offsetCoder.decompress(bits);
-		final boolean wordBitOn = bits.nextBit();
 
 		int currWord = wordOf(firstKey);
-		long currSuffix = contextOffsetOf(firstKey);
+		long currContextOffset = contextOffsetOf(firstKey);
 		final boolean foundKeyFirst = searchOffset >= 0 ? searchOffset == offset : firstKey == searchKey;
 
 		final CompressibleValueContainer<T> compressibleValues = (CompressibleValueContainer<T>) values;
@@ -367,24 +367,19 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		long currKey = -1;
 
 		for (int k = 1; !bits.finished(); ++k) {
-			int newWord = -1;
-			long nextSuffix = -1;
-
-			if (wordBitOn) {
-				final int wordDelta = (int) wordCoder.decompress(bits);
-				final boolean wordDeltaIsZero = wordDelta == 0;
-				final long suffixDelta = suffixCoder.decompress(bits);
-				newWord = currWord + wordDelta;
-				nextSuffix = wordDeltaIsZero ? (currSuffix + suffixDelta) : suffixDelta;
-			} else {
-				final long suffixDelta = suffixCoder.decompress(bits);
-				newWord = currWord;
-				nextSuffix = (currSuffix + suffixDelta);
-			}
-			currKey = combineToKey(newWord, nextSuffix);
-			currWord = newWord;
-			currSuffix = nextSuffix;
 			final long currOffset = offset + k;
+
+			int newWord = currWord;
+			long endOfRange = next(wordRanges, newWord);
+			while (currOffset >= endOfRange) {
+				endOfRange = next(wordRanges, ++newWord);
+			}
+			boolean wordChanged = currWord != newWord;
+			final long decompressContext = contextOffsetCoder.decompress(bits);
+			final long nextContextOffset = (wordChanged) ? decompressContext : (currContextOffset + decompressContext);
+			currKey = combineToKey(newWord, nextContextOffset);
+			currWord = newWord;
+			currContextOffset = nextContextOffset;
 			final boolean foundKey = searchOffset >= 0 ? searchOffset == currOffset : currKey == searchKey;
 			compressibleValues.decompress(bits, ngramOrder, !foundKey, outputVal);
 			if (foundKey) { return searchOffset >= 0 ? currKey : currOffset; }
@@ -395,6 +390,10 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		}
 		return -1;
 
+	}
+
+	private long next(long[] wordRanges, int word) {
+		return word >= wordRanges.length - 1 ? Long.MAX_VALUE : wordRanges[word + 1];
 	}
 
 	/**
@@ -422,7 +421,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		final long low = binarySearchBlocks(compressed, compressed.size(), searchKey, fromIndex, toIndex, searchOffset);
 		if (low < 0) return -1;
 
-		final long index = decompressLinearSearch(compressed, low, searchKey, ngramOrder, outputVal, searchOffset);
+		final long index = decompressLinearSearch(compressed, low, searchKey, ngramOrder, outputVal, searchOffset, maps[ngramOrder].wordRanges);
 		return index;
 	}
 
@@ -511,27 +510,8 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	@Override
 	public void initWithLengths(final List<Long> numNGrams) {
-		//		long[] array = new long[numNGrams.size()];
-		//		for (int i = 0; i < array.length; ++i) {
-		//			array[i] = numNGrams.get(i);
-		//		}
-		//		initWithLengths(array);
-	}
 
-	//
-	//	/**
-	//	 * @param numNGrams
-	//	 */
-	//	private void initWithLengths(long[] numNGrams) {
-	//		maps = new CompressedMap[numNGrams.length];
-	//		for (int i = 0; i < numNGrams.length; ++i) {
-	//			maps[i] = new CompressedMap();
-	//			final long l = numNGrams[i];
-	//			maps[i].init(l);
-	//			values.setSizeAtLeast(l, i);
-	//
-	//		}
-	//	}
+	}
 
 	@Override
 	public int getMaxNgramOrder() {
