@@ -19,9 +19,6 @@ class CompressedMap implements Serializable
 
 	@PrintMemoryCount
 	private LongArray uncompressedKeys;
-	
-	@PrintMemoryCount
-	 long[] wordRanges;
 
 	private long numKeys;
 
