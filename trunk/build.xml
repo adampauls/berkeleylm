@@ -11,6 +11,8 @@
 	<property name="lib" value="./lib" />
 	<property name="doc" value="./doc" />
 	<property name="jar" value="jar" />
+	<property name="version" value="0.1" />
+	<property name="root" value="berkeleylm-${version}" />
 
 	<property name="junit-jar" value="${lib}/junit-4.6.jar" />
 
@@ -122,5 +124,19 @@
 
 	<target name="all" depends="test,jar, javadoc" />
 
+
+	<!-- Build the tarball for distribution -->
+	<target name="export" depends="jar,javadoc">
+	 	<copy todir="${root}">
+    		<fileset dir=".">
+    		</fileset>
+    	</copy>
+		<tar destfile="${root}.tar.gz" basedir="${root}" compression="gzip" excludes="**/test-reports,**/*.class,**/*.tar.gz">
+		</tar>
+		<delete verbose="false" quiet="true">
+			<fileset dir="${root}">
+			</fileset>
+		</delete>
+	</target>
 
 </project>
