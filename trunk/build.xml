@@ -127,16 +127,17 @@
 
 	<!-- Build the tarball for distribution -->
 	<target name="export" depends="jar,javadoc">
+	 	<delete file="${root}.tar.gz"/>
 	 	<copy todir="${root}">
     		<fileset dir=".">
+    		<include name="**/*" />
+    		<exclude name="**/*.tar.gz"/>
+    		<exclude name="${root}"/>
     		</fileset>
     	</copy>
-		<tar destfile="${root}.tar.gz" basedir="${root}" compression="gzip" excludes="**/test-reports,**/*.class,**/*.tar.gz">
+		<tar destfile="${root}.tar.gz" basedir="." compression="gzip"  includes="${root}/**" excludes="**/test-reports,**/*.class,**/*.tar.gz">
 		</tar>
-		<delete verbose="false" quiet="true">
-			<fileset dir="${root}">
-			</fileset>
-		</delete>
+		<delete dir="${root}"/>
 	</target>
 
 </project>
