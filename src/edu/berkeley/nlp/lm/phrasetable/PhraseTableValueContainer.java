@@ -68,6 +68,7 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 
 	private final int numFeatures;
 
+	@SuppressWarnings("unchecked")
 	public PhraseTableValueContainer(int separatorWord, int numFeatures) {
 		this.separatorWord = separatorWord;
 		this.numFeatures = numFeatures;
@@ -141,7 +142,6 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 
 			valueIndexes[ngramOrder].setAndGrowIfNeeded((int) (offset), EMPTY_VALUE_INDEX);
 		}
-//		assert check(offset, ngramOrder);
 
 	}
 
@@ -189,14 +189,6 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 		final long valueIndex = -valueIndexes[srcPhraseOrder].get(srcPhraseOffset) - 1;
 		final ArrayList<LongArray> targetTranslationPointersHere = targetTranslations[srcPhraseOrder];
 		targetTranslationPointersHere.get((int) valueIndex).add(combineOrderAndOffset(ngramOrder, offset));
-		assert check(offset, ngramOrder);
-	}
-
-	private boolean check(long offset, int ngramOrder) {
-		final FeaturePhraseTableValues scratch = new FeaturePhraseTableValues(null);
-		getFromOffset(offset, ngramOrder, scratch);
-		assert scratch.features != null;
-		return true;
 	}
 
 	/**
