@@ -36,7 +36,7 @@ public class ProbBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W> 
 	 * @see edu.berkeley.nlp.lm.AbstractArrayEncodedNgramLanguageModel#getLogProb(int[], int, int)
 	 */
 	@Override
-	public float getLogProb(final int[] ngram, final int startPos_, final int endPos_) {
+	public float getLogProb(final int[] ngram, final int startPos, final int endPos) {
 		final NgramMap<ProbBackoffPair> localMap = map;
 		float logProb = oovWordLogProb;
 		float backoff = 0.0f;
@@ -47,23 +47,23 @@ public class ProbBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W> 
 		long backoffContext = 0L;
 		int backoffContextOrder = -1;
 		final ProbBackoffPair scratch = new ProbBackoffPair(Float.NaN, Float.NaN);
-		for (int i = endPos_ - 1; i >= startPos_; --i) {
+		for (int i = endPos - 1; i >= startPos; --i) {
 			if (probContext >= 0) {
 				probContext = localMap.getValueAndOffset(probContext, probContextOrder, ngram[i], scratch);
 			}
 			if (probContext >= 0) {
 				probContextOrder++;
 				final float currProb = scratch.prob;
-				if (Float.isNaN(currProb) && i == startPos_) {
+				if (Float.isNaN(currProb) && i == startPos) {
 					return logProb + backoff;
 				} else if (!Float.isNaN(currProb)) {
 					logProb = currProb;
 					backoff = 0.0f;
 				}
 			} else {
-				if (i == endPos_ - 1) return oovWordLogProb;
+				if (i == endPos - 1) return oovWordLogProb;
 			}
-			if (i == startPos_) break;
+			if (i == startPos) break;
 
 			backoffContext = localMap.getValueAndOffset(backoffContext, backoffContextOrder, ngram[i - 1], scratch);
 			if (backoffContext < 0) break;

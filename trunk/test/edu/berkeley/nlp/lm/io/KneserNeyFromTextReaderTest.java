@@ -78,8 +78,8 @@ public class KneserNeyFromTextReaderTest
 	private void compareLines(List<String> arpaLines, List<String> goldArpaLines) {
 		Assert.assertEquals(arpaLines.size(), goldArpaLines.size());
 		for (Pair<String, String> lines : Iterators.able(Iterators.zip(arpaLines.iterator(), goldArpaLines.iterator()))) {
-			String testLine = lines.getFirst();
-			String goldLine = lines.getSecond();
+			String testLine = lines.getFirst().trim();
+			String goldLine = lines.getSecond().trim();
 			if (goldLine.startsWith("-")) {
 				Assert.assertTrue(lines.toString(), testLine.startsWith("-"));
 				String[] testSplit = testLine.split("\t");
