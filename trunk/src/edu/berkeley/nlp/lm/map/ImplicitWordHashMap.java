@@ -30,7 +30,6 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	@PrintMemoryCount
 	private final long[] wordRanges;
 
-
 	private long numFilled = 0;
 
 	private static final int EMPTY_KEY = -1;
@@ -52,12 +51,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	 */
 	@Override
 	public long put(final long key) {
-		int word = AbstractNgramMap.wordOf(key);
-		final long hash = hash(key, word);
-		if (hash < 0) return -1L;
-		final long rangeStart = wordRanges[word];
-		final long rangeEnd = endOfRange(word);
-		long i = keys.linearSearch(key, rangeStart, rangeEnd, hash, EMPTY_KEY, true);
+		long i = linearSearch(key, true);
 		if (keys.get(i) == EMPTY_KEY) numFilled++;
 		setKey(i, key);
 
@@ -89,15 +83,24 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	}
 
 	public final long getOffset(final long key) {
+		return linearSearch(key, false);
+	}
+
+	/**
+	 * @param key
+	 * @param returnFirstEmptyIndex
+	 * @return
+	 */
+	private long linearSearch(final long key, boolean returnFirstEmptyIndex) {
 		int word = AbstractNgramMap.wordOf(key);
-		final long hash = hash(key, word);
-		if (hash < 0) return -1L;
+		if (word >= wordRanges.length) return -1;
 		final long rangeStart = wordRanges[word];
-		final long rangeEnd = endOfRange(word);
-		final long startIndex = hash;
+		final long rangeEnd = ((word == wordRanges.length - 1) ? getCapacity() : wordRanges[word + 1]);
+		final long startIndex = hash(key, rangeStart, rangeEnd);
+		if (startIndex < 0) return -1L;
 		assert startIndex >= rangeStart;
 		assert startIndex < rangeEnd;
-		return keys.linearSearch(AbstractNgramMap.contextOffsetOf(key), rangeStart, rangeEnd, startIndex, EMPTY_KEY, false);
+		return keys.linearSearch(AbstractNgramMap.contextOffsetOf(key), rangeStart, rangeEnd, startIndex, EMPTY_KEY, returnFirstEmptyIndex);
 	}
 
 	public long getCapacity() {
@@ -108,26 +111,13 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		return (double) numFilled / getCapacity();
 	}
 
-	private long hash(final long key, final int firstWord) {
-		final long hashed = (MurmurHash.hashOneLong(key, 31));
-		long hash1 = hashed;
-		if (hash1 < 0) hash1 = -hash1;
-		if (wordRanges == null) return (int) (hash1 % getCapacity());
-		if (firstWord >= wordRanges.length) return -1;
-		final long startOfRange = wordRanges[firstWord];
-		final long endOfRange = endOfRange(firstWord);
+	private long hash(final long key, final long startOfRange, final long endOfRange) {
 		final long numHashPositions = endOfRange - startOfRange;
 		if (numHashPositions == 0) return -1;
-		hash1 = (hash1 % numHashPositions);
-		return hash1 + startOfRange;
-	}
-
-	/**
-	 * @param word
-	 * @return
-	 */
-	private long endOfRange(final int word) {
-		return (word == wordRanges.length -1) ? getCapacity() : wordRanges[word+1];
+		long hash = (MurmurHash.hashOneLong(key, 31));
+		if (hash < 0) hash = -hash;
+		hash = (hash % numHashPositions);
+		return hash + startOfRange;
 	}
 
 	/*
@@ -171,7 +161,5 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	public Iterable<Long> keys() {
 		return Iterators.able(new KeyIterator(keys));
 	}
-
-	
 
 }
