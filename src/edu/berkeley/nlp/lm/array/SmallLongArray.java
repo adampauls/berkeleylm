@@ -4,8 +4,6 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Arrays;
 
-import edu.berkeley.nlp.lm.util.Logger;
-
 final class SmallLongArray implements Serializable, LongArray
 {
 
@@ -79,13 +77,14 @@ final class SmallLongArray implements Serializable, LongArray
 	 * @param pos
 	 * @param val
 	 */
-	private void setGrowHelp(final long pos, final long val, boolean growCapacity) {
+	private void setGrowHelp(final long pos, final long val, final boolean growCapacity) {
 		check(pos);
 		if (growCapacity) ensureCapacity(pos + 1);
 		size = Math.max(size, pos + 1);
 		setHelp(pos, val);
 	}
 
+	@Override
 	public void ensureCapacity(final long minCapacity) {
 		final long oldCapacity = sizeOf(data);
 		if (minCapacity > oldCapacity) {
@@ -190,7 +189,8 @@ final class SmallLongArray implements Serializable, LongArray
 	}
 
 	@Override
-	public long linearSearch(long key, long rangeStart, long rangeEnd, long startIndex, long emptyKey, boolean returnFirstEmptyIndex) {
+	public long linearSearch(final long key, final long rangeStart, final long rangeEnd, final long startIndex, final long emptyKey,
+		final boolean returnFirstEmptyIndex) {
 		int i = (int) startIndex;
 		boolean goneAroundOnce = false;
 		while (true) {
@@ -207,7 +207,7 @@ final class SmallLongArray implements Serializable, LongArray
 	}
 
 	@Override
-	public void incrementCount(long index, long count) {
+	public void incrementCount(final long index, final long count) {
 		LongArray.StaticMethods.incrementCount(this, index, count);
 	}
 
