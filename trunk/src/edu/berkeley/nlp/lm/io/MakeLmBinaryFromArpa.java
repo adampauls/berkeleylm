@@ -17,8 +17,8 @@ import edu.berkeley.nlp.lm.util.Logger;
  * language model and writes it to disk. Language model binaries are
  * significantly smaller and faster to load than ARPA files.
  * <p>
- * Note that if the input/output files have a <code>.gz</code> suffix, they will be
- * unzipped/zipped as necessary.
+ * Note that if the input/output files have a <code>.gz</code> suffix, they will
+ * be unzipped/zipped as necessary.
  * 
  * @author adampauls
  * 
@@ -100,8 +100,10 @@ public class MakeLmBinaryFromArpa
 		OUTER: for (String arg : argv) {
 			if (arg.startsWith("-")) {
 				for (Opts opts : Opts.values()) {
-					if (opts.toString().equals(arg)) finalOpt = opts;
-					continue OUTER;
+					if (opts.toString().equals(arg)) {
+						finalOpt = opts;
+						continue OUTER;
+					}
 				}
 				System.err.println("Unrecognized opts: " + arg);
 				usage();

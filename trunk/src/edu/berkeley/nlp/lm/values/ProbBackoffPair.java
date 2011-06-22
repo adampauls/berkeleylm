@@ -1,5 +1,7 @@
 package edu.berkeley.nlp.lm.values;
 
+import edu.berkeley.nlp.lm.ConfigOptions;
+
 public class ProbBackoffPair implements Comparable<ProbBackoffPair>
 {
 
@@ -28,8 +30,8 @@ public class ProbBackoffPair implements Comparable<ProbBackoffPair>
 	}
 
 	public ProbBackoffPair(final float logProb, final float backoff) {
-		this.prob = round(logProb, 12);
-		this.backoff = round(backoff, 12);
+		this.prob = round(logProb, ConfigOptions.roundBits);
+		this.backoff = round(backoff, ConfigOptions.roundBits);
 	}
 
 	private float round(final float f, final int mantissaBits) {
