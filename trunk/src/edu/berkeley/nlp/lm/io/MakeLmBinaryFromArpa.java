@@ -115,8 +115,8 @@ public class MakeLmBinaryFromArpa
 		}
 
 		Logger.setGlobalLogger(new Logger.SystemLogger(System.out, System.err));
-		Logger.startTrack("Reading Lm File " + argv[0] + " . . . ");
 		final String lmFile = fileArgs.get(0);
+		Logger.startTrack("Reading Lm File " + lmFile + " . . . ");
 		final NgramLanguageModel<String> lm = finalOpt.makeLm(lmFile);
 		Logger.endTrack();
 		final String outFile = fileArgs.get(1);
