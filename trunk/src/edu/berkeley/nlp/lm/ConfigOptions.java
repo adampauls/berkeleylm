@@ -29,7 +29,7 @@ public class ConfigOptions implements Serializable
 	public int valueRadix = 6;
 
 	@Option(gloss = "Fraction of hash table array actually used for entries (lower means more memory/more speed)")
-	public double hashTableLoadFactor = 0.7;
+	public double hashTableLoadFactor = 1.0/1.5;
 
 	@Option(gloss = "Probability returned when the last word of an n-gram is not in the vocabulary of the LM (this is *not* the probability of the <unk> tag)")
 	public double unknownWordLogProb = -100.0f;
