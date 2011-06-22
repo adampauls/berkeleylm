@@ -42,5 +42,8 @@ public class ConfigOptions implements Serializable
 
 	@Option(gloss = "Minimum token counts used in estimating Kneser-Ney language models (one for each order). Note that for some internal reasons, these counts are *only* applied to the highest- and second-highest order n-grams (for example, if you estimate a 5-gram language model, only 4- and 5-grams will be thresholded.")
 	public double[] kneserNeyMinCounts = KneserNeyLmReaderCallback.defaultMinCounts();
+	
+	@Option(gloss = "Number of bits to round floats to when reading from ARPA LM files")
+	public static int roundBits = 12;
 
 }
