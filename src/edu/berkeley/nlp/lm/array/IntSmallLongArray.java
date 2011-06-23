@@ -189,19 +189,18 @@ final class IntSmallLongArray implements Serializable, LongArray
 
 	@Override
 	public long linearSearch(long key, long rangeStart, long rangeEnd, long startIndex, long emptyKey, boolean returnFirstEmptyIndex) {
-		int i = (int) startIndex;
-		boolean goneAroundOnce = false;
-		while (true) {
-			if (i == rangeEnd) {
-				if (goneAroundOnce) return -1L;
-				i = (int) rangeStart;
-				goneAroundOnce = true;
-			}
+		for (int i = (int) startIndex; i < rangeEnd; ++i) {
 			final long searchKey = data[i];
 			if (searchKey == key) return i;
 			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
-			++i;
+
 		}
+		for (int i = (int) rangeStart; i < (int) startIndex; ++i) {
+			final long searchKey = data[i];
+			if (searchKey == key) return i;
+			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
+		}
+		return -1L;
 	}
 
 	@Override
