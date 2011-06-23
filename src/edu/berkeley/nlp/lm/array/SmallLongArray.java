@@ -191,14 +191,15 @@ final class SmallLongArray implements Serializable, LongArray
 	@Override
 	public long linearSearch(final long key, final long rangeStart, final long rangeEnd, final long startIndex, final long emptyKey,
 		final boolean returnFirstEmptyIndex) {
+		final long[] localData = data;
 		for (int i = (int) startIndex; i < rangeEnd; ++i) {
-			final long searchKey = data[i];
+			final long searchKey = localData[i];
 			if (searchKey == key) return i;
 			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
 
 		}
 		for (int i = (int) rangeStart; i < (int) startIndex; ++i) {
-			final long searchKey = data[i];
+			final long searchKey = localData[i];
 			if (searchKey == key) return i;
 			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
 		}
