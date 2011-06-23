@@ -25,7 +25,7 @@ public class ProbBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W> 
 	private static final long serialVersionUID = 1L;
 
 	private final NgramMap<ProbBackoffPair> map;
-	
+
 	private final ProbBackoffValueContainer values;
 
 	public ProbBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final NgramMap<ProbBackoffPair> map, final ConfigOptions opts) {
@@ -47,38 +47,37 @@ public class ProbBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W> 
 		final NgramMap<ProbBackoffPair> localMap = map;
 		final ContextEncodedNgramMap<ProbBackoffPair> contextEncodedLocalMap = map instanceof ContextEncodedNgramMap ? (ContextEncodedNgramMap<ProbBackoffPair>) map
 			: null;
-		float logProb = oovWordLogProb;
 		float backoff = 0.0f;
 
 		long probContext = 0L;
 		int probContextOrder = -1;
+		long matchedProbContext = -1L;
+		int matchedProbContextOrder = -1;
 
+		final ProbBackoffPair scratch = contextEncodedLocalMap != null ? null : new ProbBackoffPair(Float.NaN, Float.NaN);
+		for (int i = endPos - 1; i >= startPos; --i) {
+			probContext = localMap.getValueAndOffset(probContext, probContextOrder, ngram[i], scratch);
+			if (probContext < 0) break;
+
+			matchedProbContext = probContext;
+			matchedProbContextOrder = probContextOrder;
+			probContextOrder++;
+		}
+		if (matchedProbContext < 0) return oovWordLogProb;
+		final float logProb = scratch == null ? values.getProb(matchedProbContextOrder + 1, matchedProbContext) : scratch.prob;
+
+		// matched the whole n-gram, so no need to back off
+		if (matchedProbContextOrder == endPos - startPos - 2) return logProb;
 		long backoffContext = 0L;
 		int backoffContextOrder = -1;
-		final ProbBackoffPair scratch =contextEncodedLocalMap != null ? null :  new ProbBackoffPair(Float.NaN, Float.NaN);
-		for (int i = endPos - 1; i >= startPos; --i) {
-			if (probContext >= 0) {
-				probContext = localMap.getValueAndOffset(probContext, probContextOrder, ngram[i], scratch);
-			}
-			if (probContext >= 0) {
-				probContextOrder++;
-				final float currProb = scratch == null ? values.getProb(probContextOrder, probContext) : scratch.prob;
-				if (Float.isNaN(currProb) && i == startPos) {
-					return logProb + backoff;
-				} else if (!Float.isNaN(currProb)) {
-					logProb = currProb;
-					backoff = 0.0f;
-				}
-			} else {
-				if (i == endPos - 1) return oovWordLogProb;
-			}
-			if (i == startPos) break;
-
-			backoffContext = localMap.getValueAndOffset(backoffContext, backoffContextOrder, ngram[i - 1], scratch);
+		for (int i = 0; i < endPos - startPos - 1; ++i) {
+			backoffContext = localMap.getValueAndOffset(backoffContext, backoffContextOrder, ngram[endPos - i - 2], scratch);
 			if (backoffContext < 0) break;
 			backoffContextOrder++;
-			final float currBackoff =  scratch == null ? values.getBackoff(backoffContextOrder, backoffContext) : scratch.backoff;
-			backoff += Float.isNaN(currBackoff) ? 0.0f : currBackoff;
+			if (i > matchedProbContextOrder) {
+				final float currBackoff = scratch == null ? values.getBackoff(backoffContextOrder, backoffContext) : scratch.backoff;
+				backoff += Float.isNaN(currBackoff) ? 0.0f : currBackoff;
+			}
 		}
 		return logProb + backoff;
 	}
