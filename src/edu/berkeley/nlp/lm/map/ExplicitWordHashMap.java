@@ -114,6 +114,9 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 		return Iterators.able(new KeyIterator(keys));
 	}
 
-	
+	@Override
+	public boolean hasContexts(int word) {
+		return true;
+	}
 
 }
