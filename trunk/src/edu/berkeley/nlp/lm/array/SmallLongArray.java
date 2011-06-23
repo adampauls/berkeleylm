@@ -203,18 +203,6 @@ final class SmallLongArray implements Serializable, LongArray
 			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
 		}
 		return -1L;
-//		boolean goneAroundOnce = false;
-//		while (true) {
-//			if (i == rangeEnd) {
-//				if (goneAroundOnce) return -1L;
-//				i = (int) rangeStart;
-//				goneAroundOnce = true;
-//			}
-//			final long searchKey = data[i];
-//			if (searchKey == key) return i;
-//			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
-//			++i;
-//		}
 	}
 
 	@Override
