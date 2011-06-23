@@ -230,7 +230,7 @@ final class LargeLongArray implements Serializable, LongArray
 				if (goneAroundOnce) return -1L;
 				i = rangeStart;
 				outerIndex = o(i);
-				innerIndex = o(i);
+				innerIndex = i(i);
 				currArray = data[outerIndex];
 				goneAroundOnce = true;
 			}
