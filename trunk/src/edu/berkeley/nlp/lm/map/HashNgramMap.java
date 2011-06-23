@@ -40,10 +40,11 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		super(values, opts);
 		this.reversed = reversed;
 		this.maxLoadFactor = opts.hashTableLoadFactor;
-		maps = new ImplicitWordHashMap[numNgramsForEachWord.length];
+		maps = new HashMap[numNgramsForEachWord.length];
 		initCapacities = null;
 		for (int ngramOrder = 0; ngramOrder < numNgramsForEachWord.length; ++ngramOrder) {
-			maps[ngramOrder] = new ImplicitWordHashMap(numNgramsForEachWord[ngramOrder], maxLoadFactor);
+			maps[ngramOrder] = (ngramOrder == 0) ? new UnigramHashMap(numNgramsForEachWord[ngramOrder].size()) : new ImplicitWordHashMap(
+				numNgramsForEachWord[ngramOrder], maxLoadFactor);
 			values.setSizeAtLeast(maps[ngramOrder].getCapacity(), ngramOrder);
 		}
 		values.setMap(this);
@@ -57,7 +58,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		super(values, opts);
 		this.reversed = reversed;
 		this.maxLoadFactor = opts.hashTableLoadFactor;
-		maps = new ExplicitWordHashMap[maxNgramOrder];
+		maps = new HashMap[maxNgramOrder];
 		initCapacities = new long[maxNgramOrder];
 		Arrays.fill(initCapacities, 100);
 		values.setMap(this);
@@ -170,15 +171,26 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	 * @return
 	 */
 	private long getOffsetForContextEncoding(final long contextOffset_, final int contextOrder, final int word, @OutputParameter final T outputVal) {
-		final long contextOffset = Math.max(contextOffset_, 0);
 		final int ngramOrder = contextOrder + 1;
+		final long offset = getOffsetHelp(contextOffset_, word, ngramOrder);
+		if (offset >= 0 && outputVal != null) {
+			values.getFromOffset(offset, ngramOrder, outputVal);
+		}
+		return offset;
+	}
+
+	/**
+	 * @param contextOffset_
+	 * @param word
+	 * @param ngramOrder
+	 * @return
+	 */
+	private long getOffsetHelp(final long contextOffset_, final int word, final int ngramOrder) {
+		final long contextOffset = Math.max(contextOffset_, 0);
 
 		final long key = combineToKey(word, contextOffset);
 		final HashMap map = maps[ngramOrder];
 		final long offset = map.getOffset(key);
-		if (offset >= 0 && outputVal != null) {
-			values.getFromOffset(offset, ngramOrder, outputVal);
-		}
 		return offset;
 	}
 
@@ -336,6 +348,11 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 	public boolean isReversed() {
 		return reversed;
+	}
+
+	@Override
+	public boolean wordHasBigrams(int word) {
+		return maps[1].hasContexts(word);
 	}
 
 }

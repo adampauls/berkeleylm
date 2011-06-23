@@ -47,11 +47,15 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 	@Override
 	public float getLogProb(final long contextOffset, final int contextOrder, final int word, @OutputParameter final LmContextInfo outputContext) {
 		final ContextEncodedNgramMap<ProbBackoffPair> localMap = map;
+		final long numWords = localMap.getNumNgrams(0);
 		int currContextOrder = contextOrder;
 		long currContextOffset = contextOffset;
 		float backoffSum = 0.0f;
-		while (true) {
-			final long offset = localMap.getOffset(currContextOffset, currContextOrder, word);
+		if (word < 0 || word >= numWords) { return oovReturn(outputContext); }
+		final boolean onlyUnigram = !localMap.wordHasBigrams(word);
+
+		while (currContextOrder >= -1) {
+			final long offset = (onlyUnigram && currContextOrder >= 0) ? -1 : localMap.getOffset(currContextOffset, currContextOrder, word);
 			final int ngramOrder = currContextOrder + 1;
 			final float prob = offset < 0 ? Float.NaN : values.getProb(ngramOrder, offset);
 			if (offset >= 0 && !Float.isNaN(prob)) {
@@ -61,16 +65,24 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 				final long backoffIndex = currContextOffset;
 				final float backOff = backoffIndex < 0 ? 0.0f : values.getBackoff(currContextOrder, backoffIndex);
 				backoffSum += (Float.isNaN(backOff) ? 0.0f : backOff);
-				currContextOrder--;
-				currContextOffset = currContextOrder < 0 ? 0 : values.getSuffixOffset(currContextOffset, currContextOrder + 1);
-			} else {
-				if (outputContext != null) {
-					outputContext.offset = 0;
-					outputContext.order = -1;
-				}
-				return oovWordLogProb;
+				currContextOffset = currContextOrder == 0 ? 0 : values.getSuffixOffset(currContextOffset, currContextOrder);
 			}
+			currContextOrder--;
 		}
+		return oovReturn(outputContext);
+
+	}
+
+	/**
+	 * @param outputContext
+	 * @return
+	 */
+	private float oovReturn(final LmContextInfo outputContext) {
+		if (outputContext != null) {
+			outputContext.offset = 0;
+			outputContext.order = -1;
+		}
+		return oovWordLogProb;
 	}
 
 	/*

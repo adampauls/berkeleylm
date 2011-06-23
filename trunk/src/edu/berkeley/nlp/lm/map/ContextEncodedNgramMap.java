@@ -10,4 +10,6 @@ public interface ContextEncodedNgramMap<T> extends NgramMap<T>
 
 	public int[] getNgramFromContextEncoding(long contextOffset, int contextOrder, int word);
 
+	public boolean wordHasBigrams(int word);
+
 }

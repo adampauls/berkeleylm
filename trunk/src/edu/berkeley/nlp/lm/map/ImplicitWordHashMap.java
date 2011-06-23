@@ -162,4 +162,12 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		return Iterators.able(new KeyIterator(keys));
 	}
 
+	@Override
+	public boolean hasContexts(int word) {
+		if (word >= wordRanges.length) return false;
+		final long rangeStart = wordRanges[word];
+		final long rangeEnd = ((word == wordRanges.length - 1) ? getCapacity() : wordRanges[word + 1]);
+		return (rangeEnd - rangeStart > 0);
+	}
+
 }

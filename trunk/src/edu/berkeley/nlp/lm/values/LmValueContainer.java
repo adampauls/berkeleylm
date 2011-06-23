@@ -146,7 +146,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 
 	@Override
 	public void clearStorageAfterCompression(final int ngramOrder) {
-		valueRanksCompressed[ngramOrder] = null;
+		if (ngramOrder > 0) valueRanksCompressed[ngramOrder] = null;
 	}
 
 	@Override

@@ -60,4 +60,6 @@ interface HashMap
 		private long next, end;
 	}
 
+	public boolean hasContexts(int word);
+
 }
