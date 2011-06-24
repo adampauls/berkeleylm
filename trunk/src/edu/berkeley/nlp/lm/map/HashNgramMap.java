@@ -235,6 +235,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	private long getOffsetFromRawNgram(final int[] ngram, final int startPos, final int endPos) {
 		if (containsOutOfVocab(ngram, startPos, endPos)) return -1;
 		final int ngramOrder = endPos - startPos - 1;
+		if (ngramOrder >= maps.length) return -1;
 		final HashMap currMap = maps[ngramOrder];
 		final long key = getKey(ngram, startPos, endPos);
 		if (key < 0) return -1;
