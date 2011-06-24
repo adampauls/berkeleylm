@@ -28,7 +28,7 @@ public final class NgramMapAddingCallback<V> implements ArpaLmReaderCallback<V>
 		final long add = map.put(ngram, startPos, endPos, v);
 		if (add < 0) {
 			if (warnCount >= 0 && warnCount < 10) {
-				Logger.warn("Could not add line " + words + "\nThis is usually because the prefix for the n-grams was not already in the map");
+				Logger.warn("Could not add line " + words + "\nThis is probabcly because the prefix or suff of the n-grams was not already in the map. This will be fixed in an upcoming release.");
 				warnCount++;
 			}
 			if (warnCount > 10) warnCount = -1;
