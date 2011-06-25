@@ -24,7 +24,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 	private static final long serialVersionUID = 964277160049236607L;
 
 	@PrintMemoryCount
-	protected LongArray valueRanksCompressed[];
+	protected LongArray valueRanks[];
 
 	@PrintMemoryCount
 	private LongArray[] contextOffsets;
@@ -45,12 +45,12 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 		this.countIndexer = countIndexer;
 		this.storePrefixIndexes = storePrefixIndexes;
 		if (storePrefixIndexes) contextOffsets = new LongArray[6];
-		valueRanksCompressed = new LongArray[6];
+		valueRanks = new LongArray[6];
 		countIndexer.getIndex(getDefaultVal());
 		countIndexer.trim();
 		countIndexer.lock();
 		wordWidth = CustomWidthArray.numBitsNeeded(countIndexer.size());
-		Logger.startTrack("Storing count indices");
+		Logger.startTrack("Storing count indices using " + wordWidth + " bits.");
 		storeCounts();
 		Logger.endTrack();
 
@@ -66,12 +66,12 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 
 		final int a = (int) a_;
 		final int b = (int) b_;
-		final int temp = (int) valueRanksCompressed[ngramOrder].get(a);
+		final int temp = (int) valueRanks[ngramOrder].get(a);
 		assert temp >= 0;
-		final int val = (int) valueRanksCompressed[ngramOrder].get(b);
+		final int val = (int) valueRanks[ngramOrder].get(b);
 		assert val >= 0;
-		valueRanksCompressed[ngramOrder].set(a, val);
-		valueRanksCompressed[ngramOrder].set(b, temp);
+		valueRanks[ngramOrder].set(a, val);
+		valueRanks[ngramOrder].set(b, temp);
 	}
 
 	@Override
@@ -88,7 +88,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 				contextOffsets = Arrays.copyOf(contextOffsets, Math.max(ngramOrder + 1, contextOffsets.length * 3 / 2 + 1));
 			contextOffsets[ngramOrder].setAndGrowIfNeeded(offset, suffixOffset);
 		}
-		valueRanksCompressed[ngramOrder].setAndGrowIfNeeded(offset, indexOfCounts);
+		valueRanks[ngramOrder].setAndGrowIfNeeded(offset, indexOfCounts);
 
 	}
 
@@ -100,14 +100,14 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 
 	@Override
 	public void setSizeAtLeast(final long size, final int ngramOrder) {
-		if (ngramOrder >= valueRanksCompressed.length) {
-			valueRanksCompressed = Arrays.copyOf(valueRanksCompressed, valueRanksCompressed.length * 2);
+		if (ngramOrder >= valueRanks.length) {
+			valueRanks = Arrays.copyOf(valueRanks, valueRanks.length * 2);
 			if (contextOffsets != null) contextOffsets = Arrays.copyOf(contextOffsets, contextOffsets.length * 2);
 		}
-		if (valueRanksCompressed[ngramOrder] == null) {
-			valueRanksCompressed[ngramOrder] = new CustomWidthArray(size, wordWidth);
+		if (valueRanks[ngramOrder] == null) {
+			valueRanks[ngramOrder] = new CustomWidthArray(size, wordWidth);
 		}
-		valueRanksCompressed[ngramOrder].ensureCapacity(size + 1);
+		valueRanks[ngramOrder].ensureCapacity(size + 1);
 
 		if (contextOffsets != null) {
 			if (contextOffsets[ngramOrder] == null) contextOffsets[ngramOrder] = LongArray.StaticMethods.newLongArray(Integer.MAX_VALUE, size + 1);
@@ -122,7 +122,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 	@Override
 	public void setFromOtherValues(final ValueContainer<V> other) {
 		final LmValueContainer<V> o = (LmValueContainer<V>) other;
-		this.valueRanksCompressed = o.valueRanksCompressed;
+		this.valueRanks = o.valueRanks;
 		this.countIndexer = o.countIndexer;
 		this.contextOffsets = o.contextOffsets;
 	}
@@ -146,18 +146,18 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 
 	@Override
 	public void clearStorageAfterCompression(final int ngramOrder) {
-		if (ngramOrder > 0) valueRanksCompressed[ngramOrder] = null;
+		if (ngramOrder > 0) valueRanks[ngramOrder] = null;
 	}
 
 	@Override
 	public BitList getCompressed(final long offset, final int ngramOrder) {
-		final int l = (int) valueRanksCompressed[ngramOrder].get(offset);
+		final int l = (int) valueRanks[ngramOrder].get(offset);
 		return valueCoder.compress(l);
 	}
 
 	@Override
 	public void trimAfterNgram(final int ngramOrder, final long size) {
-		valueRanksCompressed[ngramOrder].trim();
+		valueRanks[ngramOrder].trim();
 		if (contextOffsets != null) contextOffsets[ngramOrder].trim();
 	}
 

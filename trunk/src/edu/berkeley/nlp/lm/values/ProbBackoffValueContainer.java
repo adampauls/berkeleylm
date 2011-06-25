@@ -31,7 +31,7 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 
 	@Override
 	public void getFromOffset(final long index, final int ngramOrder, @OutputParameter final ProbBackoffPair outputVal) {
-		final int rank = (int) valueRanksCompressed[ngramOrder].get(index);
+		final int rank = (int) valueRanks[ngramOrder].get(index);
 		outputVal.prob = probsForRank[rank];
 		outputVal.backoff = backoffsForRank[rank];
 	}
@@ -43,7 +43,7 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 	 * @return
 	 */
 	private float getCount(final int ngramOrder, final long index, final float[] array) {
-		final int rank = (int) valueRanksCompressed[ngramOrder].get(index);
+		final int rank = (int) valueRanks[ngramOrder].get(index);
 		return array[rank];
 	}
 

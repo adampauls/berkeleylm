@@ -12,6 +12,11 @@ import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
  * Language model implementation which uses Kneser-Ney-style backoff
  * computation.
  * 
+ * Note that unlike the description in Pauls and Klein (2011), we store trie for which the first word in n-gram points 
+ * to its prefix for this particular implementation. This is in contrast to {@link ContextEncodedProbBackoffLm}, which stores
+ *  a trie for which the last word points to its suffix. This was done because it simplifies the code significantly, without significantly
+ * changing speed or memory usage.
+ * 
  * @author adampauls
  * 
  * @param <W>

@@ -47,7 +47,7 @@ public final class RankedCountValueContainer extends LmValueContainer<LongRef>
 	 * @return
 	 */
 	private long getCount(final int ngramOrder, final long index, final long[] array) {
-		final int countIndex = (int) valueRanksCompressed[ngramOrder].get(index);
+		final int countIndex = (int) valueRanks[ngramOrder].get(index);
 		return array[countIndex];
 	}
 
@@ -69,8 +69,8 @@ public final class RankedCountValueContainer extends LmValueContainer<LongRef>
 	public void trimAfterNgram(final int ngramOrder, final long size) {
 		super.trimAfterNgram(ngramOrder, size);
 		if (ngramOrder == 0) {
-			for (int i = 0; i < valueRanksCompressed[ngramOrder].size(); ++i) {
-				unigramSum += countsForRank[(int) valueRanksCompressed[ngramOrder].get(i)];
+			for (int i = 0; i < valueRanks[ngramOrder].size(); ++i) {
+				unigramSum += countsForRank[(int) valueRanks[ngramOrder].get(i)];
 			}
 		}
 	}

@@ -14,6 +14,12 @@ import edu.berkeley.nlp.lm.util.MurmurHash;
 import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
+/**
+ * 
+ * @author adampauls
+ * 
+ * @param <T>
+ */
 public final class HashNgramMap<T> extends AbstractNgramMap<T> implements ContextEncodedNgramMap<T>
 {
 
