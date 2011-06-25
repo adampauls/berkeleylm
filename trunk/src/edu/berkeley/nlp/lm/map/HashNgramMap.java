@@ -290,6 +290,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 			values.trimAfterNgram(ngramOrder, maps[ngramOrder].getCapacity());
 			Logger.logss("Load factor for " + (ngramOrder + 1) + ": " + maps[ngramOrder].getLoadFactor());
 		}
+		values.trim();
 	}
 
 	/**
