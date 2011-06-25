@@ -36,7 +36,7 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * This class contains a number of static methods for reading/writing/estimating
  * n-gram language models. Since most uses of this software will use this class,
  * I will use this space to document the software as a whole.
- *  <p>
+ * <p>
  * This software provides three main pieces of functionality: <br>
  * (a) estimation of a language models from text inputs <br>
  * (b) data structures for efficiently storing large collections of n-grams in
@@ -51,20 +51,20 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * raw text by called
  * {@link #createKneserNeyLmFromTextFiles(List, WordIndexer, int, File)}. This
  * can also be done from the command-line by calling <code>main()</code> in
- * {@link MakeKneserNeyArpaFromText}. See the <code>examples</code> folder for a script
- * which demonstrates its use. A Stupid Backoff language model can be
+ * {@link MakeKneserNeyArpaFromText}. See the <code>examples</code> folder for a
+ * script which demonstrates its use. A Stupid Backoff language model can be
  * read from a directory containing n-gram counts in the format used by Google's
  * Web1T corpus by calling {@link #readLmFromGoogleNgramDir(String, boolean)}.
  * Note that this software does not (yet) support building Google count
  * directories from raw text, though this can be done using SRILM.
- *  <p>
+ * <p>
  * Loading/estimating language models from text files can be very slow. This
  * software can use Java's built-in serialization to build language model
  * binaries which are both smaller and faster to load.
  * {@link MakeLmBinaryFromArpa} and {@link MakeLmBinaryFromGoogle} provide
- * <code>main()</code> methods for doing this. See the <code>examples</code> folder for scripts
- * which demonstrate their use. 
- *  <p>
+ * <code>main()</code> methods for doing this. See the <code>examples</code>
+ * folder for scripts which demonstrate their use.
+ * <p>
  * Language models can be read into memory from ARPA formats using
  * {@link #readArrayEncodedLmFromArpa(String, boolean)} and
  * {@link #readContextEncodedLmFromArpa(String)}. The "array encoding" versus
@@ -75,7 +75,13 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * be found in {@link ArrayEncodedNgramLanguageModel} and
  * {@link ContextEncodedNgramLanguageModel}. For examples of these interfaces in
  * action, you can have a look at {@link PerplexityTest}.
- *  <p>
+ * <p>
+ * We implement the HASH,HASH+SCROLL, and COMPRESSED language model
+ * representations described in Pauls and Klein (2011) in this release. The
+ * SORTED implementation may be added later. See {@link HashNgramMap} and
+ * {@link CompressedNgramMap} for the implementations of the HASH and COMPRESSED
+ * representations.
+ * <p>
  * To speed up queries, you can wrap language models with caches (
  * {@link ContextEncodedCachingLmWrapper} and
  * {@link ArrayEncodedCachingLmWrapper}). These caches are described in section
@@ -84,7 +90,7 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * however, that the caches are <b>not</b> synchronized. The only threadsafe way
  * to use them is to have a separate caching wrapper for each separate decoding
  * thread (though they can of course all wrap the same underlying LM).
- *  <p>
+ * <p>
  * This software also support a java Map wrapper around an n-gram collection.
  * You can read a map wrapper using
  * {@link #readNgramMapFromGoogleNgramDir(String, boolean, WordIndexer)}.
