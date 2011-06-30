@@ -57,7 +57,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 		data = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, numLongs(numBits));// new long[numLongs(numBits)];
 		size = 0;
 		this.width = width;
-		fullMask = width == Long.SIZE ? -1 : (1L << width) - 1;
+		fullMask = width == Long.SIZE ? -1 : ((1L << width) - 1);
 	}
 
 	private long length() {
@@ -186,7 +186,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 		if (startWord == endWord) {
 			data.set(startWord, data.get(startWord) & ~(fullMask << startBit));
 			data.set(startWord, data.get(startWord) | (value << startBit));
-			assert value == (data.get(startWord) >>> startBit & fullMask);
+			assert value == (data.get(startWord) >>> startBit & fullMask) : startWord + " " + startBit + " " + value;
 		} else {
 			// Here startBit > 0.
 			data.set(startWord, data.get(startWord) & ((1L << startBit) - 1));

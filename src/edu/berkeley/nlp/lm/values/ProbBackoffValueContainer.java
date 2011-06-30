@@ -13,8 +13,6 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 	@PrintMemoryCount
 	float[] probsForRank;
 
-	@PrintMemoryCount
-	float[] backoffsForRank;
 
 	public ProbBackoffValueContainer(final Indexer<ProbBackoffPair> countIndexer, final int valueRadix, final boolean storePrefixes) {
 		super(countIndexer, valueRadix, storePrefixes);
@@ -26,14 +24,13 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 	}
 
 	public final float getProb(final int ngramOrder, final long index) {
-		return getCount(ngramOrder, index, probsForRank);
+		return getCount(ngramOrder, index, 0);
 	}
 
 	@Override
 	public void getFromOffset(final long index, final int ngramOrder, @OutputParameter final ProbBackoffPair outputVal) {
-		final int rank = (int) valueRanks[ngramOrder].get(index);
-		outputVal.prob = probsForRank[rank];
-		outputVal.backoff = backoffsForRank[rank];
+		final int rank = getRank(ngramOrder, index);
+	getFromRank(rank, outputVal);
 	}
 
 	/**
@@ -42,13 +39,18 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 	 * @param uncompressProbs2
 	 * @return
 	 */
-	private float getCount(final int ngramOrder, final long index, final float[] array) {
-		final int rank = (int) valueRanks[ngramOrder].get(index);
-		return array[rank];
+	private float getCount(final int ngramOrder, final long index, int shiftBits) {
+		final int rank = getRank(ngramOrder, index);
+		return getFromRank(rank, shiftBits);
+	}
+
+	private float getFromRank(int rank, int shiftBits) {
+		return probsForRank[2*rank+(shiftBits > 0 ? 1 : 0)];
+		//return Float.intBitsToFloat((int)(probsForRank[rank] >>> shiftBits));
 	}
 
 	public final float getBackoff(final int ngramOrder, final long index) {
-		return getCount(ngramOrder, index, backoffsForRank);
+		return getCount(ngramOrder, index, Integer.SIZE);
 	}
 
 	@Override
@@ -58,13 +60,14 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 
 	@Override
 	protected void storeCounts() {
-		probsForRank = new float[countIndexer.size()];
-		backoffsForRank = new float[countIndexer.size()];
+		probsForRank = new float[2*countIndexer.size()];
 		int k = 0;
 		for (final ProbBackoffPair pair : countIndexer.getObjects()) {
 
 			probsForRank[k] = pair.prob;
-			backoffsForRank[k] = pair.backoff;
+			probsForRank[k+1] = pair.backoff;
+			// | (((long)Float.floatToIntBits(pair.backoff)) << Integer.SIZE);
+			k++;
 			k++;
 		}
 	}
@@ -72,8 +75,8 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 	@Override
 	protected void getFromRank(final int rank, @OutputParameter final ProbBackoffPair outputVal) {
 
-		outputVal.prob = probsForRank[rank];
-		outputVal.backoff = backoffsForRank[rank];
+		outputVal.prob = getFromRank(rank, 0);//probsForRank[rank];
+		outputVal.backoff = getFromRank(rank, Integer.SIZE);
 	}
 
 	@Override

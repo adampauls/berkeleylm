@@ -13,6 +13,8 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	 */
 	private static final long serialVersionUID = 1L;
 
+	private static final int VAL_OFFSET = 0;
+	
 	private static final int WORD_OFFSET = 1;
 
 	private static final int CONTEXT_OFFSET = 2;
@@ -23,18 +25,17 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 
 	private static final int OUTPUT_CONTEXT_ORDER = 7;
 
-	private static final int VAL_OFFSET = 8;
 
 	private static final int STRUCT_LENGTH = 8;
 
 
 	// for efficiency, this array fakes a struct with fields
+	// float prob;
 	// int word;
 	// long contextOffset;
 	// int contextOrder;
 	// long outputContextOffset;
 	// int outputContextOrder;
-	// float prob;
 	private final int[] array;
 
 	private final int cacheSize;
