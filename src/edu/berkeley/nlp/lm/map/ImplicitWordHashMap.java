@@ -33,10 +33,14 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	private long numFilled = 0;
 
 	private static final int EMPTY_KEY = -1;
+		final int numWords;
+		final int ngramOrder;
 
-	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final double loadFactor) {
-		final long numWords = numNgramsForEachWord.size();
-		wordRanges = new long[(int) numWords];
+	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final double loadFactor, long[] wordRanges, int ngramOrder) {
+this.ngramOrder = ngramOrder;		
+ numWords = (int)numNgramsForEachWord.size();
+this.wordRanges = wordRanges;		
+//wordRanges = new long[(int) numWords];
 		final long totalNumNgrams = setWordRanges(numNgramsForEachWord, loadFactor, numWords);
 		keys = LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
 		Logger.logss("No word key size " + totalNumNgrams);
@@ -66,8 +70,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	 */
 	private long setWordRanges(final LongArray numNgramsForEachWord, final double maxLoadFactor, final long numWords) {
 		long currStart = 0;
-		for (int w = 0; w < numWords; ++w) {
-			wordRanges[w] = currStart;
+		for (int w =(0); w < numWords; ++w) {
+			wordRanges[wordRangeIndex(w)] = currStart;
 			final long numNgrams = numNgramsForEachWord.get(w);
 			currStart += numNgrams <= 3 ? numNgrams : Math.round(numNgrams * 1.0 / maxLoadFactor);
 
@@ -93,9 +97,9 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	 */
 	private long linearSearch(final long key, boolean returnFirstEmptyIndex) {
 		int word = AbstractNgramMap.wordOf(key);
-		if (word >= wordRanges.length) return -1;
-		final long rangeStart = wordRanges[word];
-		final long rangeEnd = ((word == wordRanges.length - 1) ? getCapacity() : wordRanges[word + 1]);
+		if (word >= numWords) return -1;
+		final long rangeStart = wordRanges(word);
+		final long rangeEnd = ((word == numWords - 1) ? getCapacity() : wordRanges(word + 1));
 		final long startIndex = hash(key, rangeStart, rangeEnd);
 		if (startIndex < 0) return -1L;
 		assert startIndex >= rangeStart;
@@ -135,9 +139,10 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	 * @see edu.berkeley.nlp.lm.map.HashMap#getWordForContext(long)
 	 */
 	int getWordForContext(long contextOffset) {
-		int binarySearch = Arrays.binarySearch(wordRanges, contextOffset);
+int binarySearch = Arrays.binarySearch(wordRanges,wordRangeIndex(0), wordRangeIndex(numWords), contextOffset);
 		binarySearch = binarySearch >= 0 ? binarySearch : (-binarySearch - 2);
-		while (binarySearch < wordRanges.length - 1 && wordRanges[binarySearch] == wordRanges[binarySearch + 1])
+binarySearch-= wordRangeIndex(0);
+		while (binarySearch <numWords - 1 && wordRanges(binarySearch) == wordRanges(binarySearch + 1))
 			binarySearch++;
 		return binarySearch;
 	}
@@ -164,10 +169,13 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 
 	@Override
 	public boolean hasContexts(int word) {
-		if (word >= wordRanges.length) return false;
-		final long rangeStart = wordRanges[word];
-		final long rangeEnd = ((word == wordRanges.length - 1) ? getCapacity() : wordRanges[word + 1]);
+		if (word >= numWords) return false;
+		final long rangeStart = wordRanges(word);
+		final long rangeEnd = ((word == numWords - 1) ? getCapacity() : wordRanges(word + 1));
 		return (rangeEnd - rangeStart > 0);
 	}
+
+private int wordRangeIndex(int i) { return numWords*ngramOrder +i;}
+private long wordRanges(int i) { return wordRanges[numWords*ngramOrder +i];}
 
 }
