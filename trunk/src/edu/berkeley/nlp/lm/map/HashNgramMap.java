@@ -48,9 +48,10 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		this.maxLoadFactor = opts.hashTableLoadFactor;
 		maps = new HashMap[numNgramsForEachWord.length];
 		initCapacities = null;
+long[] wordRanges = new long[(int)numNgramsForEachWord[0].size()];
 		for (int ngramOrder = 0; ngramOrder < numNgramsForEachWord.length; ++ngramOrder) {
 			maps[ngramOrder] = (ngramOrder == 0) ? new UnigramHashMap(numNgramsForEachWord[ngramOrder].size()) : new ImplicitWordHashMap(
-				numNgramsForEachWord[ngramOrder], maxLoadFactor);
+				numNgramsForEachWord[ngramOrder], maxLoadFactor, wordRanges, ngramOrder);
 			values.setSizeAtLeast(maps[ngramOrder].getCapacity(), ngramOrder);
 		}
 		values.setMap(this);
