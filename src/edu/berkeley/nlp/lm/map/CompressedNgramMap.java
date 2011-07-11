@@ -575,4 +575,10 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		return maps[ngramOrder].size();
 	}
 
+	@Override
+	public boolean contains(int[] ngram, int startPos, int endPos) {
+		return getContextOffset(ngram, startPos, endPos) >= 0;
+		
+	}
+
 }

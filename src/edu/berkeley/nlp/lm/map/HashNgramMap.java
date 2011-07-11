@@ -364,4 +364,9 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		return maps.length < 2 ? false : maps[1].hasContexts(word);
 	}
 
+	@Override
+	public boolean contains(int[] ngram, int startPos, int endPos) {
+		return getOffsetFromRawNgram(ngram, startPos, endPos) >= 0;
+	}
+
 }

@@ -19,6 +19,7 @@ import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.cache.ArrayEncodedCachingLmWrapper;
 import edu.berkeley.nlp.lm.cache.ContextEncodedCachingLmWrapper;
+import edu.berkeley.nlp.lm.map.AbstractNgramMap;
 import edu.berkeley.nlp.lm.map.CompressedNgramMap;
 import edu.berkeley.nlp.lm.map.ContextEncodedNgramMap;
 import edu.berkeley.nlp.lm.map.HashNgramMap;
@@ -430,14 +431,43 @@ public class LmReaders
 	private static <W, V extends Comparable<V>> NgramMap<V> buildMapCommon(final ConfigOptions opts, final WordIndexer<W> wordIndexer,
 		final LongArray[] numNgramsForEachWord, final long[] numNgramsForEachOrder, final boolean reversed,
 		final LmReader<V, ? super NgramMapAddingCallback<V>> lmReader, final ValueContainer<V> values, final boolean compress) {
-		Logger.startTrack("Pass 2 of 2");
-		final NgramMap<V> map = compress ? new CompressedNgramMap<V>((CompressibleValueContainer<V>) values, numNgramsForEachOrder, opts) : HashNgramMap
-			.createImplicitWordHashNgramMap(values, opts, numNgramsForEachWord, reversed);
+		Logger.startTrack("Adding n-grams");
+		NgramMap<V> map = createNgramMap(opts, numNgramsForEachWord, numNgramsForEachOrder, reversed, values, compress);
 
-		lmReader.parse(new NgramMapAddingCallback<V>(map));
+		final NgramMapAddingCallback<V> ngramMapAddingCallback = new NgramMapAddingCallback<V>(map, null);
+		lmReader.parse(ngramMapAddingCallback);
 		wordIndexer.trimAndLock();
 		Logger.endTrack();
+		final List<int[]> failures = ngramMapAddingCallback.getFailures();
+		if (!failures.isEmpty()) {
+			Logger.startTrack("Some missing suffixes of prefixes were found, doing another pass to add n-grams");
+			for (int[] failure : failures) {
+				final int ngramOrder = failure.length - 1;
+				final int headWord = failure[reversed ? 0 : ngramOrder];
+				numNgramsForEachOrder[ngramOrder]++;
+				numNgramsForEachWord[ngramOrder].incrementCount(headWord, 1);
+			}
+			map = createNgramMap(opts, numNgramsForEachWord, numNgramsForEachOrder, reversed, values.createFreshValues(), compress);
+			lmReader.parse(new NgramMapAddingCallback<V>(map, failures));
+			Logger.endTrack();
+		}
 		return map;
+	}
+
+	/**
+	 * @param <V>
+	 * @param opts
+	 * @param numNgramsForEachWord
+	 * @param numNgramsForEachOrder
+	 * @param reversed
+	 * @param values
+	 * @param compress
+	 * @return
+	 */
+	private static <V> AbstractNgramMap<V> createNgramMap(final ConfigOptions opts, final LongArray[] numNgramsForEachWord, final long[] numNgramsForEachOrder,
+		final boolean reversed, final ValueContainer<V> values, final boolean compress) {
+		return compress ? new CompressedNgramMap<V>((CompressibleValueContainer<V>) values, numNgramsForEachOrder, opts) : HashNgramMap
+			.createImplicitWordHashNgramMap(values, opts, numNgramsForEachWord, reversed);
 	}
 
 	private static <W> FirstPassCallback<ProbBackoffPair> firstPassArpa(final String lmFile, final int lmOrder, final WordIndexer<W> wordIndexer,
@@ -464,7 +494,7 @@ public class LmReaders
 	 */
 	private static <V extends Comparable<V>> FirstPassCallback<V> firstPassCommon(final LmReader<V, ? super FirstPassCallback<V>> arpaLmReader,
 		final boolean reverse) {
-		Logger.startTrack("Pass 1 of 2");
+		Logger.startTrack("Counting values");
 		final FirstPassCallback<V> valueAddingCallback = new FirstPassCallback<V>(reverse);
 		arpaLmReader.parse(valueAddingCallback);
 		Logger.endTrack();

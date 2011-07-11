@@ -84,6 +84,10 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 		if (val == null) val = getDefaultVal();
 
 		setSizeAtLeast(10, ngramOrder);
+		if (countIndexer == null) {
+			@SuppressWarnings("unused")
+			int x = 5;
+		}
 		final int indexOfCounts = countIndexer.getIndex(val);
 
 		

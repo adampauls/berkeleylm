@@ -53,13 +53,19 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 		float backoffSum = 0.0f;
 		if (word < 0 || word >= numWords) { return oovReturn(outputContext); }
 		final boolean onlyUnigram = !localMap.wordHasBigrams(word);
+		long longestOffset = -2;
+		int longestOrder = -2;
 
 		while (currContextOrder >= -1) {
 			final long offset = (onlyUnigram && currContextOrder >= 0) ? -1 : localMap.getOffset(currContextOffset, currContextOrder, word);
 			final int ngramOrder = currContextOrder + 1;
 			final float prob = offset < 0 ? Float.NaN : values.getProb(ngramOrder, offset);
+			if (offset >= 0 && longestOffset == -2) {
+				longestOffset = offset;
+				longestOrder = ngramOrder;
+			}
 			if (offset >= 0 && !Float.isNaN(prob)) {
-				setOutputContext(outputContext, offset, ngramOrder);
+				setOutputContext(outputContext, longestOffset, longestOrder);
 				return backoffSum + prob;
 			} else if (currContextOrder >= 0) {
 				final long backoffIndex = currContextOffset;

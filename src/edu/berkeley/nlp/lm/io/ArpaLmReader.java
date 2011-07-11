@@ -70,6 +70,9 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 	 */
 	@Override
 	public void parse(final ArpaLmReaderCallback<ProbBackoffPair> callback_) {
+		currentNGramLength = 1;
+		currentNGramCount = 0;
+		lineNumber = 1;
 		this.callback = callback_;
 		this.reader = IOUtils.openInHard(file);
 		Logger.startTrack("Parsing ARPA language model file");
@@ -178,7 +181,7 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 			backoff = Float.parseFloat(line.substring(secondTab + 1, length));
 		}
 		// add the new n-gram
-		if ( logProbability > 0.0) throw new RuntimeException("Bad ARPA line " + line);
+		if (logProbability > 0.0) throw new RuntimeException("Bad ARPA line " + line);
 		callback.call(ngram, 0, ngram.length, new ProbBackoffPair(logProbability, backoff), line);
 
 		currentNGramCount++;

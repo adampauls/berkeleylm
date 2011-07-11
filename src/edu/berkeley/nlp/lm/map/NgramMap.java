@@ -21,7 +21,7 @@ public interface NgramMap<V>
 	public long getValueAndOffset(final long contextOffset, final int contextOrder, int word, @OutputParameter V currProbVal);
 
 	public int getMaxNgramOrder();
-	
+
 	public long getNumNgrams(int ngramOrder);
 
 	public Iterable<Entry<V>> getNgramsForOrder(final int ngramOrder);
@@ -43,5 +43,7 @@ public interface NgramMap<V>
 		public T value;
 
 	}
+
+	public boolean contains(int[] ngram, int startPos, int endPos);
 
 }

@@ -12,9 +12,11 @@ import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
  * Language model implementation which uses Kneser-Ney-style backoff
  * computation.
  * 
- * Note that unlike the description in Pauls and Klein (2011), we store trie for which the first word in n-gram points 
- * to its prefix for this particular implementation. This is in contrast to {@link ContextEncodedProbBackoffLm}, which stores
- *  a trie for which the last word points to its suffix. This was done because it simplifies the code significantly, without significantly
+ * Note that unlike the description in Pauls and Klein (2011), we store trie for
+ * which the first word in n-gram points to its prefix for this particular
+ * implementation. This is in contrast to {@link ContextEncodedProbBackoffLm},
+ * which stores a trie for which the last word points to its suffix. This was
+ * done because it simplifies the code significantly, without significantly
  * changing speed or memory usage.
  * 
  * @author adampauls
@@ -69,7 +71,23 @@ public class ProbBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W> 
 			probContextOrder++;
 		}
 		if (matchedProbContext < 0) return oovWordLogProb;
-		final float logProb = scratch == null ? values.getProb(matchedProbContextOrder + 1, matchedProbContext) : scratch.prob;
+		float logProb = scratch == null ? values.getProb(matchedProbContextOrder + 1, matchedProbContext) : scratch.prob;
+		if (Float.isNaN(logProb)) {
+			// this was a fake entry, let's do it again, but only keep track of the biggest match which was not fake
+			probContext = 0L;
+			probContextOrder = -1;
+			for (int i = endPos - 1; i >= startPos; --i) {
+				probContext = localMap.getValueAndOffset(probContext, probContextOrder, ngram[i], scratch);
+				if (probContext < 0) break;
+				float tmpProb = scratch == null ? values.getProb(probContextOrder + 1, probContext) : scratch.prob;
+				if (!Float.isNaN(tmpProb)) {
+					logProb = tmpProb;
+					matchedProbContext = probContext;
+					matchedProbContextOrder = probContextOrder;
+				}
+				probContextOrder++;
+			}
+		}
 
 		// matched the whole n-gram, so no need to back off
 		if (matchedProbContextOrder == endPos - startPos - 2) return logProb;
