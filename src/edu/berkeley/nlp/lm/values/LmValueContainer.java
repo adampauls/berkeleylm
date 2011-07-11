@@ -86,14 +86,10 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 		setSizeAtLeast(10, ngramOrder);
 		final int indexOfCounts = countIndexer.getIndex(val);
 
-		//if (false && suffixOffset >= 0 && contextOffsets != null) {
-		//	if (ngramOrder >= contextOffsets.length)
-		//		contextOffsets = Arrays.copyOf(contextOffsets, Math.max(ngramOrder + 1, contextOffsets.length * 3 / 2 + 1));
-		//	contextOffsets[ngramOrder].setAndGrowIfNeeded(offset, suffixOffset);
-		//}
+		
 		if (storePrefixIndexes) {
-			long x = suffixOffset == -1 ? ((1L << 32) - 1) : suffixOffset;
-			valueRanks[ngramOrder].setAndGrowIfNeeded(offset, x | (long) indexOfCounts << rankShift);
+			long suffixOffset_ = suffixOffset == -1 ? ((1L << 32) - 1) : suffixOffset;
+			valueRanks[ngramOrder].setAndGrowIfNeeded(offset, suffixOffset_ | (long) indexOfCounts << rankShift);
 
 		} else
 			valueRanks[ngramOrder].setAndGrowIfNeeded(offset, indexOfCounts);
@@ -110,17 +106,13 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 	public void setSizeAtLeast(final long size, final int ngramOrder) {
 		if (ngramOrder >= valueRanks.length) {
 			valueRanks = Arrays.copyOf(valueRanks, valueRanks.length * 2);
-			//if (contextOffsets != null) contextOffsets = Arrays.copyOf(contextOffsets, contextOffsets.length * 2);
 		}
 		if (valueRanks[ngramOrder] == null) {
 			valueRanks[ngramOrder] = new CustomWidthArray(size, rankShift + wordWidth);
 		}
 		valueRanks[ngramOrder].ensureCapacity(size + 1);
 
-		//if (contextOffsets != null) {
-		//	if (contextOffsets[ngramOrder] == null) contextOffsets[ngramOrder] = LongArray.StaticMethods.newLongArray(Integer.MAX_VALUE, size + 1);
-		//	contextOffsets[ngramOrder].ensureCapacity(size + 1);
-		//}
+		
 	}
 
 	public long getSuffixOffset(final long index, final int ngramOrder) {
