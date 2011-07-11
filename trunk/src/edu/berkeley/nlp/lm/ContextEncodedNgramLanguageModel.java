@@ -90,13 +90,11 @@ public interface ContextEncodedNgramLanguageModel<W> extends NgramLanguageModel<
 			for (int i = 1; i < lmOrder - 1 && i <= sentenceWithBounds.size() + 1; ++i) {
 				final List<T> ngram = sentenceWithBounds.subList(-1, i);
 				final float scoreNgram = lm.getLogProb(ngram);
-				System.out.println(":: " + scoreNgram);
 				sentenceScore += scoreNgram;
 			}
 			for (int i = lmOrder - 1; i < sentenceWithBounds.size() + 2; ++i) {
 				final List<T> ngram = sentenceWithBounds.subList(i - lmOrder, i);
 				final float scoreNgram = lm.getLogProb(ngram);
-				System.out.println("x:: " + scoreNgram);
 				sentenceScore += scoreNgram;
 			}
 			return sentenceScore;
