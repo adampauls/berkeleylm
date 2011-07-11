@@ -38,11 +38,15 @@ public final class NgramMapAddingCallback<V> implements ArpaLmReaderCallback<V>
 
 		if (add < 0) {
 			if (canFail) {
-				if (!map.contains(ngram, startPos, endPos - 1)) {
-					failures.add(Arrays.copyOfRange(ngram, startPos, endPos - 1));
+				for (int endPos_ = endPos - 1; (endPos_ > startPos); endPos_--) {
+					if (!map.contains(ngram, startPos, endPos_)) {
+						failures.add(Arrays.copyOfRange(ngram, startPos, endPos_));
+					}
 				}
-				if (!map.contains(ngram, startPos + 1, endPos)) {
-					failures.add(Arrays.copyOfRange(ngram, startPos + 1, endPos));
+				for (int startPos_ = startPos; (startPos_ < endPos); startPos_++) {
+					if (!map.contains(ngram, startPos + 1, endPos)) {
+						failures.add(Arrays.copyOfRange(ngram, startPos_, endPos));
+					}
 				}
 			} else {
 				throw new RuntimeException("Failed to add line " + words);

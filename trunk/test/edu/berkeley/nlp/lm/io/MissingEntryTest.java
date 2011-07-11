@@ -23,7 +23,7 @@ import edu.berkeley.nlp.lm.collections.Iterators;
 public class MissingEntryTest
 {
 
-	public static final String BIG_TEST_ARPA = "missing_test_trigram.arpa";
+	public static final String BIG_TEST_ARPA = "missing_test_fourgram.arpa";
 
 	@Test
 	public void testArrayEncoded() {
@@ -73,6 +73,7 @@ public class MissingEntryTest
 	 */
 	public static void testArrayEncodedLogProb(ArrayEncodedNgramLanguageModel<String> lm_, File file) {
 
+		Assert.assertEquals(lm_.getLogProb(Arrays.asList("This another test is".split(" "))), -0.67443009, 1e-2);
 		Assert.assertEquals(lm_.getLogProb(Arrays.asList("another test sentence.".split(" "))), -0.07443009, 1e-2);
 		Assert.assertEquals(lm_.getLogProb(Arrays.asList("is another test".split(" "))), -0.1366771, 1e-2);
 		Assert.assertEquals(lm_.getLogProb(Arrays.asList("another test".split(" "))), -0.60206 + -0.2218488, 1e-2);
@@ -85,6 +86,7 @@ public class MissingEntryTest
 	 */
 	public static void testContextEncodedLogProb(ContextEncodedNgramLanguageModel<String> lm_, File file) {
 
+		Assert.assertEquals(lm_.getLogProb(Arrays.asList("This another test is".split(" "))), -0.67443009, 1e-2);
 		Assert.assertEquals(lm_.getLogProb(Arrays.asList("another test sentence.".split(" "))), -0.07443009, 1e-2);
 		Assert.assertEquals(lm_.getLogProb(Arrays.asList("is another test".split(" "))), -0.1366771, 1e-2);
 		Assert.assertEquals(lm_.getLogProb(Arrays.asList("another test".split(" "))), -0.60206 + -0.2218488, 1e-2);
