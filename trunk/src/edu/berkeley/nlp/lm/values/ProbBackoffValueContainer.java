@@ -11,8 +11,7 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 	private static final long serialVersionUID = 964277160049236607L;
 
 	@PrintMemoryCount
-	float[] probsForRank;
-
+	float[] probsAndBackoffsForRank; // ugly, but we but probs and backoffs consecutively in this area to improve cache locality
 
 	public ProbBackoffValueContainer(final Indexer<ProbBackoffPair> countIndexer, final int valueRadix, final boolean storePrefixes) {
 		super(countIndexer, valueRadix, storePrefixes);
@@ -24,13 +23,13 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 	}
 
 	public final float getProb(final int ngramOrder, final long index) {
-		return getCount(ngramOrder, index, 0);
+		return getCount(ngramOrder, index, false);
 	}
 
 	@Override
 	public void getFromOffset(final long index, final int ngramOrder, @OutputParameter final ProbBackoffPair outputVal) {
 		final int rank = getRank(ngramOrder, index);
-	getFromRank(rank, outputVal);
+		getFromRank(rank, outputVal);
 	}
 
 	/**
@@ -39,18 +38,17 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 	 * @param uncompressProbs2
 	 * @return
 	 */
-	private float getCount(final int ngramOrder, final long index, int shiftBits) {
+	private float getCount(final int ngramOrder, final long index, boolean backoff) {
 		final int rank = getRank(ngramOrder, index);
-		return getFromRank(rank, shiftBits);
+		return getFromRank(rank, backoff);
 	}
 
-	private float getFromRank(int rank, int shiftBits) {
-		return probsForRank[2*rank+(shiftBits > 0 ? 1 : 0)];
-		//return Float.intBitsToFloat((int)(probsForRank[rank] >>> shiftBits));
+	private float getFromRank(int rank, boolean backoff) {
+		return probsAndBackoffsForRank[2 * rank + (backoff ? 1 : 0)];
 	}
 
 	public final float getBackoff(final int ngramOrder, final long index) {
-		return getCount(ngramOrder, index, Integer.SIZE);
+		return getCount(ngramOrder, index, true);
 	}
 
 	@Override
@@ -60,23 +58,20 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 
 	@Override
 	protected void storeCounts() {
-		probsForRank = new float[2*countIndexer.size()];
+		probsAndBackoffsForRank = new float[2 * countIndexer.size()];
 		int k = 0;
 		for (final ProbBackoffPair pair : countIndexer.getObjects()) {
 
-			probsForRank[k] = pair.prob;
-			probsForRank[k+1] = pair.backoff;
-			// | (((long)Float.floatToIntBits(pair.backoff)) << Integer.SIZE);
-			k++;
-			k++;
+			probsAndBackoffsForRank[k++] = pair.prob;
+			probsAndBackoffsForRank[k++] = pair.backoff;
 		}
 	}
 
 	@Override
 	protected void getFromRank(final int rank, @OutputParameter final ProbBackoffPair outputVal) {
 
-		outputVal.prob = getFromRank(rank, 0);//probsForRank[rank];
-		outputVal.backoff = getFromRank(rank, Integer.SIZE);
+		outputVal.prob = getFromRank(rank, false);
+		outputVal.backoff = getFromRank(rank, true);
 	}
 
 	@Override

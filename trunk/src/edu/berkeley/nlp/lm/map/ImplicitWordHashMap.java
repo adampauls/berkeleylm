@@ -33,16 +33,19 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	private long numFilled = 0;
 
 	private static final int EMPTY_KEY = -1;
-		final int numWords;
-		final int ngramOrder;
-		final int maxNgramOrder;
+
+	private final int numWords;
+
+	private final int ngramOrder;
+
+	private final int maxNgramOrder;
 
 	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final double loadFactor, long[] wordRanges, int ngramOrder, int maxNgramOrder) {
-this.ngramOrder = ngramOrder;		
-this.maxNgramOrder = maxNgramOrder;		
- numWords = (int)numNgramsForEachWord.size();
-this.wordRanges = wordRanges;		
-//wordRanges = new long[(int) numWords];
+		this.ngramOrder = ngramOrder;
+		this.maxNgramOrder = maxNgramOrder;
+		numWords = (int) numNgramsForEachWord.size();
+		this.wordRanges = wordRanges;
+		//wordRanges = new long[(int) numWords];
 		final long totalNumNgrams = setWordRanges(numNgramsForEachWord, loadFactor, numWords);
 		keys = LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
 		Logger.logss("No word key size " + totalNumNgrams);
@@ -72,7 +75,7 @@ this.wordRanges = wordRanges;
 	 */
 	private long setWordRanges(final LongArray numNgramsForEachWord, final double maxLoadFactor, final long numWords) {
 		long currStart = 0;
-		for (int w =(0); w < numWords; ++w) {
+		for (int w = (0); w < numWords; ++w) {
 			wordRanges[wordRangeIndex(w)] = currStart;
 			final long numNgrams = numNgramsForEachWord.get(w);
 			currStart += numNgrams <= 3 ? numNgrams : Math.round(numNgrams * 1.0 / maxLoadFactor);
@@ -141,12 +144,28 @@ this.wordRanges = wordRanges;
 	 * @see edu.berkeley.nlp.lm.map.HashMap#getWordForContext(long)
 	 */
 	int getWordForContext(long contextOffset) {
-int binarySearch = Arrays.binarySearch(wordRanges,wordRangeIndex(0), wordRangeIndex(numWords), contextOffset);
+		int binarySearch = binarySearch(contextOffset);
 		binarySearch = binarySearch >= 0 ? binarySearch : (-binarySearch - 2);
-binarySearch-= wordRangeIndex(0);
-		while (binarySearch <numWords - 1 && wordRanges(binarySearch) == wordRanges(binarySearch + 1))
+		while (binarySearch < numWords - 1 && wordRanges(binarySearch) == wordRanges(binarySearch + 1))
 			binarySearch++;
 		return binarySearch;
+	}
+
+	private int binarySearch(long key) {
+		int low = 0;
+		int high = numWords - 1;
+
+		while (low <= high) {
+			int mid = (low + high) >>> 1;
+			long midVal = wordRanges(mid);
+			if (midVal < key)
+				low = mid + 1;
+			else if (midVal > key)
+				high = mid - 1;
+			else
+				return mid; // key found
+		}
+		return -(low + 1); // key not found.
 	}
 
 	@Override
@@ -177,7 +196,12 @@ binarySearch-= wordRangeIndex(0);
 		return (rangeEnd - rangeStart > 0);
 	}
 
-private int wordRangeIndex(int i) { return ngramOrder +i*maxNgramOrder;}
-private long wordRanges(int i) { return wordRanges[ngramOrder +i*maxNgramOrder];}
+	private int wordRangeIndex(int i) {
+		return ngramOrder + i * maxNgramOrder;
+	}
+
+	private long wordRanges(int i) {
+		return wordRanges[wordRangeIndex(i)];
+	}
 
 }
