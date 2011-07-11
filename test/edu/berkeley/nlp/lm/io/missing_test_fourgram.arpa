@@ -3,6 +3,7 @@
 ngram 1=8
 ngram 2=7
 ngram 3=8
+ngram 4=1
 
 \1-grams:
 -0.90309	</s>
@@ -33,4 +34,6 @@ ngram 3=8
 -0.07443009	a test sentence.
 -0.07443009	another test sentence.
 
+\4-grams:
+-0.67443009	This another test is
 \end\
