@@ -38,14 +38,16 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 	protected final int valueRadix;
 
 	private final int wordWidth;
-final int rankShift;
+
+	final int rankShift;
+
 	public LmValueContainer(final Indexer<V> countIndexer, final int valueRadix, final boolean storePrefixIndexes) {
 		this.valueRadix = valueRadix;
 		valueCoder = new VariableLengthBitCompressor(valueRadix);
 		this.countIndexer = countIndexer;
 		this.storePrefixIndexes = storePrefixIndexes;
-		rankShift = this.storePrefixIndexes ? 32:0;
-	//	if (storePrefixIndexes) contextOffsets = new LongArray[6];
+		rankShift = this.storePrefixIndexes ? 32 : 0;
+		//	if (storePrefixIndexes) contextOffsets = new LongArray[6];
 		valueRanks = new LongArray[6];
 		countIndexer.getIndex(getDefaultVal());
 		countIndexer.trim();
@@ -67,7 +69,7 @@ final int rankShift;
 
 		final int a = (int) a_;
 		final int b = (int) b_;
-		final long temp =  valueRanks[ngramOrder].get(a);
+		final long temp = valueRanks[ngramOrder].get(a);
 		assert temp >= 0;
 		final long val = (int) valueRanks[ngramOrder].get(b);
 		assert val >= 0;
@@ -90,11 +92,11 @@ final int rankShift;
 		//	contextOffsets[ngramOrder].setAndGrowIfNeeded(offset, suffixOffset);
 		//}
 		if (storePrefixIndexes) {
-long x = suffixOffset == -1 ? ((1L << 32) -1) : suffixOffset;
-		valueRanks[ngramOrder].setAndGrowIfNeeded(offset, x | (long)indexOfCounts << rankShift);
-		
-} else
-		valueRanks[ngramOrder].setAndGrowIfNeeded(offset, indexOfCounts);
+			long x = suffixOffset == -1 ? ((1L << 32) - 1) : suffixOffset;
+			valueRanks[ngramOrder].setAndGrowIfNeeded(offset, x | (long) indexOfCounts << rankShift);
+
+		} else
+			valueRanks[ngramOrder].setAndGrowIfNeeded(offset, indexOfCounts);
 
 	}
 
@@ -111,7 +113,7 @@ long x = suffixOffset == -1 ? ((1L << 32) -1) : suffixOffset;
 			//if (contextOffsets != null) contextOffsets = Arrays.copyOf(contextOffsets, contextOffsets.length * 2);
 		}
 		if (valueRanks[ngramOrder] == null) {
-			valueRanks[ngramOrder] = new CustomWidthArray(size, rankShift +wordWidth);
+			valueRanks[ngramOrder] = new CustomWidthArray(size, rankShift + wordWidth);
 		}
 		valueRanks[ngramOrder].ensureCapacity(size + 1);
 
@@ -122,20 +124,19 @@ long x = suffixOffset == -1 ? ((1L << 32) -1) : suffixOffset;
 	}
 
 	public long getSuffixOffset(final long index, final int ngramOrder) {
-		return storePrefixIndexes ? -1 : (int)valueRanks[ngramOrder].get(index);
-		}
+		return !storePrefixIndexes ? -1 : (int) valueRanks[ngramOrder].get(index);
+	}
 
 	@Override
 	public void setFromOtherValues(final ValueContainer<V> other) {
 		final LmValueContainer<V> o = (LmValueContainer<V>) other;
 		this.valueRanks = o.valueRanks;
 		this.countIndexer = o.countIndexer;
-		//this.contextOffsets = o.contextOffsets;
 	}
 
 	protected int getRank(int ngramOrder, long offset) {
-return (int) (valueRanks[ngramOrder].get(offset) >>> rankShift);
-}
+		return (int) (valueRanks[ngramOrder].get(offset) >>> rankShift);
+	}
 
 	@Override
 	public final void decompress(final BitStream bits, final int ngramOrder, final boolean justConsume, @OutputParameter final V outputVal) {
@@ -168,7 +169,6 @@ return (int) (valueRanks[ngramOrder].get(offset) >>> rankShift);
 	@Override
 	public void trimAfterNgram(final int ngramOrder, final long size) {
 		valueRanks[ngramOrder].trim();
-		//if (contextOffsets != null) contextOffsets[ngramOrder].trim();
 	}
 
 	@Override

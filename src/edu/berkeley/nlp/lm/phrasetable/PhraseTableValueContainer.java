@@ -240,13 +240,15 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 
 	@Override
 	public void trim() {
-		for (int i = 0; i < features.length; ++i) {
-			features[i].trim();
-			targetTranslations[i].trimToSize();
+		for (int ngramOrder = 0; ngramOrder < features.length; ++ngramOrder) {
+			if (features[ngramOrder] != null) features[ngramOrder].trim();
+			if (valueIndexes[ngramOrder] != null) valueIndexes[ngramOrder].trim();
+			if (targetTranslations[ngramOrder] != null) {
+				targetTranslations[ngramOrder].trimToSize();
 
-			valueIndexes[i].trim();
-			for (int j = 0; j < targetTranslations[i].size(); ++j) {
-				targetTranslations[i].get(j).trim();
+				for (int j = 0; j < targetTranslations[ngramOrder].size(); ++j) {
+					targetTranslations[ngramOrder].get(j).trim();
+				}
 			}
 		}
 	}
