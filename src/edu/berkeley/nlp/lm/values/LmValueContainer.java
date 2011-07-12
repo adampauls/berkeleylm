@@ -86,6 +86,10 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 		setSizeAtLeast(10, ngramOrder);
 
 		final int indexOfCounts = countIndexer.getIndex(val);
+		if (suffixOffset < 0) {
+			@SuppressWarnings("unused")
+			int x = 5;
+		}
 		assert suffixOffset >= 0;
 		assert suffixOffset <= Integer.MAX_VALUE;
 		if (storePrefixIndexes) {
