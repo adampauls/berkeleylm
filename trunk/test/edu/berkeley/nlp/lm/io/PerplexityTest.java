@@ -12,7 +12,7 @@ import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ContextEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.ArrayEncodedNgramLanguageModel;
-import edu.berkeley.nlp.lm.ProbBackoffLm;
+import edu.berkeley.nlp.lm.ArrayEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.StringWordIndexer;
 import edu.berkeley.nlp.lm.cache.ArrayEncodedCachingLmWrapper;
 import edu.berkeley.nlp.lm.cache.ArrayEncodedDirectMappedLmCache;
@@ -37,7 +37,7 @@ public class PerplexityTest
 	public void testTiny() {
 		File file = FileUtils.getFile(TEST_PERPLEX_TINY_TXT);
 		float goldLogProb = TEST_PERPLEX_TINY_GOLD_PROB;
-		ProbBackoffLm<String> lm = getLm();
+		ArrayEncodedProbBackoffLm<String> lm = getLm();
 		testArrayEncodedLogProb(lm, file, goldLogProb);
 		//		Assert.assertEquals(logScore, -2806.4f, 1e-1);
 	}
@@ -54,7 +54,7 @@ public class PerplexityTest
 	public void test() {
 		File file = FileUtils.getFile(TEST_PERPLEX_TXT);
 		float goldLogProb = TEST_PERPLEX_GOLD_PROB;
-		ProbBackoffLm<String> lm = getLm();
+		ArrayEncodedProbBackoffLm<String> lm = getLm();
 		testArrayEncodedLogProb(lm, file, goldLogProb);
 	}
 
@@ -65,7 +65,7 @@ public class PerplexityTest
 		File lmFile = FileUtils.getFile(BIG_TEST_ARPA);
 		final ConfigOptions configOptions = new ConfigOptions();
 		configOptions.unknownWordLogProb = 0.0f;
-		ProbBackoffLm<String> lm = LmReaders.readArrayEncodedLmFromArpa(lmFile.getPath(), true, new StringWordIndexer(), configOptions, Integer.MAX_VALUE);
+		ArrayEncodedProbBackoffLm<String> lm = LmReaders.readArrayEncodedLmFromArpa(lmFile.getPath(), true, new StringWordIndexer(), configOptions, Integer.MAX_VALUE);
 		testArrayEncodedLogProb(lm, file, goldLogProb);
 	}
 
@@ -76,7 +76,7 @@ public class PerplexityTest
 		File lmFile = FileUtils.getFile(BIG_TEST_ARPA);
 		final ConfigOptions configOptions = new ConfigOptions();
 		configOptions.unknownWordLogProb = 0.0f;
-		ProbBackoffLm<String> lm = LmReaders.readArrayEncodedLmFromArpa(lmFile.getPath(), true, new StringWordIndexer(), configOptions, Integer.MAX_VALUE);
+		ArrayEncodedProbBackoffLm<String> lm = LmReaders.readArrayEncodedLmFromArpa(lmFile.getPath(), true, new StringWordIndexer(), configOptions, Integer.MAX_VALUE);
 		testArrayEncodedLogProb(ArrayEncodedCachingLmWrapper.wrapWithCacheNotThreadSafe(lm, new ArrayEncodedDirectMappedLmCache(16, lm.getLmOrder())), file,
 			goldLogProb);
 	}
@@ -93,7 +93,7 @@ public class PerplexityTest
 	public void testCachedTiny() {
 		File file = FileUtils.getFile(TEST_PERPLEX_TINY_TXT);
 		float goldLogProb = TEST_PERPLEX_TINY_GOLD_PROB;
-		final ProbBackoffLm<String> lm_ = getLm();
+		final ArrayEncodedProbBackoffLm<String> lm_ = getLm();
 		ArrayEncodedNgramLanguageModel<String> lm = ArrayEncodedCachingLmWrapper.wrapWithCacheNotThreadSafe(lm_,
 			new ArrayEncodedDirectMappedLmCache(16, lm_.getLmOrder()));
 		testArrayEncodedLogProb(lm, file, goldLogProb);
@@ -112,7 +112,7 @@ public class PerplexityTest
 	public void testCached() {
 		File file = FileUtils.getFile(TEST_PERPLEX_TXT);
 		float goldLogProb = TEST_PERPLEX_GOLD_PROB;
-		final ProbBackoffLm<String> lm_ = getLm();
+		final ArrayEncodedProbBackoffLm<String> lm_ = getLm();
 		ArrayEncodedNgramLanguageModel<String> lm = ArrayEncodedCachingLmWrapper.wrapWithCacheNotThreadSafe(getLm(), new ArrayEncodedDirectMappedLmCache(16,
 			lm_.getLmOrder()));
 		testArrayEncodedLogProb(lm, file, goldLogProb);
@@ -142,11 +142,11 @@ public class PerplexityTest
 	/**
 	 * @return
 	 */
-	private ProbBackoffLm<String> getLm() {
+	private ArrayEncodedProbBackoffLm<String> getLm() {
 		File lmFile = FileUtils.getFile(BIG_TEST_ARPA);
 		final ConfigOptions configOptions = new ConfigOptions();
 		configOptions.unknownWordLogProb = 0.0f;
-		ProbBackoffLm<String> lm = LmReaders.readArrayEncodedLmFromArpa(lmFile.getPath(), false, new StringWordIndexer(), configOptions, Integer.MAX_VALUE);
+		ArrayEncodedProbBackoffLm<String> lm = LmReaders.readArrayEncodedLmFromArpa(lmFile.getPath(), false, new StringWordIndexer(), configOptions, Integer.MAX_VALUE);
 		return lm;
 	}
 

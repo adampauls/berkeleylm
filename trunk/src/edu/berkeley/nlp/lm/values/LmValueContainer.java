@@ -78,21 +78,22 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 	}
 
 	@Override
-	public void add(int[] ngram, int startPos, int endPos, final int ngramOrder, final long offset, final long prefixOffset, final int word, final V val_,
+	public boolean add(int[] ngram, int startPos, int endPos, final int ngramOrder, final long offset, final long prefixOffset, final int word, final V val_,
 		final long suffixOffset, boolean ngramIsNew) {
+		if (suffixOffset < 0 && storePrefixIndexes) return false;
 		V val = val_;
 		if (val == null) val = getDefaultVal();
 
 		setSizeAtLeast(10, ngramOrder);
 
 		final int indexOfCounts = countIndexer.getIndex(val);
-		assert suffixOffset >= 0;
-		assert suffixOffset <= Integer.MAX_VALUE;
 		if (storePrefixIndexes) {
+			assert suffixOffset >= 0;
+			assert suffixOffset <= Integer.MAX_VALUE;
 			valueRanks[ngramOrder].setAndGrowIfNeeded(offset, suffixOffset | (long) indexOfCounts << rankShift);
-
 		} else
 			valueRanks[ngramOrder].setAndGrowIfNeeded(offset, indexOfCounts);
+		return true;
 
 	}
 

@@ -12,7 +12,7 @@ import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ContextEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.NgramLanguageModel;
-import edu.berkeley.nlp.lm.ProbBackoffLm;
+import edu.berkeley.nlp.lm.ArrayEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.StringWordIndexer;
 import edu.berkeley.nlp.lm.StupidBackoffLm;
 import edu.berkeley.nlp.lm.WordIndexer;
@@ -133,11 +133,11 @@ public class LmReaders
 		return secondPassContextEncoded(opts, lmFile, lmOrder, wordIndexer, valueAddingCallback, numNgramsForEachWord);
 	}
 
-	public static ProbBackoffLm<String> readArrayEncodedLmFromArpa(final String lmFile, boolean compress) {
+	public static ArrayEncodedProbBackoffLm<String> readArrayEncodedLmFromArpa(final String lmFile, boolean compress) {
 		return readArrayEncodedLmFromArpa(lmFile, compress, new StringWordIndexer());
 	}
 
-	public static <W> ProbBackoffLm<W> readArrayEncodedLmFromArpa(final String lmFile, final boolean compress, final WordIndexer<W> wordIndexer) {
+	public static <W> ArrayEncodedProbBackoffLm<W> readArrayEncodedLmFromArpa(final String lmFile, final boolean compress, final WordIndexer<W> wordIndexer) {
 		return readArrayEncodedLmFromArpa(lmFile, compress, wordIndexer, new ConfigOptions(), Integer.MAX_VALUE);
 	}
 
@@ -154,7 +154,7 @@ public class LmReaders
 	 * @param lmOrder
 	 * @return
 	 */
-	public static <W> ProbBackoffLm<W> readArrayEncodedLmFromArpa(final String lmFile, boolean compress, final WordIndexer<W> wordIndexer,
+	public static <W> ArrayEncodedProbBackoffLm<W> readArrayEncodedLmFromArpa(final String lmFile, boolean compress, final WordIndexer<W> wordIndexer,
 		final ConfigOptions opts, final int lmOrder) {
 
 		final boolean reverse = true;
@@ -247,7 +247,7 @@ public class LmReaders
 	 * @param opts
 	 * @return
 	 */
-	public static <W> ProbBackoffLm<W> readKneserNeyLmFromTextFile(List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder, ConfigOptions opts,
+	public static <W> ArrayEncodedProbBackoffLm<W> readKneserNeyLmFromTextFile(List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder, ConfigOptions opts,
 		boolean compress) {
 		File tmpFile = getTempFile();
 		return readKneserNeyLmFromTextFile(files, wordIndexer, lmOrder, compress, opts, tmpFile);
@@ -259,7 +259,7 @@ public class LmReaders
 		return readContextEncodedLmFromArpa(tmpFile.getPath(), wordIndexer, opts, lmOrder);
 	}
 
-	public static <W> ProbBackoffLm<W> readKneserNeyLmFromTextFile(List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder, boolean compress,
+	public static <W> ArrayEncodedProbBackoffLm<W> readKneserNeyLmFromTextFile(List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder, boolean compress,
 		ConfigOptions opts, File tmpFile) {
 		createKneserNeyLmFromTextFiles(files, wordIndexer, lmOrder, tmpFile, opts);
 		return readArrayEncodedLmFromArpa(tmpFile.getPath(), compress, wordIndexer, opts, lmOrder);
@@ -374,13 +374,13 @@ public class LmReaders
 	 * @param numNgramsForEachWord
 	 * @return
 	 */
-	private static <W> ProbBackoffLm<W> secondPassArrayEncoded(final ConfigOptions opts, final String lmFile, final int lmOrder,
+	private static <W> ArrayEncodedProbBackoffLm<W> secondPassArrayEncoded(final ConfigOptions opts, final String lmFile, final int lmOrder,
 		final WordIndexer<W> wordIndexer, final FirstPassCallback<ProbBackoffPair> valueAddingCallback, final LongArray[] numNgramsForEachWord,
 		final boolean reversed, boolean compress) {
 		final boolean contextEncoded = false;
 		final NgramMap<ProbBackoffPair> map = buildMapArpa(opts, lmFile, lmOrder, wordIndexer, valueAddingCallback, numNgramsForEachWord, contextEncoded,
 			reversed, compress);
-		return new ProbBackoffLm<W>(map.getMaxNgramOrder(), wordIndexer, map, opts);
+		return new ArrayEncodedProbBackoffLm<W>(map.getMaxNgramOrder(), wordIndexer, map, opts);
 	}
 
 	private static <W> StupidBackoffLm<W> secondPassGoogle(final ConfigOptions opts, final String dir, final WordIndexer<W> wordIndexer,

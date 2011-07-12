@@ -60,18 +60,21 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 
 		for (final File ngramDir : listFiles) {
 			final int ngramOrder_ = ngramOrder;
+			final String regex = (ngramOrder_ + 1) + "gm-\\d+(.gz)?";
 			final File[] ngramFiles = ngramDir.listFiles(new FilenameFilter()
 			{
 
 				@Override
 				public boolean accept(final File dir, final String name) {
-					return ngramOrder_ == 0 ? name.equals(sortedVocabFile) : name.endsWith(".gz");
+					return ngramOrder_ == 0 ? name.equals(sortedVocabFile) : name.matches(regex);
 				}
 			});
 			if (ngramOrder == 0) {
 				if (ngramFiles.length != 1) throw new RuntimeException("Could not find expected vocab file " + sortedVocabFile);
 				final String sortedVocabPath = ngramFiles[0].getPath();
 				addToIndexer(wordIndexer, sortedVocabPath);
+			} else if (ngramFiles.length == 0) {
+				Logger.warn("Did not find any files matching expected regex " + regex);
 			}
 			Logger.startTrack("Reading ngrams of order " + (ngramOrder_ + 1));
 			for (final File ngramFile_ : ngramFiles) {
