@@ -108,6 +108,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final long index = map.put(key);
 
 		final long suffixIndex = getSuffixOffset(ngram, startPos, endPos);
+		if (suffixIndex < 0) return -1;
 		values.add(ngram, startPos, endPos, ngramOrder, index, contextOffsetOf(key), wordOf(key), val, suffixIndex, map.size() > oldSize);
 		return index;
 	}
@@ -243,9 +244,9 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		if (containsOutOfVocab(ngram, startPos, endPos)) return -1;
 		final int ngramOrder = endPos - startPos - 1;
 		if (ngramOrder >= maps.length) return -1;
-		final HashMap currMap = maps[ngramOrder];
 		final long key = getKey(ngram, startPos, endPos);
 		if (key < 0) return -1;
+		final HashMap currMap = maps[ngramOrder];
 		final long index = currMap.getOffset(key);
 		return index;
 	}
@@ -300,7 +301,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	 * @return
 	 */
 	private long getSuffixOffset(final int[] ngram, final int startPos, final int endPos) {
-		if (endPos - startPos == 1) return -1;
+		if (endPos - startPos == 1) return 0;
 		return getOffsetFromRawNgram(ngram, reversed ? startPos : (startPos + 1), reversed ? (endPos - 1) : endPos);
 	}
 
