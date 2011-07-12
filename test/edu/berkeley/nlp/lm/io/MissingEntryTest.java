@@ -12,7 +12,7 @@ import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ContextEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.ArrayEncodedNgramLanguageModel;
-import edu.berkeley.nlp.lm.ProbBackoffLm;
+import edu.berkeley.nlp.lm.ArrayEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.StringWordIndexer;
 import edu.berkeley.nlp.lm.cache.ArrayEncodedCachingLmWrapper;
 import edu.berkeley.nlp.lm.cache.ArrayEncodedDirectMappedLmCache;
@@ -29,7 +29,7 @@ public class MissingEntryTest
 	public void testArrayEncoded() {
 		File file = FileUtils.getFile(BIG_TEST_ARPA);
 
-		ProbBackoffLm<String> lm = getLm();
+		ArrayEncodedProbBackoffLm<String> lm = getLm();
 		testArrayEncodedLogProb(lm, file);
 		//		Assert.assertEquals(logScore, -2806.4f, 1e-1);
 	}
@@ -58,11 +58,11 @@ public class MissingEntryTest
 	/**
 	 * @return
 	 */
-	private ProbBackoffLm<String> getLm() {
+	private ArrayEncodedProbBackoffLm<String> getLm() {
 		File lmFile = FileUtils.getFile(BIG_TEST_ARPA);
 		final ConfigOptions configOptions = new ConfigOptions();
 		configOptions.unknownWordLogProb = 0.0f;
-		ProbBackoffLm<String> lm = LmReaders.readArrayEncodedLmFromArpa(lmFile.getPath(), false, new StringWordIndexer(), configOptions, Integer.MAX_VALUE);
+		ArrayEncodedProbBackoffLm<String> lm = LmReaders.readArrayEncodedLmFromArpa(lmFile.getPath(), false, new StringWordIndexer(), configOptions, Integer.MAX_VALUE);
 		return lm;
 	}
 

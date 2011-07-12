@@ -23,7 +23,7 @@ import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
  * 
  * @param <W>
  */
-public class ProbBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W> implements ArrayEncodedNgramLanguageModel<W>, Serializable
+public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W> implements ArrayEncodedNgramLanguageModel<W>, Serializable
 {
 
 	/**
@@ -35,7 +35,7 @@ public class ProbBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W> 
 
 	private final ProbBackoffValueContainer values;
 
-	public ProbBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final NgramMap<ProbBackoffPair> map, final ConfigOptions opts) {
+	public ArrayEncodedProbBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final NgramMap<ProbBackoffPair> map, final ConfigOptions opts) {
 		super(lmOrder, wordIndexer, (float) opts.unknownWordLogProb);
 		this.map = map;
 		this.values = (ProbBackoffValueContainer) map.getValues();

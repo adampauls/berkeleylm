@@ -10,7 +10,7 @@ import org.junit.Test;
 
 import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.ContextEncodedProbBackoffLm;
-import edu.berkeley.nlp.lm.ProbBackoffLm;
+import edu.berkeley.nlp.lm.ArrayEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.StringWordIndexer;
 import edu.berkeley.nlp.lm.util.Logger;
 
@@ -46,7 +46,7 @@ public class BinaryTest
 		final ConfigOptions configOptions = new ConfigOptions();
 		configOptions.unknownWordLogProb = 0.0f;
 		for (boolean compress : new boolean[] { true, false }) {
-			final ProbBackoffLm<String> lm = LmReaders.readArrayEncodedLmFromArpa(FileUtils.getFile(PerplexityTest.BIG_TEST_ARPA).getPath(), compress,
+			final ArrayEncodedProbBackoffLm<String> lm = LmReaders.readArrayEncodedLmFromArpa(FileUtils.getFile(PerplexityTest.BIG_TEST_ARPA).getPath(), compress,
 				new StringWordIndexer(), configOptions, Integer.MAX_VALUE);
 			File tmpFile = null;
 			try {
@@ -59,7 +59,7 @@ public class BinaryTest
 				tmpFile.deleteOnExit();
 				IOUtils.writeObjFileHard(tmpFile, lm);
 				@SuppressWarnings("unchecked")
-				ProbBackoffLm<String> readLm = (ProbBackoffLm<String>) IOUtils.readObjFileHard(tmpFile);
+				ArrayEncodedProbBackoffLm<String> readLm = (ArrayEncodedProbBackoffLm<String>) IOUtils.readObjFileHard(tmpFile);
 				PerplexityTest.testArrayEncodedLogProb(readLm, FileUtils.getFile(PerplexityTest.TEST_PERPLEX_TXT), PerplexityTest.TEST_PERPLEX_GOLD_PROB);
 				tmpFile.delete();
 			} else {

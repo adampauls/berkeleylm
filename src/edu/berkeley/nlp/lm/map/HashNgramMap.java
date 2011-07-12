@@ -108,8 +108,8 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final long index = map.put(key);
 
 		final long suffixIndex = getSuffixOffset(ngram, startPos, endPos);
-		if (suffixIndex < 0) return -1;
-		values.add(ngram, startPos, endPos, ngramOrder, index, contextOffsetOf(key), wordOf(key), val, suffixIndex, map.size() > oldSize);
+		boolean addWorked = values.add(ngram, startPos, endPos, ngramOrder, index, contextOffsetOf(key), wordOf(key), val, suffixIndex, map.size() > oldSize);
+		if (!addWorked) return -1;
 		return index;
 	}
 

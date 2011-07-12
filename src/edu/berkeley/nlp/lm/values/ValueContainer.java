@@ -25,11 +25,10 @@ public interface ValueContainer<V>
 	 * @param word
 	 * @param val
 	 * @param suffixOffset
+	 * @return Whether or not the add was successful
 	 */
-	public void add(int[] ngram, int startPos, int endPos, int ngramOrder, long offset, long contextOffset, int word, V val, long suffixOffset,
+	public boolean add(int[] ngram, int startPos, int endPos, int ngramOrder, long offset, long contextOffset, int word, V val, long suffixOffset,
 		boolean ngramIsNew);
-
-
 
 	/**
 	 * Sets internal storage for size for a particular n-gram order
@@ -62,8 +61,6 @@ public interface ValueContainer<V>
 	 */
 	public void setFromOtherValues(ValueContainer<V> other);
 
-	
-
 	/**
 	 * Clear storage after an n-gram order is complete
 	 * 
@@ -77,7 +74,6 @@ public interface ValueContainer<V>
 	 */
 	public void trim();
 
-	
 	/**
 	 * Creates a fresh value of object (useful for passing as an output
 	 * parameter)

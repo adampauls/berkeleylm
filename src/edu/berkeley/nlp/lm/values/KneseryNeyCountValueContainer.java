@@ -102,8 +102,8 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 	}
 
 	@Override
-	public void add(int[] ngram, int startPos, int endPos, int ngramOrder, long offset, long contextOffset, int word, KneserNeyCounts val, long suffixOffset,
-		boolean ngramIsNew) {
+	public boolean add(int[] ngram, int startPos, int endPos, int ngramOrder, long offset, long contextOffset, int word, KneserNeyCounts val,
+		long suffixOffset, boolean ngramIsNew) {
 
 		assert !map.isReversed();
 		if (isHighestOrder(ngramOrder)) {
@@ -125,6 +125,7 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 				rightDotTypeCounts[ngramOrder - 1].incrementCount(rightDotOffset, 1);
 			}
 		}
+		return true;
 	}
 
 	@Override

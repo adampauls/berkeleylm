@@ -84,7 +84,11 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 
 	@Override
 	public void getFromOffset(final long offset, final int ngramOrder, @OutputParameter final PhraseTableValues outputVal) {
-		if (valueIndexes[ngramOrder] == null || offset >= valueIndexes[ngramOrder].size()) return;
+		if (valueIndexes[ngramOrder] == null) {
+			@SuppressWarnings("unused")
+			int x = 5;
+		}
+		if (offset >= valueIndexes[ngramOrder].size()) return;
 		long valueIndex = valueIndexes[ngramOrder].get(offset);
 		if (valueIndex == EMPTY_VALUE_INDEX) return;
 		if (outputVal instanceof FeaturePhraseTableValues && valueIndex >= 0) {
@@ -124,8 +128,8 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 	}
 
 	@Override
-	public void add(int[] ngram, int startPos, int endPos, int ngramOrder, long offset, long contextOffset, int word, PhraseTableValues val, long suffixOffset,
-		boolean ngramIsNew) {
+	public boolean add(int[] ngram, int startPos, int endPos, int ngramOrder, long offset, long contextOffset, int word, PhraseTableValues val,
+		long suffixOffset, boolean ngramIsNew) {
 
 		assert !map.isReversed();
 
@@ -142,6 +146,7 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 
 			valueIndexes[ngramOrder].setAndGrowIfNeeded((int) (offset), EMPTY_VALUE_INDEX);
 		}
+		return true;
 
 	}
 
