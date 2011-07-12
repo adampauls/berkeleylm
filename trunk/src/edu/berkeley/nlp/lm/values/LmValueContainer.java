@@ -84,16 +84,12 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 		if (val == null) val = getDefaultVal();
 
 		setSizeAtLeast(10, ngramOrder);
-		if (countIndexer == null) {
-			@SuppressWarnings("unused")
-			int x = 5;
-		}
-		final int indexOfCounts = countIndexer.getIndex(val);
 
-		
+		final int indexOfCounts = countIndexer.getIndex(val);
+		assert suffixOffset >= 0;
+		assert suffixOffset <= Integer.MAX_VALUE;
 		if (storePrefixIndexes) {
-			long suffixOffset_ = suffixOffset == -1 ? ((1L << 32) - 1) : suffixOffset;
-			valueRanks[ngramOrder].setAndGrowIfNeeded(offset, suffixOffset_ | (long) indexOfCounts << rankShift);
+			valueRanks[ngramOrder].setAndGrowIfNeeded(offset, suffixOffset | (long) indexOfCounts << rankShift);
 
 		} else
 			valueRanks[ngramOrder].setAndGrowIfNeeded(offset, indexOfCounts);
@@ -116,7 +112,6 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 		}
 		valueRanks[ngramOrder].ensureCapacity(size + 1);
 
-		
 	}
 
 	public long getSuffixOffset(final long index, final int ngramOrder) {
