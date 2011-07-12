@@ -100,8 +100,8 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		}
 		long oldSize = map.size();
 		final long newOffset = map.add(combineToKey(word, contextOffset));
-		values.add(ngram, startPos, endPos, ngramOrder, map.size() - 1, contextOffset, word, val, 0, map.size() == oldSize);
-
+		boolean addWorked = values.add(ngram, startPos, endPos, ngramOrder, map.size() - 1, contextOffset, word, val, 0, map.size() == oldSize);
+		if (!addWorked) return -1;
 		return newOffset;
 
 	}
@@ -578,7 +578,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	@Override
 	public boolean contains(int[] ngram, int startPos, int endPos) {
 		return getContextOffset(ngram, startPos, endPos) >= 0;
-		
+
 	}
 
 }
