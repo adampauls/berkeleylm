@@ -47,15 +47,15 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 	@Override
 	public void parse(final NgramOrderedLmReaderCallback<LongRef> callback) {
 
-		final List<File> listFiles = Arrays.asList(new File(rootDir).listFiles(new FilenameFilter()
+		final File[] listFiles = new File(rootDir).listFiles(new FilenameFilter()
 		{
 
 			@Override
 			public boolean accept(final File dir, final String name) {
 				return name.endsWith("gms");
 			}
-		}));
-		Collections.sort(listFiles);
+		});
+		Arrays.sort(listFiles);
 		int ngramOrder = 0;
 
 		for (final File ngramDir : listFiles) {
@@ -76,6 +76,7 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 			} else if (ngramFiles.length == 0) {
 				Logger.warn("Did not find any files matching expected regex " + regex);
 			}
+			Arrays.sort(ngramFiles);
 			Logger.startTrack("Reading ngrams of order " + (ngramOrder_ + 1));
 			for (final File ngramFile_ : ngramFiles) {
 				final File ngramFile = ngramFile_;
