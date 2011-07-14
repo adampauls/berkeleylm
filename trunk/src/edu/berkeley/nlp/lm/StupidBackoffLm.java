@@ -42,7 +42,7 @@ public class StupidBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W
 	 * (int[], int, int)
 	 */
 	@Override
-	public float getLogProb(final int[] ngram, final int startPos_, final int endPos_) {
+	public float getLogProb(final int[] ngram, final int startPos, final int endPos) {
 		final NgramMap<LongRef> localMap = map;
 		float logProb = oovWordLogProb;
 		long probContext = 0L;
@@ -50,20 +50,41 @@ public class StupidBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W
 
 		long lastCount = ((RankedCountValueContainer) map.getValues()).getUnigramSum();
 		final LongRef scratch = new LongRef(-1L);
-		for (int i = endPos_ - 1; i >= startPos_; --i) {
+		for (int i = endPos - 1; i >= startPos; --i) {
 			assert (probContext >= 0);
 			probContext = localMap.getValueAndOffset(probContext, probContextOrder, ngram[i], scratch);
 
 			if (probContext < 0) {
 				return logProb;
 			} else {
-				logProb = (float) Math.log(scratch.value / ((float) lastCount) * pow(alpha, i - startPos_));
+				logProb = (float) Math.log(scratch.value / ((float) lastCount) * pow(alpha, i - startPos));
 				lastCount = scratch.value;
 				probContextOrder++;
 			}
 
 		}
 		return logProb;
+	}
+
+	/**
+	 * Gets the raw count of an n-gram.
+	 * 
+	 * @param ngram
+	 * @param startPos
+	 * @param endPos
+	 * @return count of n-gram, or -1 if n-gram is not in the map.
+	 */
+	public long getRawCount(final int[] ngram, final int startPos, final int endPos) {
+		final NgramMap<LongRef> localMap = map;
+		long probContext = 0L;
+
+		final LongRef scratch = new LongRef(-1L);
+		for (int probContextOrder = -1; probContextOrder < endPos - startPos - 1; ++probContextOrder) {
+			assert (probContext >= 0);
+			probContext = localMap.getValueAndOffset(probContext, probContextOrder, ngram[endPos - probContextOrder - 2], scratch);
+			if (probContext < 0) { return -1; }
+		}
+		return scratch.value;
 	}
 
 	private static float pow(final float alpha, final int n) {
