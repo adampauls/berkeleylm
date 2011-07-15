@@ -1,6 +1,5 @@
 package edu.berkeley.nlp.lm.bits;
 
-
 public class CompressionUtils
 {
 

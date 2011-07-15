@@ -1,14 +1,5 @@
 package edu.berkeley.nlp.lm.io;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import edu.berkeley.nlp.lm.ContextEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.NgramLanguageModel;
 import edu.berkeley.nlp.lm.util.Logger;
 
@@ -17,11 +8,11 @@ import edu.berkeley.nlp.lm.util.Logger;
  * a stupid-backoff language model language model and writes it to disk.
  * Language model binaries are significantly smaller and faster to load. Note:
  * actually running this code on the full Google-ngrams corpus can be very slow
- * and memory intensive -- on our machines, it takes about 32GB of memory and
- * 15 hours.
+ * and memory intensive -- on our machines, it takes about 32GB of memory and 15
+ * hours.
  * <p>
- * Note that if the input/output files have a <code>.gz</code> suffix, they will be
- * unzipped/zipped as necessary.
+ * Note that if the input/output files have a <code>.gz</code> suffix, they will
+ * be unzipped/zipped as necessary.
  * 
  * @author adampauls
  * 

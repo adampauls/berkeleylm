@@ -27,37 +27,42 @@ interface HashMap
 
 	public static class KeyIterator implements Iterator<Long>
 	{
-		private LongArray keys;
+		private final LongArray keys;
 
-		public KeyIterator(LongArray keys) {
+		public KeyIterator(final LongArray keys) {
 			this.keys = keys;
 			end = keys.size();
 			next = -1;
 			nextIndex();
 		}
 
+		@Override
 		public boolean hasNext() {
 			return end > 0 && next < end;
 		}
 
+		@Override
 		public Long next() {
 			final long nextIndex = nextIndex();
 			return nextIndex;
 		}
 
 		long nextIndex() {
-			long curr = next;
+			final long curr = next;
 			do {
 				next++;
 			} while (next < end && keys != null && keys.get(next) == EMPTY_KEY);
 			return curr;
 		}
 
+		@Override
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}
 
-		private long next, end;
+		private long next;
+
+		private final long end;
 	}
 
 	public boolean hasContexts(int word);

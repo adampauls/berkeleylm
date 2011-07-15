@@ -2,9 +2,6 @@ package edu.berkeley.nlp.lm.array;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.Arrays;
-
-import edu.berkeley.nlp.lm.util.Logger;
 
 /**
  * An array with a custom word "width" in bits. Borrows heavily from Sux4J
@@ -64,6 +61,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 		return size;
 	}
 
+	@Override
 	public void ensureCapacity(final long numWords) {
 		final long numBits = numWords * width;
 		//		assert (numBits <= (Integer.MAX_VALUE + 1L) * Long.SIZE) : ("CustomWidthArray can only be 2^37 bits long");
@@ -141,7 +139,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 	 * @param value
 	 * @return
 	 */
-	private boolean addHelp(final long value, boolean growCapacity) {
+	private boolean addHelp(final long value, final boolean growCapacity) {
 		assert !(width < Long.SIZE && (value & -1L << width) != 0) : "The specified value (" + value
 			+ ") is larger than the maximum value for the given width (" + width + ")";
 		final long length = this.size * width;
@@ -219,12 +217,13 @@ public final class CustomWidthArray implements LongArray, Serializable
 	}
 
 	@Override
-	public long linearSearch(long key, long rangeStart, long rangeEnd, long startIndex, long emptyKey, boolean returnFirstEmptyIndex) {
+	public long linearSearch(final long key, final long rangeStart, final long rangeEnd, final long startIndex, final long emptyKey,
+		final boolean returnFirstEmptyIndex) {
 		return LongArray.StaticMethods.linearSearch(this, key, rangeStart, rangeEnd, startIndex, emptyKey, returnFirstEmptyIndex);
 	}
 
 	@Override
-	public void incrementCount(long index, long count) {
+	public void incrementCount(final long index, final long count) {
 		LongArray.StaticMethods.incrementCount(this, index, count);
 	}
 

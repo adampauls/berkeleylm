@@ -20,7 +20,6 @@ public class Annotations
 
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.FIELD)
-	
 	/**
 	 * Fields annotated with this annotation will <b>not</b> have their memory usage counted towards total
 	 * memory usage.
@@ -49,7 +48,6 @@ public class Annotations
 
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.FIELD)
-	
 	/**
 	 * Annotation which documents command line options. 
 	 */

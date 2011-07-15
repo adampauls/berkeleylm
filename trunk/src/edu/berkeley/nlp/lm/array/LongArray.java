@@ -30,18 +30,19 @@ public interface LongArray
 		public static LongArray newLongArray(final long maxKeySize, final long maxNumKeys, final long initCapacity) {
 			if (maxNumKeys <= Integer.MAX_VALUE) {
 				if (maxKeySize <= Byte.MAX_VALUE) {
-					return new ByteSmallLongArray(initCapacity);
+					return new ByteLongArray(initCapacity);
 				} else if (maxKeySize <= Integer.MAX_VALUE) {
-					return new IntSmallLongArray(initCapacity);
+					return new IntLongArray(initCapacity);
 				} else {
-					return new SmallLongArray(initCapacity);
+					return new LongLongArray(initCapacity);
 				}
 			} else {
 				return new LargeLongArray(initCapacity);
 			}
 		}
 
-		public static long linearSearch(LongArray array, long key, long rangeStart, long rangeEnd, long startIndex, long emptyKey, boolean returnFirstEmptyIndex) {
+		public static long linearSearch(final LongArray array, final long key, final long rangeStart, final long rangeEnd, final long startIndex,
+			final long emptyKey, final boolean returnFirstEmptyIndex) {
 			long i = startIndex;
 			boolean goneAroundOnce = false;
 			while (true) {
@@ -57,12 +58,12 @@ public interface LongArray
 			}
 		}
 
-		public static void incrementCount(LongArray array, long index, long count) {
+		public static void incrementCount(final LongArray array, final long index, final long count) {
 
 			if (index >= array.size()) {
 				array.setAndGrowIfNeeded(index, count);
 			} else {
-				long l = array.get(index);
+				final long l = array.get(index);
 				array.set(index, l + count);
 			}
 		}

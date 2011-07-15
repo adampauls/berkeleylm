@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,9 +16,7 @@ import org.junit.Test;
 import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.StringWordIndexer;
 import edu.berkeley.nlp.lm.collections.Iterators;
-import edu.berkeley.nlp.lm.map.HashNgramMap;
 import edu.berkeley.nlp.lm.util.Pair;
-import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer.KneserNeyCounts;
 
 public class KneserNeyFromTextReaderTest
 {
@@ -50,23 +46,23 @@ public class KneserNeyFromTextReaderTest
 	 * @param order
 	 * @param discounts
 	 */
-	private void doTest(String prefix, final double[] discounts) {
+	private void doTest(final String prefix, final double[] discounts) {
 		final StringWordIndexer wordIndexer = new StringWordIndexer();
-		int order = discounts.length;
+		final int order = discounts.length;
 		wordIndexer.setStartSymbol("<s>");
 		wordIndexer.setEndSymbol("</s>");
 		wordIndexer.setUnkSymbol("<unk>");
-		File txtFile = FileUtils.getFile(prefix + ".txt");
-		File goldArpaFile = FileUtils.getFile(prefix + ".arpa");
-		StringWriter stringWriter = new StringWriter();
+		final File txtFile = FileUtils.getFile(prefix + ".txt");
+		final File goldArpaFile = FileUtils.getFile(prefix + ".arpa");
+		final StringWriter stringWriter = new StringWriter();
 		final TextReader<String> reader = new TextReader<String>(Arrays.asList(txtFile), wordIndexer, order);
-		ConfigOptions opts = new ConfigOptions();
+		final ConfigOptions opts = new ConfigOptions();
 		opts.kneserNeyDiscounts = discounts;
 		opts.kneserNeyMinCounts = new double[] { 1, 1, 1, 1, 1, 1, 1 };
 		reader.parse(new KneserNeyLmReaderCallback<String>(new PrintWriter(stringWriter), wordIndexer, order, opts));
-		List<String> arpaLines = new ArrayList<String>(Arrays.asList(stringWriter.toString().split("\n")));
+		final List<String> arpaLines = new ArrayList<String>(Arrays.asList(stringWriter.toString().split("\n")));
 		sortAndRemoveBlankLines(arpaLines);
-		List<String> goldArpaLines = getLines(goldArpaFile);
+		final List<String> goldArpaLines = getLines(goldArpaFile);
 		sortAndRemoveBlankLines(goldArpaLines);
 		compareLines(arpaLines, goldArpaLines);
 	}
@@ -75,15 +71,15 @@ public class KneserNeyFromTextReaderTest
 	 * @param arpaLines
 	 * @param goldArpaLines
 	 */
-	private void compareLines(List<String> arpaLines, List<String> goldArpaLines) {
+	private void compareLines(final List<String> arpaLines, final List<String> goldArpaLines) {
 		Assert.assertEquals(arpaLines.size(), goldArpaLines.size());
-		for (Pair<String, String> lines : Iterators.able(Iterators.zip(arpaLines.iterator(), goldArpaLines.iterator()))) {
-			String testLine = lines.getFirst().trim();
-			String goldLine = lines.getSecond().trim();
+		for (final Pair<String, String> lines : Iterators.able(Iterators.zip(arpaLines.iterator(), goldArpaLines.iterator()))) {
+			final String testLine = lines.getFirst().trim();
+			final String goldLine = lines.getSecond().trim();
 			if (goldLine.startsWith("-")) {
 				Assert.assertTrue(lines.toString(), testLine.startsWith("-"));
-				String[] testSplit = testLine.split("\t");
-				String[] goldSplit = goldLine.split("\t");
+				final String[] testSplit = testLine.split("\t");
+				final String[] goldSplit = goldLine.split("\t");
 				Assert.assertEquals(lines.toString(), testSplit.length, goldSplit.length);
 				Assert.assertTrue(lines.toString(), testSplit.length == 2 || testSplit.length == 3);
 				Assert.assertEquals(lines.toString(), testSplit[1], goldSplit[1]);
@@ -101,14 +97,14 @@ public class KneserNeyFromTextReaderTest
 		}
 	}
 
-	private List<String> getLines(File goldArpaFile) {
-		List<String> ret = new ArrayList<String>();
+	private List<String> getLines(final File goldArpaFile) {
+		final List<String> ret = new ArrayList<String>();
 		try {
-			for (String line : Iterators.able(IOUtils.lineIterator(goldArpaFile.getAbsolutePath()))) {
+			for (final String line : Iterators.able(IOUtils.lineIterator(goldArpaFile.getAbsolutePath()))) {
 				ret.add(line);
 			}
 			return ret;
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			throw new RuntimeException(e);
 
 		}
@@ -117,15 +113,15 @@ public class KneserNeyFromTextReaderTest
 	/**
 	 * @param arpaLines
 	 */
-	private void sortAndRemoveBlankLines(List<String> arpaLines) {
+	private void sortAndRemoveBlankLines(final List<String> arpaLines) {
 		Collections.sort(arpaLines, new Comparator<String>()
 		{
 
 			@Override
-			public int compare(String arg0, String arg1) {
-				String[] split1 = arg0.split("\t");
-				String[] split2 = arg1.split("\t");
-				int x = Double.compare(split1.length, split2.length);
+			public int compare(final String arg0, final String arg1) {
+				final String[] split1 = arg0.split("\t");
+				final String[] split2 = arg1.split("\t");
+				final int x = Double.compare(split1.length, split2.length);
 				if (x != 0) return x;
 				if (split1.length > 1) return split1[1].compareTo(split2[1]);
 				return split1[0].compareTo(split2[0]);

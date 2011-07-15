@@ -38,7 +38,7 @@ public final class FirstPassCallback<V extends Comparable<V>> implements ArpaLmR
 	}
 
 	@Override
-	public void call(final int[] ngram, int startPos, int endPos, final V v, final String words) {
+	public void call(final int[] ngram, final int startPos, final int endPos, final V v, final String words) {
 		maxNgramOrder = Math.max(endPos - startPos, maxNgramOrder);
 		final int ngramOrder = endPos - startPos - 1;
 		allocatedNumNgramArrayIfNecessary(ngramOrder);
@@ -103,7 +103,7 @@ public final class FirstPassCallback<V extends Comparable<V>> implements ArpaLmR
 	 * @param endPos
 	 * @return
 	 */
-	private int allocatedNumNgramArrayIfNecessary(int ngramOrder) {
+	private int allocatedNumNgramArrayIfNecessary(final int ngramOrder) {
 		if (numNgramsForEachWord == null) {
 			numNgramsForEachWord = new LongArray[5];
 		}
@@ -117,7 +117,7 @@ public final class FirstPassCallback<V extends Comparable<V>> implements ArpaLmR
 		return ngramOrder;
 	}
 
-	private int allocatedNumNgramForOrderArrayIfNecessary(int ngramOrder) {
+	private int allocatedNumNgramForOrderArrayIfNecessary(final int ngramOrder) {
 		if (numNgramsForOrder == null) {
 			numNgramsForOrder = new long[5];
 		}

@@ -5,7 +5,7 @@ public class PhraseTableCounts
 
 	float[] features;
 
-	public PhraseTableCounts(float[] features) {
+	public PhraseTableCounts(final float[] features) {
 		this.features = features;
 	}
 

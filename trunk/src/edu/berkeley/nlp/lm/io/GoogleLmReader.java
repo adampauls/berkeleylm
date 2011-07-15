@@ -4,13 +4,9 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map.Entry;
 
 import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.WordIndexer;
-import edu.berkeley.nlp.lm.collections.Counter;
 import edu.berkeley.nlp.lm.collections.Iterators;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.LongRef;
@@ -135,7 +131,7 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 	/**
 	 * @param sortedVocabPath
 	 */
-	public static <W> void addToIndexer(WordIndexer<W> wordIndexer, final String sortedVocabPath) {
+	public static <W> void addToIndexer(final WordIndexer<W> wordIndexer, final String sortedVocabPath) {
 		if (!(new File(sortedVocabPath).getName().equals(sortedVocabFile))) {
 			Logger.warn("You have specified that " + sortedVocabPath + " is the count-sorted vocab file for Google n-grams, but it is usually named "
 				+ sortedVocabFile);
@@ -159,7 +155,7 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 	/**
 	 * 
 	 */
-	private static <W> void addSpecialSymbols(WordIndexer<W> wordIndexer) {
+	private static <W> void addSpecialSymbols(final WordIndexer<W> wordIndexer) {
 		wordIndexer.setStartSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(START_SYMBOL)));
 		wordIndexer.setEndSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(END_SYMBOL)));
 		wordIndexer.setUnkSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(UNK_SYMBOL)));

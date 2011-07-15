@@ -92,6 +92,7 @@ final class LargeLongArray implements Serializable, LongArray
 		setHelp(pos, val);
 	}
 
+	@Override
 	public void ensureCapacity(final long minCapacity) {
 		final long oldCapacity = sizeOf(data);
 		if (minCapacity > oldCapacity) {
@@ -219,7 +220,8 @@ final class LargeLongArray implements Serializable, LongArray
 	}
 
 	@Override
-	public long linearSearch(long key, long rangeStart, long rangeEnd, long startIndex, long emptyKey, boolean returnFirstEmptyIndex) {
+	public long linearSearch(final long key, final long rangeStart, final long rangeEnd, final long startIndex, final long emptyKey,
+		final boolean returnFirstEmptyIndex) {
 		long i = startIndex;
 		boolean goneAroundOnce = false;
 		int outerIndex = o(i);
@@ -248,7 +250,7 @@ final class LargeLongArray implements Serializable, LongArray
 	}
 
 	@Override
-	public void incrementCount(long index, long count) {
+	public void incrementCount(final long index, final long count) {
 		LongArray.StaticMethods.incrementCount(this, index, count);
 	}
 

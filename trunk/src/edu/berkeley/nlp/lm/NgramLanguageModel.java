@@ -3,18 +3,16 @@ package edu.berkeley.nlp.lm;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
-
 /**
  * 
- * Base interface for an n-gram language model, which exposes only inefficient convenience methods. See
- *         {@link ContextEncodedNgramLanguageModel} and
- *         {@link ArrayEncodedNgramLanguageModel} for more efficient accessors.
- *         
+ * Base interface for an n-gram language model, which exposes only inefficient
+ * convenience methods. See {@link ContextEncodedNgramLanguageModel} and
+ * {@link ArrayEncodedNgramLanguageModel} for more efficient accessors.
+ * 
  * @author adampauls
  * 
  * @param <W>
- *           
+ * 
  */
 public interface NgramLanguageModel<W>
 {
@@ -62,7 +60,7 @@ public interface NgramLanguageModel<W>
 			return ints;
 		}
 
-		public static <T> List<T> toObjectList(int[] ngram, final ArrayEncodedNgramLanguageModel<T> lm) {
+		public static <T> List<T> toObjectList(final int[] ngram, final ArrayEncodedNgramLanguageModel<T> lm) {
 			final List<T> ret = new ArrayList<T>(ngram.length);
 			final WordIndexer<T> wordIndexer = lm.getWordIndexer();
 			for (int i = 0; i < ngram.length; ++i) {

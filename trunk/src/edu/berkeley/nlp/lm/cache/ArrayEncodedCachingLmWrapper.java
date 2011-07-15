@@ -24,7 +24,7 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 	private final ArrayEncodedLmCache cache;
 
 	private final ArrayEncodedNgramLanguageModel<W> lm;
-	
+
 	/**
 	 * To use a cache in a multithreaded environment, you should create one
 	 * wrapper per thread.
@@ -33,7 +33,7 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 	 * @param lm
 	 * @return
 	 */
-	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheNotThreadSafe(ArrayEncodedNgramLanguageModel<W> lm) {
+	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheNotThreadSafe(final ArrayEncodedNgramLanguageModel<W> lm) {
 		return new ArrayEncodedCachingLmWrapper<W>(lm);
 	}
 
@@ -45,7 +45,7 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 	 * @param lm
 	 * @return
 	 */
-	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheNotThreadSafe(ArrayEncodedNgramLanguageModel<W> lm, ArrayEncodedLmCache cache) {
+	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheNotThreadSafe(final ArrayEncodedNgramLanguageModel<W> lm, final ArrayEncodedLmCache cache) {
 		return new ArrayEncodedCachingLmWrapper<W>(lm, cache);
 	}
 
@@ -78,7 +78,5 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 		}
 		return hashCode;
 	}
-
-	
 
 }

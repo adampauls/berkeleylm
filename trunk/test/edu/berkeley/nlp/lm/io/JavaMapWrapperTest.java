@@ -17,9 +17,9 @@ public class JavaMapWrapperTest
 {
 	@Test
 	public void testBothMapWrapper() {
-		StupidBackoffLm<String> lm = LmReaders.readLmFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), false);
-		StupidBackoffLm<String> lm2 = LmReaders.readLmFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), true);
-		Map<List<String>, LongRef> m = LmReaders.readNgramMapFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), true);
+		final StupidBackoffLm<String> lm = LmReaders.readLmFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), false);
+		final StupidBackoffLm<String> lm2 = LmReaders.readLmFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), true);
+		final Map<List<String>, LongRef> m = LmReaders.readNgramMapFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), true);
 
 		final List<String> ngram1 = Arrays.asList(",", "the", "(");
 		final int[] array1 = WordIndexer.StaticMethods.toArray(lm.getWordIndexer(), ngram1);
@@ -48,10 +48,10 @@ public class JavaMapWrapperTest
 			if (order == 2) Assert.assertEquals(map2.get(ngram1).value, 50);
 			if (order == 0) Assert.assertEquals(map2.get(ngram3).value, 19401194714L);
 			Assert.assertEquals(map.size(), map2.size());
-			for (Entry<List<String>, LongRef> entry : map.entrySet()) {
+			for (final Entry<List<String>, LongRef> entry : map.entrySet()) {
 				Assert.assertEquals(map2.get(entry.getKey()), entry.getValue());
 			}
-			for (Entry<List<String>, LongRef> entry : map2.entrySet()) {
+			for (final Entry<List<String>, LongRef> entry : map2.entrySet()) {
 				Assert.assertEquals(map.get(entry.getKey()), entry.getValue());
 			}
 			totalSize += map.size();

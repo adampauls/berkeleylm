@@ -1,14 +1,9 @@
 package edu.berkeley.nlp.lm.map;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Iterator;
 
-import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.collections.Iterators;
-import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
-import edu.berkeley.nlp.lm.util.Logger;
-import edu.berkeley.nlp.lm.util.MurmurHash;
 
 /**
  * Low-level hash map implementation which is actually just an array (used for
@@ -42,18 +37,19 @@ final class UnigramHashMap implements Serializable, HashMap
 		return AbstractNgramMap.wordOf(key);
 	}
 
+	@Override
 	public final long getOffset(final long key) {
 		final long word = AbstractNgramMap.wordOf(key);
 		return (word < 0 || word >= numWords) ? EMPTY_KEY : word;
 	}
 
 	@Override
-	public long getKey(long contextOffset) {
+	public long getKey(final long contextOffset) {
 		return AbstractNgramMap.combineToKey((int) contextOffset, 0L);
 	}
 
 	@Override
-	public boolean isEmptyKey(long key) {
+	public boolean isEmptyKey(final long key) {
 		return key == EMPTY_KEY;
 	}
 
@@ -84,7 +80,7 @@ final class UnigramHashMap implements Serializable, HashMap
 
 		private long i = 0;
 
-		public RangeIterator(long numWords) {
+		public RangeIterator(final long numWords) {
 			this.numWords = numWords;
 		}
 
@@ -107,7 +103,7 @@ final class UnigramHashMap implements Serializable, HashMap
 	}
 
 	@Override
-	public boolean hasContexts(int word) {
+	public boolean hasContexts(final int word) {
 		return (word >= 0 || word < numWords);
 	}
 

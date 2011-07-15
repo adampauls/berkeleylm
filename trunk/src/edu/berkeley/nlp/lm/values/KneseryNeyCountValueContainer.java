@@ -1,18 +1,10 @@
 package edu.berkeley.nlp.lm.values;
 
-import java.util.Arrays;
-
-import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 import edu.berkeley.nlp.lm.array.LongArray;
-import edu.berkeley.nlp.lm.bits.BitList;
-import edu.berkeley.nlp.lm.bits.BitStream;
-import edu.berkeley.nlp.lm.collections.Indexer;
 import edu.berkeley.nlp.lm.map.HashNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
-import edu.berkeley.nlp.lm.util.LongRef;
-import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer.KneserNeyCounts;
 
 /**
  * Stored type and token counts necessary for estimating a Kneser-Ney language
@@ -61,7 +53,7 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 
 	private HashNgramMap<KneserNeyCounts> map;
 
-	public KneseryNeyCountValueContainer(int maxNgramOrder) {
+	public KneseryNeyCountValueContainer(final int maxNgramOrder) {
 		this.tokenCounts = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, Integer.MAX_VALUE);
 		this.prefixTokenCounts = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, Integer.MAX_VALUE);
 		rightDotTypeCounts = new LongArray[maxNgramOrder - 1];
@@ -102,8 +94,8 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 	}
 
 	@Override
-	public boolean add(int[] ngram, int startPos, int endPos, int ngramOrder, long offset, long contextOffset, int word, KneserNeyCounts val,
-		long suffixOffset, boolean ngramIsNew) {
+	public boolean add(final int[] ngram, final int startPos, final int endPos, final int ngramOrder, final long offset, final long contextOffset,
+		final int word, final KneserNeyCounts val, final long suffixOffset, final boolean ngramIsNew) {
 
 		assert !map.isReversed();
 		if (isHighestOrder(ngramOrder)) {
@@ -116,12 +108,12 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 				if (ngramOrder == 1) {
 					bigramTypeCounts++;
 				} else {
-					long dotDotOffset = map.getPrefixOffset(suffixOffset, endPos - startPos - 2);//map.getOffsetForNgramInModel(ngram, startPos + 1, endPos - 1);
+					final long dotDotOffset = map.getPrefixOffset(suffixOffset, endPos - startPos - 2);//map.getOffsetForNgramInModel(ngram, startPos + 1, endPos - 1);
 					dotdotTypeCounts[ngramOrder - 2].incrementCount(dotDotOffset, 1);
 				}
-				long leftDotOffset = suffixOffset; //map.getOffsetForNgramInModel(ngram, startPos + 1, endPos);
+				final long leftDotOffset = suffixOffset; //map.getOffsetForNgramInModel(ngram, startPos + 1, endPos);
 				leftDotTypeCounts[ngramOrder - 1].incrementCount(leftDotOffset, 1);
-				long rightDotOffset = contextOffset;//map.getOffsetForNgramInModel(ngram, startPos, endPos - 1);
+				final long rightDotOffset = contextOffset;//map.getOffsetForNgramInModel(ngram, startPos, endPos - 1);
 				rightDotTypeCounts[ngramOrder - 1].incrementCount(rightDotOffset, 1);
 			}
 		}
@@ -129,7 +121,7 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 	}
 
 	@Override
-	public void setSizeAtLeast(long size, int ngramOrder) {
+	public void setSizeAtLeast(final long size, final int ngramOrder) {
 		if (isHighestOrder(ngramOrder)) {
 			tokenCounts.setAndGrowIfNeeded(size - 1, 0);
 		} else {
@@ -146,7 +138,7 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 	 * @param ngramOrder
 	 * @return
 	 */
-	private boolean isHighestOrder(int ngramOrder) {
+	private boolean isHighestOrder(final int ngramOrder) {
 		return ngramOrder == dotdotTypeCounts.length;
 	}
 
@@ -154,12 +146,12 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 	 * @param ngramOrder
 	 * @return
 	 */
-	private boolean isSecondHighestOrder(int ngramOrder) {
+	private boolean isSecondHighestOrder(final int ngramOrder) {
 		return ngramOrder == dotdotTypeCounts.length - 1;
 	}
 
 	@Override
-	public void setFromOtherValues(ValueContainer<KneserNeyCounts> other) {
+	public void setFromOtherValues(final ValueContainer<KneserNeyCounts> other) {
 		final KneseryNeyCountValueContainer other_ = (KneseryNeyCountValueContainer) other;
 		tokenCounts = other_.tokenCounts;
 		System.arraycopy(other_.dotdotTypeCounts, 0, dotdotTypeCounts, 0, dotdotTypeCounts.length);
@@ -181,7 +173,7 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 	}
 
 	@Override
-	public void setMap(NgramMap<KneserNeyCounts> map) {
+	public void setMap(final NgramMap<KneserNeyCounts> map) {
 		this.map = (HashNgramMap<KneserNeyCounts>) map;
 	}
 

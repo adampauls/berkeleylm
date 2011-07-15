@@ -2,7 +2,6 @@ package edu.berkeley.nlp.lm.bits;
 
 import java.io.Serializable;
 
-
 public interface BitCompressor extends Serializable
 {
 

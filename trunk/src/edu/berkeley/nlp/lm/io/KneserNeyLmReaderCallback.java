@@ -1,24 +1,19 @@
 package edu.berkeley.nlp.lm.io;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 
 import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 import edu.berkeley.nlp.lm.WordIndexer;
-import edu.berkeley.nlp.lm.collections.Iterators;
 import edu.berkeley.nlp.lm.map.HashNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap.Entry;
 import edu.berkeley.nlp.lm.util.Logger;
-import edu.berkeley.nlp.lm.util.LongRef;
 import edu.berkeley.nlp.lm.util.StrUtils;
 import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer;
-import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer.KneserNeyCounts;
+import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 
 /**
  * Class for producing a Kneser-Ney language model in ARPA format from raw text.
@@ -79,21 +74,21 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 
 	private ConfigOptions opts;
 
-	public KneserNeyLmReaderCallback(File outputFile, WordIndexer<W> wordIndexer, int maxOrder) {
+	public KneserNeyLmReaderCallback(final File outputFile, final WordIndexer<W> wordIndexer, final int maxOrder) {
 		this(outputFile, wordIndexer, maxOrder, new ConfigOptions());
 	}
 
-	public KneserNeyLmReaderCallback(File outputFile, WordIndexer<W> wordIndexer, int maxOrder, ConfigOptions opts) {
+	public KneserNeyLmReaderCallback(final File outputFile, final WordIndexer<W> wordIndexer, final int maxOrder, final ConfigOptions opts) {
 		this(IOUtils.openOutHard(outputFile), wordIndexer, maxOrder, opts);
 	}
 
-	public KneserNeyLmReaderCallback(PrintWriter outputFile, WordIndexer<W> wordIndexer, int maxOrder, ConfigOptions opts) {
+	public KneserNeyLmReaderCallback(final PrintWriter outputFile, final WordIndexer<W> wordIndexer, final int maxOrder, final ConfigOptions opts) {
 		this.outputFile = outputFile;
 		this.lmOrder = maxOrder;
 		if (maxOrder >= MAX_ORDER) throw new IllegalArgumentException("Reguested n-grams of order " + maxOrder + " but we only allow up to " + 10);
 		this.opts = opts;
-		double last = Double.NEGATIVE_INFINITY;
-		for (double c : opts.kneserNeyMinCounts) {
+		final double last = Double.NEGATIVE_INFINITY;
+		for (final double c : opts.kneserNeyMinCounts) {
 			if (c < last)
 				throw new IllegalArgumentException("Please ensure that ConfigOptions.kneserNeyMinCounts is monotonic (value was "
 					+ Arrays.toString(opts.kneserNeyMinCounts) + ")");
@@ -105,8 +100,8 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 	}
 
 	@Override
-	public void call(int[] ngram, int startPos, int endPos, Object value, String words) {
-		KneserNeyCounts counts = new KneserNeyCounts();
+	public void call(final int[] ngram, final int startPos, final int endPos, final Object value, final String words) {
+		final KneserNeyCounts counts = new KneserNeyCounts();
 		counts.tokenCounts = 1;
 		ngrams.put(ngram, startPos, endPos, counts);
 	}
@@ -122,26 +117,26 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 	 * @param ngrams
 	 * @param out
 	 */
-	void writeToPrintWriter(PrintWriter out) {
+	void writeToPrintWriter(final PrintWriter out) {
 		Logger.startTrack("Writing ARPA");
 		out.println();
 		out.println("\\data\\");
 		writeHeader(ngrams, lmOrder, out);
 		for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
 			out.println("\\" + (ngramOrder + 1) + "-grams:");
-			int line = 0;
+			final int line = 0;
 			Logger.logss("On order " + (ngramOrder + 1));
 			int linenum = 0;
-			for (Entry<KneserNeyCounts> entry : ngrams.getNgramsForOrder(ngramOrder)) {
+			for (final Entry<KneserNeyCounts> entry : ngrams.getNgramsForOrder(ngramOrder)) {
 				if (linenum++ % 10000 == 0) Logger.logs("Writing line " + line);
 				if (ngramOrder >= lmOrder - 2 && entry.value.tokenCounts < opts.kneserNeyMinCounts[ngramOrder]) continue;
 				final String ngramString = StrUtils.join(WordIndexer.StaticMethods.toList(wordIndexer, entry.key));
 
-				ProbBackoffPair val = ngramOrder == lmOrder - 1 ? getHighestOrderProb(entry.key, entry.value) : getLowerOrderProb(entry.key, 0,
+				final ProbBackoffPair val = ngramOrder == lmOrder - 1 ? getHighestOrderProb(entry.key, entry.value) : getLowerOrderProb(entry.key, 0,
 					entry.key.length);
-				float prob = val.prob + getLowerOrderProb(entry.key, 0, entry.key.length - 1).backoff * interpolateProb(entry.key, 1, entry.key.length);
-				boolean endsWithEndSym = entry.key[entry.key.length - 1] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getEndSymbol());
-				boolean isStartEndSym = entry.key.length == 1 && entry.key[0] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
+				final float prob = val.prob + getLowerOrderProb(entry.key, 0, entry.key.length - 1).backoff * interpolateProb(entry.key, 1, entry.key.length);
+				final boolean endsWithEndSym = entry.key[entry.key.length - 1] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getEndSymbol());
+				final boolean isStartEndSym = entry.key.length == 1 && entry.key[0] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
 				final float logProb = isStartEndSym ? -99 : ((float) (Math.log10(prob)));
 				if (endsWithEndSym || val.backoff == 1.0f)
 					out.printf("%f\t%s\n", logProb, ngramString);
@@ -156,31 +151,31 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 		Logger.endTrack();
 	}
 
-	private float interpolateProb(int[] ngram, int startPos, int endPos) {
+	private float interpolateProb(final int[] ngram, final int startPos, final int endPos) {
 		if (startPos == endPos) return 0.0f;
-		ProbBackoffPair backoff = getLowerOrderProb(ngram, startPos, endPos - 1);
-		ProbBackoffPair prob = getLowerOrderProb(ngram, startPos, endPos);
+		final ProbBackoffPair backoff = getLowerOrderProb(ngram, startPos, endPos - 1);
+		final ProbBackoffPair prob = getLowerOrderProb(ngram, startPos, endPos);
 		return prob.prob + backoff.backoff * interpolateProb(ngram, startPos + 1, endPos);
 	}
 
-	private ProbBackoffPair getHighestOrderProb(int[] key, KneserNeyCounts value) {
-		KneserNeyCounts rightDotCounts = getCounts(key, 0, key.length - 1);
+	private ProbBackoffPair getHighestOrderProb(final int[] key, final KneserNeyCounts value) {
+		final KneserNeyCounts rightDotCounts = getCounts(key, 0, key.length - 1);
 		final float D = (float) opts.kneserNeyDiscounts[key.length - 1];
-		float prob = Math.max(0.0f, value.tokenCounts - D) / rightDotCounts.tokenCounts;
+		final float prob = Math.max(0.0f, value.tokenCounts - D) / rightDotCounts.tokenCounts;
 		return new ProbBackoffPair(prob, 1.0f);
 	}
 
-	private ProbBackoffPair getLowerOrderProb(int[] ngram, int startPos, int endPos) {
+	private ProbBackoffPair getLowerOrderProb(final int[] ngram, final int startPos, final int endPos) {
 		if (startPos == endPos) return new ProbBackoffPair(1.0f, 1.0f);
-		KneserNeyCounts counts = getCounts(ngram, startPos, endPos);
-		KneserNeyCounts prefixCounts = getCounts(ngram, startPos, endPos - 1);
+		final KneserNeyCounts counts = getCounts(ngram, startPos, endPos);
+		final KneserNeyCounts prefixCounts = getCounts(ngram, startPos, endPos - 1);
 
 		final float probDiscount = ((endPos - startPos == 1) ? 0.0f : (float) opts.kneserNeyDiscounts[endPos - startPos - 1]);
-		float prob = Math.max(0.0f, counts.leftDotTypeCounts - probDiscount) / prefixCounts.dotdotTypeCounts;
+		final float prob = Math.max(0.0f, counts.leftDotTypeCounts - probDiscount) / prefixCounts.dotdotTypeCounts;
 
 		final long backoffDenom = endPos - startPos == lmOrder - 1 ? counts.tokenCounts : counts.dotdotTypeCounts;
 		final float backoffDiscount = (float) opts.kneserNeyDiscounts[endPos - startPos];
-		float backoff = backoffDenom == 0.0f ? 1.0f : backoffDiscount * counts.rightDotTypeCounts / backoffDenom;
+		final float backoff = backoffDenom == 0.0f ? 1.0f : backoffDiscount * counts.rightDotTypeCounts / backoffDenom;
 		return new ProbBackoffPair((prob), (backoff));
 	}
 
@@ -190,17 +185,17 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 	 * @param startPos
 	 * @param endPos
 	 */
-	private KneserNeyCounts getCounts(int[] key, int startPos, int endPos) {
+	private KneserNeyCounts getCounts(final int[] key, final int startPos, final int endPos) {
 		final KneserNeyCounts value = new KneserNeyCounts();
 		if (startPos == endPos) {
 			//only happens when requesting number of bigrams
 			value.dotdotTypeCounts = (int) ngrams.getNumNgrams(1);
 			return value;
 		}
-		LmContextInfo middleWords = ngrams.getOffsetForNgram(key, startPos, endPos);
+		final LmContextInfo middleWords = ngrams.getOffsetForNgram(key, startPos, endPos);
 		ngrams.getValues().getFromOffset(middleWords.offset, middleWords.order, value);
-		boolean startsWithStartSym = key[startPos] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
-		boolean endsWithEndSym = key[endPos - 1] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getEndSymbol());
+		final boolean startsWithStartSym = key[startPos] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
+		final boolean endsWithEndSym = key[endPos - 1] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getEndSymbol());
 		if (startsWithStartSym) {
 			value.leftDotTypeCounts = 1;
 			value.dotdotTypeCounts = value.rightDotTypeCounts;
@@ -217,9 +212,9 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 	 * @param lmOrder
 	 * @param out
 	 */
-	private static void writeHeader(HashNgramMap<KneserNeyCounts> ngrams, int lmOrder, PrintWriter out) {
+	private static void writeHeader(final HashNgramMap<KneserNeyCounts> ngrams, final int lmOrder, final PrintWriter out) {
 		for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
-			long numNgrams = ngrams.getNumNgrams(ngramOrder);
+			final long numNgrams = ngrams.getNumNgrams(ngramOrder);
 			out.println("ngram " + (ngramOrder + 1) + "=" + numNgrams);
 		}
 		out.println();
@@ -234,8 +229,8 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 		return new double[] { 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2 };
 	}
 
-	private static double[] constantArray(int n, double f) {
-		double[] ret = new double[n];
+	private static double[] constantArray(final int n, final double f) {
+		final double[] ret = new double[n];
 		Arrays.fill(ret, f);
 		return ret;
 	}

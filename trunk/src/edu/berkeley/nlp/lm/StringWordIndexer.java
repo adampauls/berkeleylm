@@ -1,7 +1,6 @@
 package edu.berkeley.nlp.lm;
 
 import edu.berkeley.nlp.lm.collections.Indexer;
-import edu.berkeley.nlp.lm.io.ArpaLmReader;
 
 /**
  * Implementation of a WordIndexer in which words are represented as strings.

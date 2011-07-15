@@ -1,7 +1,5 @@
 package edu.berkeley.nlp.lm.values;
 
-import edu.berkeley.nlp.lm.bits.BitList;
-import edu.berkeley.nlp.lm.bits.BitStream;
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 

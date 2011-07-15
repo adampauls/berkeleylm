@@ -3,15 +3,14 @@ package edu.berkeley.nlp.lm;
 import java.io.Serializable;
 import java.util.List;
 
-import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 
 /**
  * 
  * Default implementation of all ContextEncodedNgramLanguageModel functionality
  * except {@link #getLogProb(long, int, int, LmContextInfo)},
- * {@link #getOffsetForNgram(int[], int, int), and
- * {@link #getNgramForOffset(long, int, int)}.
+ * {@link #getOffsetForNgram(int[], int, int), and {
+ * @link #getNgramForOffset(long, int, int)}.
  * 
  * 
  * @author adampauls

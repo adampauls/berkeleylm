@@ -4,7 +4,7 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Arrays;
 
-final class SmallLongArray implements Serializable, LongArray
+final class LongLongArray implements Serializable, LongArray
 {
 
 	/**
@@ -16,7 +16,7 @@ final class SmallLongArray implements Serializable, LongArray
 
 	private long[] data;
 
-	protected SmallLongArray(final long initialCapacity) {
+	protected LongLongArray(final long initialCapacity) {
 		this.size = 0;
 		allocFor(initialCapacity, null);
 	}
@@ -34,7 +34,7 @@ final class SmallLongArray implements Serializable, LongArray
 	 * @param capacity
 	 */
 	private void check(final long capacity) {
-		if (capacity >= Integer.MAX_VALUE) throw new IllegalArgumentException(capacity + " to big for " + SmallLongArray.class.getSimpleName());
+		if (capacity >= Integer.MAX_VALUE) throw new IllegalArgumentException(capacity + " to big for " + LongLongArray.class.getSimpleName());
 	}
 
 	private static final int i(final long l) {
@@ -133,7 +133,7 @@ final class SmallLongArray implements Serializable, LongArray
 
 	public static void main(final String[] argv) {
 
-		final LongArray b = new SmallLongArray(5L + Integer.MAX_VALUE / 9);
+		final LongArray b = new LongLongArray(5L + Integer.MAX_VALUE / 9);
 		final long val = 10000000000000L;
 		b.set(4L + Integer.MAX_VALUE / 9, val);
 		final long z = b.get(4L + Integer.MAX_VALUE / 9);
