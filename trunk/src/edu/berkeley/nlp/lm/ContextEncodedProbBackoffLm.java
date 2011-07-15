@@ -31,9 +31,10 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 
 	private final long numWords;
 
-	public ContextEncodedProbBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final HashNgramMap<ProbBackoffPair> map, final ConfigOptions opts) {
+	public ContextEncodedProbBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final ContextEncodedNgramMap<ProbBackoffPair> map,
+		final ConfigOptions opts) {
 		super(lmOrder, wordIndexer, (float) opts.unknownWordLogProb);
-		this.map = map;
+		this.map = (HashNgramMap<ProbBackoffPair>) map;
 		this.values = (ProbBackoffValueContainer) map.getValues();
 		numWords = map.getNumNgrams(0);
 

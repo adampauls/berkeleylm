@@ -35,7 +35,7 @@ public interface NgramLanguageModel<W>
 	/**
 	 * Scores a complete sentence, taking appropriate care with the start- and
 	 * end-of-sentence symbols. This is a convenience method and will generally
-	 * be very inefficient.
+	 * be inefficient.
 	 * 
 	 * @return
 	 */
@@ -43,8 +43,11 @@ public interface NgramLanguageModel<W>
 
 	/**
 	 * 
-	 * Scores an n-gram. This is a convenience method and will generally be very
-	 * inefficient.
+	 * Scores an n-gram. This is a convenience method and will generally be
+	 * relatively inefficient. More efficient versions are available in
+	 * {@link ArrayEncodedNgramLanguageModel#getLogProb(int[], int, int)} and
+	 * {@link ContextEncodedNgramLanguageModel#getLogProb(long, int, int, edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo)}
+	 * .
 	 */
 	public float getLogProb(List<W> ngram);
 
