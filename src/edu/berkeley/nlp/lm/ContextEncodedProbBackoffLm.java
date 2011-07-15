@@ -3,6 +3,7 @@ package edu.berkeley.nlp.lm;
 import java.io.Serializable;
 
 import edu.berkeley.nlp.lm.map.ContextEncodedNgramMap;
+import edu.berkeley.nlp.lm.map.HashNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
@@ -24,14 +25,13 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private final ContextEncodedNgramMap<ProbBackoffPair> map;
+	private final HashNgramMap<ProbBackoffPair> map;
 
 	private final ProbBackoffValueContainer values;
 
 	private final long numWords;
 
-	public ContextEncodedProbBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final ContextEncodedNgramMap<ProbBackoffPair> map,
-		final ConfigOptions opts) {
+	public ContextEncodedProbBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final HashNgramMap<ProbBackoffPair> map, final ConfigOptions opts) {
 		super(lmOrder, wordIndexer, (float) opts.unknownWordLogProb);
 		this.map = map;
 		this.values = (ProbBackoffValueContainer) map.getValues();
@@ -49,7 +49,7 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 	 */
 	@Override
 	public float getLogProb(final long contextOffset, final int contextOrder, final int word, @OutputParameter final LmContextInfo outputContext) {
-		final ContextEncodedNgramMap<ProbBackoffPair> localMap = map;
+		final HashNgramMap<ProbBackoffPair> localMap = map;
 		int currContextOrder = contextOrder;
 		long currContextOffset = contextOffset;
 		float backoffSum = 0.0f;
