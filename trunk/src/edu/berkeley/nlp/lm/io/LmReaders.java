@@ -357,7 +357,7 @@ public class LmReaders
 		final boolean compress = false;
 		final NgramMap<ProbBackoffPair> map = buildMapArpa(opts, lmFile, lmOrder, wordIndexer, valueAddingCallback, numNgramsForEachWord, contextEncoded,
 			reversed, compress);
-		return new ContextEncodedProbBackoffLm<W>(map.getMaxNgramOrder(), wordIndexer, (ContextEncodedNgramMap<ProbBackoffPair>) map, opts);
+		return new ContextEncodedProbBackoffLm<W>(map.getMaxNgramOrder(), wordIndexer, (HashNgramMap<ProbBackoffPair>) map, opts);
 	}
 
 	/**
