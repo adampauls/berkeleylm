@@ -1,14 +1,8 @@
 package edu.berkeley.nlp.lm.io;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import edu.berkeley.nlp.lm.ContextEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.NgramLanguageModel;
 import edu.berkeley.nlp.lm.util.Logger;
 
@@ -30,6 +24,7 @@ public class MakeLmBinaryFromArpa
 	{
 		HASH_OPT
 		{
+			@Override
 			public String toString() {
 				return "-h";
 			}
@@ -40,12 +35,13 @@ public class MakeLmBinaryFromArpa
 			}
 
 			@Override
-			public NgramLanguageModel<String> makeLm(String file) {
+			public NgramLanguageModel<String> makeLm(final String file) {
 				return LmReaders.readArrayEncodedLmFromArpa(file, false);
 			}
 		},
 		CONTEXT_OPT
 		{
+			@Override
 			public String toString() {
 				return "-e";
 			}
@@ -56,12 +52,13 @@ public class MakeLmBinaryFromArpa
 			}
 
 			@Override
-			public NgramLanguageModel<String> makeLm(String file) {
+			public NgramLanguageModel<String> makeLm(final String file) {
 				return LmReaders.readContextEncodedLmFromArpa(file);
 			}
 		},
 		COMPRESS_OPT
 		{
+			@Override
 			public String toString() {
 				return "-c";
 			}
@@ -72,7 +69,7 @@ public class MakeLmBinaryFromArpa
 			}
 
 			@Override
-			public NgramLanguageModel<String> makeLm(String file) {
+			public NgramLanguageModel<String> makeLm(final String file) {
 				return LmReaders.readArrayEncodedLmFromArpa(file, true);
 			}
 		};
@@ -88,18 +85,18 @@ public class MakeLmBinaryFromArpa
 	 */
 	private static void usage() {
 		System.err.println("Usage: [opts] <ARPA lm file> <outputfile>");
-		for (Opts opts : Opts.values()) {
+		for (final Opts opts : Opts.values()) {
 			System.err.println("\t" + opts.toString() + ": " + opts.docString());
 		}
 		System.exit(1);
 	}
 
 	public static void main(final String[] argv) {
-		List<String> fileArgs = new ArrayList<String>();
+		final List<String> fileArgs = new ArrayList<String>();
 		Opts finalOpt = Opts.HASH_OPT;
-		OUTER: for (String arg : argv) {
+		OUTER: for (final String arg : argv) {
 			if (arg.startsWith("-")) {
-				for (Opts opts : Opts.values()) {
+				for (final Opts opts : Opts.values()) {
 					if (opts.toString().equals(arg)) {
 						finalOpt = opts;
 						continue OUTER;

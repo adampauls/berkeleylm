@@ -1,7 +1,6 @@
 package edu.berkeley.nlp.lm.cache;
 
 import edu.berkeley.nlp.lm.AbstractContextEncodedNgramLanguageModel;
-import edu.berkeley.nlp.lm.ArrayEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
@@ -36,7 +35,7 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 	 * @param lm
 	 * @return
 	 */
-	public static <T> ContextEncodedCachingLmWrapper<T> wrapWithCacheNotThreadSafe(ContextEncodedNgramLanguageModel<T> lm) {
+	public static <T> ContextEncodedCachingLmWrapper<T> wrapWithCacheNotThreadSafe(final ContextEncodedNgramLanguageModel<T> lm) {
 		return new ContextEncodedCachingLmWrapper<T>(lm);
 	}
 
@@ -48,7 +47,8 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 	 * @param lm
 	 * @return
 	 */
-	public static <T> ContextEncodedCachingLmWrapper<T> wrapWithCacheNotThreadSafe(ContextEncodedNgramLanguageModel<T> lm, ContextEncodedLmCache cache) {
+	public static <T> ContextEncodedCachingLmWrapper<T> wrapWithCacheNotThreadSafe(final ContextEncodedNgramLanguageModel<T> lm,
+		final ContextEncodedLmCache cache) {
 		return new ContextEncodedCachingLmWrapper<T>(lm, cache);
 	}
 
@@ -74,7 +74,7 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 	}
 
 	@Override
-	public int[] getNgramForOffset(long contextOffset, int contextOrder, int word) {
+	public int[] getNgramForOffset(final long contextOffset, final int contextOrder, final int word) {
 		return lm.getNgramForOffset(contextOffset, contextOrder, word);
 	}
 

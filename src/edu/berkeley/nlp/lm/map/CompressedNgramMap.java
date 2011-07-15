@@ -10,12 +10,9 @@ import edu.berkeley.nlp.lm.bits.BitCompressor;
 import edu.berkeley.nlp.lm.bits.BitList;
 import edu.berkeley.nlp.lm.bits.BitStream;
 import edu.berkeley.nlp.lm.bits.VariableLengthBitCompressor;
-import edu.berkeley.nlp.lm.collections.Iterators;
-import edu.berkeley.nlp.lm.map.NgramMap.Entry;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.values.CompressibleValueContainer;
-import edu.berkeley.nlp.lm.values.ValueContainer;
 
 public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serializable
 {
@@ -53,7 +50,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	private final long[] numNgramsForEachOrder;
 
-	public CompressedNgramMap(final CompressibleValueContainer<T> values, long[] numNgramsForEachOrder, final ConfigOptions opts) {
+	public CompressedNgramMap(final CompressibleValueContainer<T> values, final long[] numNgramsForEachOrder, final ConfigOptions opts) {
 		super(values, opts);
 		offsetCoder = new VariableLengthBitCompressor(OFFSET_RADIX);
 		wordCoder = new VariableLengthBitCompressor(WORD_RADIX);
@@ -83,7 +80,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	 * @see edu.berkeley.nlp.mt.lm.NgramMap#add(java.util.List, T)
 	 */
 	@Override
-	public long put(final int[] ngram, int startPos, int endPos, final T val) {
+	public long put(final int[] ngram, final int startPos, final int endPos, final T val) {
 
 		final int ngramOrder = endPos - startPos - 1;
 		final int word = reverseTrie ? ngram[startPos] : ngram[endPos - 1];
@@ -98,9 +95,9 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 			maps[ngramOrder].init(l);
 			values.setSizeAtLeast(l, ngramOrder);
 		}
-		long oldSize = map.size();
+		final long oldSize = map.size();
 		final long newOffset = map.add(combineToKey(word, contextOffset));
-		boolean addWorked = values.add(ngram, startPos, endPos, ngramOrder, map.size() - 1, contextOffset, word, val, 0, map.size() == oldSize);
+		final boolean addWorked = values.add(ngram, startPos, endPos, ngramOrder, map.size() - 1, contextOffset, word, val, 0, map.size() == oldSize);
 		if (!addWorked) return -1;
 		return newOffset;
 
@@ -422,7 +419,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 		if (ngramOrder == 0) {
 			final boolean lookingForOffset = searchKey >= 0;
-			int word = lookingForOffset ? AbstractNgramMap.wordOf(searchKey) : (int) searchOffset;
+			final int word = lookingForOffset ? AbstractNgramMap.wordOf(searchKey) : (int) searchOffset;
 			if (word < 0 || word >= maps[0].size()) return -1;
 			if (outputVal != null) values.getFromOffset(word, 0, outputVal);
 			return lookingForOffset ? word : AbstractNgramMap.combineToKey(word, 0);
@@ -528,6 +525,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		return maps.length;
 	}
 
+	@Override
 	public Iterable<Entry<T>> getNgramsForOrder(final int ngramOrder) {
 		return new Iterable<Entry<T>>()
 		{
@@ -546,12 +544,12 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 					@Override
 					public edu.berkeley.nlp.lm.map.NgramMap.Entry<T> next() {
-						T scratch_ = values.getScratchValue();
+						final T scratch_ = values.getScratchValue();
 						long offset = currOffset;
-						int[] ngram = new int[ngramOrder + 1];
+						final int[] ngram = new int[ngramOrder + 1];
 						for (int i = ngramOrder; i >= 0; --i) {
 							final T scratch = i == ngramOrder ? scratch_ : null;
-							long foundKey = decompressSearch(maps[i].compressedKeys, -1, i, scratch, offset);
+							final long foundKey = decompressSearch(maps[i].compressedKeys, -1, i, scratch, offset);
 							assert foundKey >= 0;
 							ngram[reverseTrie ? (ngramOrder - i) : i] = AbstractNgramMap.wordOf(foundKey);
 							offset = AbstractNgramMap.contextOffsetOf(foundKey);
@@ -571,12 +569,12 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	}
 
 	@Override
-	public long getNumNgrams(int ngramOrder) {
+	public long getNumNgrams(final int ngramOrder) {
 		return maps[ngramOrder].size();
 	}
 
 	@Override
-	public boolean contains(int[] ngram, int startPos, int endPos) {
+	public boolean contains(final int[] ngram, final int startPos, final int endPos) {
 		return getContextOffset(ngram, startPos, endPos) >= 0;
 
 	}

@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import edu.berkeley.nlp.lm.map.NgramMap;
-import edu.berkeley.nlp.lm.util.Logger;
 
 /**
  * Reader callback which adds n-grams to an NgramMap
@@ -26,14 +25,14 @@ public final class NgramMapAddingCallback<V> implements ArpaLmReaderCallback<V>
 
 	private final boolean canFail;
 
-	public NgramMapAddingCallback(final NgramMap<V> map, List<int[]> failures) {
+	public NgramMapAddingCallback(final NgramMap<V> map, final List<int[]> failures) {
 		this.map = map;
 		this.canFail = failures == null;
 		this.failures = canFail ? new ArrayList<int[]>() : failures;
 	}
 
 	@Override
-	public void call(final int[] ngram, int startPos, int endPos, final V v, final String words) {
+	public void call(final int[] ngram, final int startPos, final int endPos, final V v, final String words) {
 		final long add = map.put(ngram, startPos, endPos, v);
 
 		if (add < 0) {
@@ -57,7 +56,7 @@ public final class NgramMapAddingCallback<V> implements ArpaLmReaderCallback<V>
 	@Override
 	public void handleNgramOrderFinished(final int order) {
 		map.handleNgramsFinished(order);
-		for (int[] ngram : failures) {
+		for (final int[] ngram : failures) {
 			if (ngram.length == order + 1) {
 				map.put(ngram, 0, ngram.length, null);
 			}

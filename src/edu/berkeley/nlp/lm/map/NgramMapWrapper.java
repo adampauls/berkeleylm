@@ -27,7 +27,7 @@ public class NgramMapWrapper<W, V> extends AbstractMap<List<W>, V>
 
 	private final NgramsForOrderMapWrapper<W, V>[] ngramsForOrder;
 
-	public NgramMapWrapper(NgramMap<V> map, WordIndexer<W> wordIndexer) {
+	public NgramMapWrapper(final NgramMap<V> map, final WordIndexer<W> wordIndexer) {
 		this(map, wordIndexer, map.getMaxNgramOrder());
 	}
 
@@ -38,7 +38,7 @@ public class NgramMapWrapper<W, V> extends AbstractMap<List<W>, V>
 	 * @param maxOrder
 	 *            this is 1-based (i.e. 1 means keep unigrams but not bigrams)
 	 */
-	public NgramMapWrapper(NgramMap<V> map, WordIndexer<W> wordIndexer, int maxOrder) {
+	public NgramMapWrapper(final NgramMap<V> map, final WordIndexer<W> wordIndexer, final int maxOrder) {
 		@SuppressWarnings("unchecked")
 		final NgramsForOrderMapWrapper<W, V>[] maps = new NgramsForOrderMapWrapper[maxOrder];
 		ngramsForOrder = maps;
@@ -48,10 +48,10 @@ public class NgramMapWrapper<W, V> extends AbstractMap<List<W>, V>
 	}
 
 	@Override
-	public V get(Object arg0) {
+	public V get(final Object arg0) {
 		if (!(arg0 instanceof List)) return null;
 		@SuppressWarnings("unchecked")
-		List<W> l = (List<W>) arg0;
+		final List<W> l = (List<W>) arg0;
 
 		if (l.size() > ngramsForOrder.length) return null;
 		return ngramsForOrder[l.size() - 1].get(l);
@@ -59,7 +59,7 @@ public class NgramMapWrapper<W, V> extends AbstractMap<List<W>, V>
 	}
 
 	@Override
-	public boolean containsKey(Object key) {
+	public boolean containsKey(final Object key) {
 		return get(key) != null;
 	}
 
@@ -75,7 +75,7 @@ public class NgramMapWrapper<W, V> extends AbstractMap<List<W>, V>
 				{
 
 					@Override
-					protected Iterator<java.util.Map.Entry<List<W>, V>> transform(NgramsForOrderMapWrapper<W, V> next) {
+					protected Iterator<java.util.Map.Entry<List<W>, V>> transform(final NgramsForOrderMapWrapper<W, V> next) {
 						return next.entrySet().iterator();
 					}
 				};
@@ -99,7 +99,7 @@ public class NgramMapWrapper<W, V> extends AbstractMap<List<W>, V>
 	 *            0-based (0 means unigrams)
 	 * @return
 	 */
-	public Map<List<W>, V> getMapForOrder(int ngramOrder) {
+	public Map<List<W>, V> getMapForOrder(final int ngramOrder) {
 		return ngramsForOrder[ngramOrder];
 	}
 
@@ -108,7 +108,7 @@ public class NgramMapWrapper<W, V> extends AbstractMap<List<W>, V>
 	 */
 	public long longSize() {
 		long size = 0;
-		for (NgramsForOrderMapWrapper<W, V> map : ngramsForOrder) {
+		for (final NgramsForOrderMapWrapper<W, V> map : ngramsForOrder) {
 			size += map.size();
 		}
 		return size;

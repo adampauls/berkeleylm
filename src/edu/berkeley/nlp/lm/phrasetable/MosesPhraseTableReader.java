@@ -1,10 +1,7 @@
 package edu.berkeley.nlp.lm.phrasetable;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 
 import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.collections.Iterators;
@@ -22,7 +19,7 @@ public class MosesPhraseTableReader<W> implements LmReader<PhraseTableCounts, Mo
 
 	private final String file;
 
-	public MosesPhraseTableReader(String file, final WordIndexer<W> wordIndexer) {
+	public MosesPhraseTableReader(final String file, final WordIndexer<W> wordIndexer) {
 		this.file = file;
 		this.wordIndexer = wordIndexer;
 
@@ -61,36 +58,36 @@ public class MosesPhraseTableReader<W> implements LmReader<PhraseTableCounts, Mo
 		for (final String line : allLinesIterator) {
 			if (numLines % 10000 == 0) Logger.logs("On line " + numLines);
 			numLines++;
-			String[] parts = line.trim().split("\\|\\|\\|");
+			final String[] parts = line.trim().split("\\|\\|\\|");
 			if (parts.length != 5 && parts.length != 3) throw new IllegalArgumentException("Bad Moses phrase table file line " + line);
 			assert (parts.length == 3 || parts.length == 5);
 			// ingore alignments if they exist
 			if (parts.length == 5) parts[2] = parts[4];
 
-			String[] src = parts[0].trim().split("\\s+");
-			int[] srcInts = WordIndexer.StaticMethods.toArrayFromStrings(wordIndexer, Arrays.asList(src));
-			String[] trg = parts[1].trim().split("\\s+");
-			int[] trgInts = WordIndexer.StaticMethods.toArrayFromStrings(wordIndexer, Arrays.asList(trg));
+			final String[] src = parts[0].trim().split("\\s+");
+			final int[] srcInts = WordIndexer.StaticMethods.toArrayFromStrings(wordIndexer, Arrays.asList(src));
+			final String[] trg = parts[1].trim().split("\\s+");
+			final int[] trgInts = WordIndexer.StaticMethods.toArrayFromStrings(wordIndexer, Arrays.asList(trg));
 
-			int sepIndex = wordIndexer.getOrAddIndexFromString(SEP_WORD);
-			String[] featStrings = parts[2].trim().split("\\s+");
-			float[] features = new float[featStrings.length];
+			final int sepIndex = wordIndexer.getOrAddIndexFromString(SEP_WORD);
+			final String[] featStrings = parts[2].trim().split("\\s+");
+			final float[] features = new float[featStrings.length];
 			// we skip the last feature since it is the bias, and is always the same.
 			for (int i = 0; i < featStrings.length - 1; i++) {
 				try {
-					Float val = Float.parseFloat(featStrings[i]);
+					final Float val = Float.parseFloat(featStrings[i]);
 					if (val.isInfinite() || val.isNaN()) {
 						Logger.warn("Non-finite feature: " + featStrings[i]);
 						continue;
 					}
 
 					features[i] = (float) -Math.log(val);
-				} catch (NumberFormatException n) {
+				} catch (final NumberFormatException n) {
 					throw new RuntimeException("Bad Moses phrase table file line: " + line);
 				}
 			}
 
-			int[] concat = new int[srcInts.length + trgInts.length + 1];
+			final int[] concat = new int[srcInts.length + trgInts.length + 1];
 			System.arraycopy(srcInts, 0, concat, 0, srcInts.length);
 			concat[srcInts.length] = sepIndex;
 			System.arraycopy(trgInts, 0, concat, srcInts.length + 1, trgInts.length);

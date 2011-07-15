@@ -7,7 +7,7 @@ import java.util.List;
  * Default implementation of all NGramLanguageModel functionality except
  * {@link #getLogProb(int[], int, int)}.
  * 
-
+ * 
  * 
  * @author adampauls
  * 

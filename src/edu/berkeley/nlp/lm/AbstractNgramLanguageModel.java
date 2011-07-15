@@ -1,7 +1,6 @@
 package edu.berkeley.nlp.lm;
 
 import java.io.Serializable;
-import java.util.List;
 
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 

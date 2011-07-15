@@ -32,7 +32,7 @@ public interface NgramMap<V>
 		 * @param key
 		 * @param value
 		 */
-		public Entry(int[] key, T value) {
+		public Entry(final int[] key, final T value) {
 			super();
 			this.key = key;
 			this.value = value;

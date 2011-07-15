@@ -1,7 +1,6 @@
 package edu.berkeley.nlp.lm.values;
 
 import edu.berkeley.nlp.lm.collections.Indexer;
-import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 
@@ -38,12 +37,12 @@ public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackof
 	 * @param uncompressProbs2
 	 * @return
 	 */
-	private float getCount(final int ngramOrder, final long index, boolean backoff) {
+	private float getCount(final int ngramOrder, final long index, final boolean backoff) {
 		final int rank = getRank(ngramOrder, index);
 		return getFromRank(rank, backoff);
 	}
 
-	private float getFromRank(int rank, boolean backoff) {
+	private float getFromRank(final int rank, final boolean backoff) {
 		return probsAndBackoffsForRank[2 * rank + (backoff ? 1 : 0)];
 	}
 

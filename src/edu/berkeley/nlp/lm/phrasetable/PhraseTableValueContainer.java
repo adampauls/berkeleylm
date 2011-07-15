@@ -3,19 +3,12 @@ package edu.berkeley.nlp.lm.phrasetable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 import edu.berkeley.nlp.lm.array.CustomWidthArray;
 import edu.berkeley.nlp.lm.array.LongArray;
-import edu.berkeley.nlp.lm.bits.BitList;
-import edu.berkeley.nlp.lm.bits.BitStream;
-import edu.berkeley.nlp.lm.collections.Indexer;
-import edu.berkeley.nlp.lm.map.AbstractNgramMap;
 import edu.berkeley.nlp.lm.map.HashNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
-import edu.berkeley.nlp.lm.util.LongRef;
-import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer.KneserNeyCounts;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 /**
@@ -40,7 +33,7 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 	{
 		float[] features;
 
-		public FeaturePhraseTableValues(float[] features) {
+		public FeaturePhraseTableValues(final float[] features) {
 			this.features = features;
 		}
 
@@ -69,7 +62,7 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 	private final int numFeatures;
 
 	@SuppressWarnings("unchecked")
-	public PhraseTableValueContainer(int separatorWord, int numFeatures) {
+	public PhraseTableValueContainer(final int separatorWord, final int numFeatures) {
 		this.separatorWord = separatorWord;
 		this.numFeatures = numFeatures;
 		this.targetTranslations = new ArrayList[5];
@@ -86,10 +79,10 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 	public void getFromOffset(final long offset, final int ngramOrder, @OutputParameter final PhraseTableValues outputVal) {
 		if (valueIndexes[ngramOrder] == null) {
 			@SuppressWarnings("unused")
-			int x = 5;
+			final int x = 5;
 		}
 		if (offset >= valueIndexes[ngramOrder].size()) return;
-		long valueIndex = valueIndexes[ngramOrder].get(offset);
+		final long valueIndex = valueIndexes[ngramOrder].get(offset);
 		if (valueIndex == EMPTY_VALUE_INDEX) return;
 		if (outputVal instanceof FeaturePhraseTableValues && valueIndex >= 0) {
 			final float[] fs = new float[numFeatures];
@@ -103,15 +96,15 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 		}
 	}
 
-	private int[] readOrders(LongArray longArray) {
-		int[] ret = new int[(int) longArray.size()];
+	private int[] readOrders(final LongArray longArray) {
+		final int[] ret = new int[(int) longArray.size()];
 		for (int i = 0; i < longArray.size(); ++i)
 			ret[i] = (byte) (longArray.get(i) >> Integer.SIZE);
 		return ret;
 	}
 
-	private long[] readOffsets(LongArray longArray) {
-		long[] ret = new long[(int) longArray.size()];
+	private long[] readOffsets(final LongArray longArray) {
+		final long[] ret = new long[(int) longArray.size()];
 		for (int i = 0; i < longArray.size(); ++i)
 			ret[i] = (int) longArray.get(i);
 		return ret;
@@ -128,8 +121,8 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 	}
 
 	@Override
-	public boolean add(int[] ngram, int startPos, int endPos, int ngramOrder, long offset, long contextOffset, int word, PhraseTableValues val,
-		long suffixOffset, boolean ngramIsNew) {
+	public boolean add(final int[] ngram, final int startPos, final int endPos, final int ngramOrder, final long offset, final long contextOffset,
+		final int word, final PhraseTableValues val, final long suffixOffset, final boolean ngramIsNew) {
 
 		assert !map.isReversed();
 
@@ -150,7 +143,7 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 
 	}
 
-	private boolean containsSeparator(int[] ngram, int startPos, int endPos) {
+	private boolean containsSeparator(final int[] ngram, final int startPos, final int endPos) {
 		for (int i = startPos; i < endPos; ++i)
 			if (ngram[i] == separatorWord) return true;
 		return false;
@@ -160,7 +153,7 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 	 * @param ngramOrder
 	 * @param offset
 	 */
-	private void addNewSrcPhrase(int ngramOrder, long offset) {
+	private void addNewSrcPhrase(final int ngramOrder, final long offset) {
 		growValueIndexArrayIfNecessary(ngramOrder);
 		if (ngramOrder >= targetTranslations.length) {
 			targetTranslations = Arrays.copyOf(targetTranslations, targetTranslations.length * 3 / 2);
@@ -169,7 +162,7 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 			targetTranslations[ngramOrder] = new ArrayList<LongArray>();
 		}
 		final ArrayList<LongArray> targetTranslationPointersHere = targetTranslations[ngramOrder];
-		long currVal = offset >= valueIndexes[ngramOrder].size() ? 0 : valueIndexes[ngramOrder].get((int) (offset));
+		final long currVal = offset >= valueIndexes[ngramOrder].size() ? 0 : valueIndexes[ngramOrder].get((int) (offset));
 		if (currVal == 0) valueIndexes[ngramOrder].setAndGrowIfNeeded((int) (offset), (-targetTranslations[ngramOrder].size() - 1));
 
 		targetTranslationPointersHere.add(new CustomWidthArray(3, Integer.SIZE + Byte.SIZE));
@@ -181,7 +174,7 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 	 * @param contextOffset
 	 * @param word
 	 */
-	private void addPointerToTargetSidePhrase(int ngramOrder, long offset, long contextOffset, int word) {
+	private void addPointerToTargetSidePhrase(final int ngramOrder, final long offset, final long contextOffset, final int word) {
 		int currWord = word;
 		long srcPhraseOffset = contextOffset;
 		int srcPhraseOrder = ngramOrder - 1;
@@ -201,7 +194,7 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 	 * @param offset
 	 * @return
 	 */
-	private long combineOrderAndOffset(int ngramOrder, long offset) {
+	private long combineOrderAndOffset(final int ngramOrder, final long offset) {
 		return (((long) ngramOrder) << Integer.SIZE) | offset;
 	}
 
@@ -210,7 +203,7 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 	 * @param offset
 	 * @param val
 	 */
-	private void addFeaturesForWholePhrase(int ngramOrder, long offset, PhraseTableValues val) {
+	private void addFeaturesForWholePhrase(final int ngramOrder, final long offset, final PhraseTableValues val) {
 		growValueIndexArrayIfNecessary(ngramOrder);
 		if (ngramOrder >= features.length) {
 			features = Arrays.copyOf(features, Math.max(ngramOrder + 1, features.length * 3 / 2));
@@ -224,7 +217,7 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 	/**
 	 * @param ngramOrder
 	 */
-	private void growValueIndexArrayIfNecessary(int ngramOrder) {
+	private void growValueIndexArrayIfNecessary(final int ngramOrder) {
 		if (ngramOrder >= valueIndexes.length) {
 			valueIndexes = Arrays.copyOf(valueIndexes, Math.max(ngramOrder + 1, valueIndexes.length * 3 / 2));
 		}
@@ -232,11 +225,11 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 	}
 
 	@Override
-	public void setSizeAtLeast(long size, int ngramOrder) {
+	public void setSizeAtLeast(final long size, final int ngramOrder) {
 	}
 
 	@Override
-	public void setFromOtherValues(ValueContainer<PhraseTableValues> other) {
+	public void setFromOtherValues(final ValueContainer<PhraseTableValues> other) {
 		final PhraseTableValueContainer other_ = (PhraseTableValueContainer) other;
 		this.features = other_.features;
 		this.targetTranslations = other_.targetTranslations;
@@ -259,7 +252,7 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 	}
 
 	@Override
-	public void setMap(NgramMap<PhraseTableValues> map) {
+	public void setMap(final NgramMap<PhraseTableValues> map) {
 		this.map = (HashNgramMap<PhraseTableValues>) map;
 	}
 

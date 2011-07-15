@@ -98,8 +98,8 @@ public interface WordIndexer<W> extends Serializable
 		 * @param list
 		 * @return
 		 */
-		public static <W> int[] toArray(final WordIndexer<W> wordIndexer, List<W> list) {
-			int[] ret = new int[list.size()];
+		public static <W> int[] toArray(final WordIndexer<W> wordIndexer, final List<W> list) {
+			final int[] ret = new int[list.size()];
 			for (int i = 0; i < list.size(); ++i) {
 				ret[i] = wordIndexer.getIndexPossiblyUnk(list.get(i));
 			}
@@ -116,8 +116,8 @@ public interface WordIndexer<W> extends Serializable
 		 * @param list
 		 * @return
 		 */
-		public static <W> int[] toArrayFromStrings(final WordIndexer<W> wordIndexer, List<String> list) {
-			int[] ret = new int[list.size()];
+		public static <W> int[] toArrayFromStrings(final WordIndexer<W> wordIndexer, final List<String> list) {
+			final int[] ret = new int[list.size()];
 			for (int i = 0; i < list.size(); ++i) {
 				ret[i] = wordIndexer.getOrAddIndexFromString(list.get(i));
 			}

@@ -1,6 +1,5 @@
 package edu.berkeley.nlp.lm.io;
 
-import java.util.List;
 
 /**
  * Callback that is called for each n-gram in the collection

@@ -2,17 +2,14 @@ package edu.berkeley.nlp.lm.io;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import edu.berkeley.nlp.lm.ArrayEncodedNgramLanguageModel;
+import edu.berkeley.nlp.lm.ArrayEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ContextEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.NgramLanguageModel;
-import edu.berkeley.nlp.lm.ArrayEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.StringWordIndexer;
 import edu.berkeley.nlp.lm.StupidBackoffLm;
 import edu.berkeley.nlp.lm.WordIndexer;
@@ -28,9 +25,9 @@ import edu.berkeley.nlp.lm.map.NgramMapWrapper;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.LongRef;
 import edu.berkeley.nlp.lm.values.CompressibleValueContainer;
-import edu.berkeley.nlp.lm.values.RankedCountValueContainer;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
+import edu.berkeley.nlp.lm.values.RankedCountValueContainer;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 /**
@@ -133,7 +130,7 @@ public class LmReaders
 		return secondPassContextEncoded(opts, lmFile, lmOrder, wordIndexer, valueAddingCallback, numNgramsForEachWord);
 	}
 
-	public static ArrayEncodedProbBackoffLm<String> readArrayEncodedLmFromArpa(final String lmFile, boolean compress) {
+	public static ArrayEncodedProbBackoffLm<String> readArrayEncodedLmFromArpa(final String lmFile, final boolean compress) {
 		return readArrayEncodedLmFromArpa(lmFile, compress, new StringWordIndexer());
 	}
 
@@ -154,7 +151,7 @@ public class LmReaders
 	 * @param lmOrder
 	 * @return
 	 */
-	public static <W> ArrayEncodedProbBackoffLm<W> readArrayEncodedLmFromArpa(final String lmFile, boolean compress, final WordIndexer<W> wordIndexer,
+	public static <W> ArrayEncodedProbBackoffLm<W> readArrayEncodedLmFromArpa(final String lmFile, final boolean compress, final WordIndexer<W> wordIndexer,
 		final ConfigOptions opts, final int lmOrder) {
 
 		final boolean reverse = true;
@@ -163,16 +160,16 @@ public class LmReaders
 		return secondPassArrayEncoded(opts, lmFile, lmOrder, wordIndexer, valueAddingCallback, numNgramsForEachWord, reverse, compress);
 	}
 
-	public static NgramMapWrapper<String, LongRef> readNgramMapFromGoogleNgramDir(final String dir, boolean compress) {
+	public static NgramMapWrapper<String, LongRef> readNgramMapFromGoogleNgramDir(final String dir, final boolean compress) {
 		return readNgramMapFromGoogleNgramDir(dir, compress, new StringWordIndexer());
 	}
 
-	public static <W> NgramMapWrapper<W, LongRef> readNgramMapFromGoogleNgramDir(final String dir, boolean compress, WordIndexer<W> wordIndexer) {
-		StupidBackoffLm<W> lm = readLmFromGoogleNgramDir(dir, compress, wordIndexer, new ConfigOptions());
+	public static <W> NgramMapWrapper<W, LongRef> readNgramMapFromGoogleNgramDir(final String dir, final boolean compress, final WordIndexer<W> wordIndexer) {
+		final StupidBackoffLm<W> lm = readLmFromGoogleNgramDir(dir, compress, wordIndexer, new ConfigOptions());
 		return new NgramMapWrapper<W, LongRef>(lm.getNgramMap(), lm.getWordIndexer());
 	}
 
-	public static NgramMapWrapper<String, LongRef> readNgramMapFromBinary(final String binary, String vocabFile) {
+	public static NgramMapWrapper<String, LongRef> readNgramMapFromBinary(final String binary, final String vocabFile) {
 		return readNgramMapFromBinary(binary, vocabFile, new StringWordIndexer());
 	}
 
@@ -182,15 +179,15 @@ public class LmReaders
 	 *            should be the vocab_cs.gz file from the Google n-gram corpus.
 	 * @return
 	 */
-	public static <W> NgramMapWrapper<W, LongRef> readNgramMapFromBinary(final String binary, String sortedVocabFile, WordIndexer<W> wordIndexer) {
+	public static <W> NgramMapWrapper<W, LongRef> readNgramMapFromBinary(final String binary, final String sortedVocabFile, final WordIndexer<W> wordIndexer) {
 		GoogleLmReader.addToIndexer(wordIndexer, sortedVocabFile);
 		wordIndexer.trimAndLock();
 		@SuppressWarnings("unchecked")
-		NgramMap<LongRef> map = (NgramMap<LongRef>) IOUtils.readObjFileHard(binary);
+		final NgramMap<LongRef> map = (NgramMap<LongRef>) IOUtils.readObjFileHard(binary);
 		return new NgramMapWrapper<W, LongRef>(map, wordIndexer);
 	}
 
-	public static StupidBackoffLm<String> readLmFromGoogleNgramDir(final String dir, boolean compress) {
+	public static StupidBackoffLm<String> readLmFromGoogleNgramDir(final String dir, final boolean compress) {
 		return readLmFromGoogleNgramDir(dir, compress, new StringWordIndexer(), new ConfigOptions());
 	}
 
@@ -205,7 +202,8 @@ public class LmReaders
 	 * @param opts
 	 * @return
 	 */
-	public static <W> StupidBackoffLm<W> readLmFromGoogleNgramDir(final String dir, boolean compress, final WordIndexer<W> wordIndexer, final ConfigOptions opts) {
+	public static <W> StupidBackoffLm<W> readLmFromGoogleNgramDir(final String dir, final boolean compress, final WordIndexer<W> wordIndexer,
+		final ConfigOptions opts) {
 		final FirstPassCallback<LongRef> valueAddingCallback = firstPassGoogle(dir, wordIndexer, opts);
 		final LongArray[] numNgramsForEachWord = valueAddingCallback.getNumNgramsForEachWord();
 		return secondPassGoogle(opts, dir, wordIndexer, valueAddingCallback, numNgramsForEachWord, compress);
@@ -226,9 +224,9 @@ public class LmReaders
 	 * @param opts
 	 * @return
 	 */
-	public static <W> ContextEncodedProbBackoffLm<W> readContextEncodedKneserNeyLmFromTextFile(List<File> files, final WordIndexer<W> wordIndexer,
-		final int lmOrder, ConfigOptions opts) {
-		File tmpFile = getTempFile();
+	public static <W> ContextEncodedProbBackoffLm<W> readContextEncodedKneserNeyLmFromTextFile(final List<File> files, final WordIndexer<W> wordIndexer,
+		final int lmOrder, final ConfigOptions opts) {
+		final File tmpFile = getTempFile();
 		return readContextEncodedKneserNeyLmFromTextFile(files, wordIndexer, lmOrder, opts, tmpFile);
 	}
 
@@ -247,20 +245,20 @@ public class LmReaders
 	 * @param opts
 	 * @return
 	 */
-	public static <W> ArrayEncodedProbBackoffLm<W> readKneserNeyLmFromTextFile(List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder, ConfigOptions opts,
-		boolean compress) {
-		File tmpFile = getTempFile();
+	public static <W> ArrayEncodedProbBackoffLm<W> readKneserNeyLmFromTextFile(final List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder,
+		final ConfigOptions opts, final boolean compress) {
+		final File tmpFile = getTempFile();
 		return readKneserNeyLmFromTextFile(files, wordIndexer, lmOrder, compress, opts, tmpFile);
 	}
 
-	public static <W> ContextEncodedProbBackoffLm<W> readContextEncodedKneserNeyLmFromTextFile(List<File> files, final WordIndexer<W> wordIndexer,
-		final int lmOrder, ConfigOptions opts, File tmpFile) {
+	public static <W> ContextEncodedProbBackoffLm<W> readContextEncodedKneserNeyLmFromTextFile(final List<File> files, final WordIndexer<W> wordIndexer,
+		final int lmOrder, final ConfigOptions opts, final File tmpFile) {
 		createKneserNeyLmFromTextFiles(files, wordIndexer, lmOrder, tmpFile, opts);
 		return readContextEncodedLmFromArpa(tmpFile.getPath(), wordIndexer, opts, lmOrder);
 	}
 
-	public static <W> ArrayEncodedProbBackoffLm<W> readKneserNeyLmFromTextFile(List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder, boolean compress,
-		ConfigOptions opts, File tmpFile) {
+	public static <W> ArrayEncodedProbBackoffLm<W> readKneserNeyLmFromTextFile(final List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder,
+		final boolean compress, final ConfigOptions opts, final File tmpFile) {
 		createKneserNeyLmFromTextFiles(files, wordIndexer, lmOrder, tmpFile, opts);
 		return readArrayEncodedLmFromArpa(tmpFile.getPath(), compress, wordIndexer, opts, lmOrder);
 	}
@@ -276,8 +274,8 @@ public class LmReaders
 	 * @param lmOrder
 	 * @param arpaOutputFile
 	 */
-	public static <W> void createKneserNeyLmFromTextFiles(List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder, File arpaOutputFile,
-		ConfigOptions opts) {
+	public static <W> void createKneserNeyLmFromTextFiles(final List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder,
+		final File arpaOutputFile, final ConfigOptions opts) {
 		final TextReader<W> reader = new TextReader<W>(files, wordIndexer, lmOrder);
 		reader.parse(new KneserNeyLmReaderCallback<W>(arpaOutputFile, wordIndexer, lmOrder, opts));
 	}
@@ -299,7 +297,7 @@ public class LmReaders
 		GoogleLmReader.addToIndexer(wordIndexer, sortedVocabFile);
 		wordIndexer.trimAndLock();
 		@SuppressWarnings("unchecked")
-		NgramMap<LongRef> map = (NgramMap<LongRef>) IOUtils.readObjFileHard(file);
+		final NgramMap<LongRef> map = (NgramMap<LongRef>) IOUtils.readObjFileHard(file);
 		return new StupidBackoffLm<W>(map.getMaxNgramOrder(), wordIndexer, map, new ConfigOptions());
 	}
 
@@ -322,7 +320,7 @@ public class LmReaders
 	 * @param lm
 	 * @param file
 	 */
-	public static <W> void writeLmBinary(NgramLanguageModel<W> lm, String file) {
+	public static <W> void writeLmBinary(final NgramLanguageModel<W> lm, final String file) {
 		IOUtils.writeObjFileHard(file, lm);
 	}
 
@@ -331,10 +329,10 @@ public class LmReaders
 	 */
 	private static File getTempFile() {
 		try {
-			File tmpFile = File.createTempFile("berkeleylm", "arpa");
+			final File tmpFile = File.createTempFile("berkeleylm", "arpa");
 			tmpFile.deleteOnExit();
 			return tmpFile;
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			throw new RuntimeException(e);
 
 		}
@@ -376,7 +374,7 @@ public class LmReaders
 	 */
 	private static <W> ArrayEncodedProbBackoffLm<W> secondPassArrayEncoded(final ConfigOptions opts, final String lmFile, final int lmOrder,
 		final WordIndexer<W> wordIndexer, final FirstPassCallback<ProbBackoffPair> valueAddingCallback, final LongArray[] numNgramsForEachWord,
-		final boolean reversed, boolean compress) {
+		final boolean reversed, final boolean compress) {
 		final boolean contextEncoded = false;
 		final NgramMap<ProbBackoffPair> map = buildMapArpa(opts, lmFile, lmOrder, wordIndexer, valueAddingCallback, numNgramsForEachWord, contextEncoded,
 			reversed, compress);
@@ -384,7 +382,7 @@ public class LmReaders
 	}
 
 	private static <W> StupidBackoffLm<W> secondPassGoogle(final ConfigOptions opts, final String dir, final WordIndexer<W> wordIndexer,
-		final FirstPassCallback<LongRef> valueAddingCallback, final LongArray[] numNgramsForEachWord, boolean compress) {
+		final FirstPassCallback<LongRef> valueAddingCallback, final LongArray[] numNgramsForEachWord, final boolean compress) {
 		final boolean contextEncoded = false;
 		final boolean reversed = true;
 		final RankedCountValueContainer values = new RankedCountValueContainer(valueAddingCallback.getIndexer(), opts.valueRadix, contextEncoded);
@@ -441,7 +439,7 @@ public class LmReaders
 		final List<int[]> failures = ngramMapAddingCallback.getFailures();
 		if (!failures.isEmpty()) {
 			Logger.startTrack("Some missing suffixes of prefixes were found, doing another pass to add n-grams");
-			for (int[] failure : failures) {
+			for (final int[] failure : failures) {
 				final int ngramOrder = failure.length - 1;
 				final int headWord = failure[reversed ? 0 : ngramOrder];
 				numNgramsForEachOrder[ngramOrder]++;

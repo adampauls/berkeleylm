@@ -79,7 +79,7 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 			for (int i = endPos - 1; i >= startPos; --i) {
 				probContext = localMap.getValueAndOffset(probContext, probContextOrder, ngram[i], scratch);
 				if (probContext < 0) break;
-				float tmpProb = scratch == null ? values.getProb(probContextOrder + 1, probContext) : scratch.prob;
+				final float tmpProb = scratch == null ? values.getProb(probContextOrder + 1, probContext) : scratch.prob;
 				if (!Float.isNaN(tmpProb)) {
 					logProb = tmpProb;
 					matchedProbContext = probContext;

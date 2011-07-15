@@ -55,7 +55,8 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 		return Float.NaN;
 	}
 
-	private boolean equals(final int[] ngram, final int startPos, final int endPos, final int[] cachedNgram, int cachedNgramStart, int cachedNgramLength) {
+	private boolean equals(final int[] ngram, final int startPos, final int endPos, final int[] cachedNgram, final int cachedNgramStart,
+		final int cachedNgramLength) {
 		if (cachedNgramLength != endPos - startPos) return false;
 		for (int i = startPos; i < endPos; ++i) {
 			if (cachedNgram[cachedNgramStart + i - startPos] != ngram[i]) return false;
@@ -63,23 +64,23 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 		return true;
 	}
 
-	private float getVal(int hash) {
+	private float getVal(final int hash) {
 		return Float.intBitsToFloat(array[startOfStruct(hash) + VAL_OFFSET]);
 	}
 
-	private float setVal(int hash, float f) {
+	private float setVal(final int hash, final float f) {
 		return array[startOfStruct(hash) + VAL_OFFSET] = Float.floatToIntBits(f);
 	}
 
-	private float setLength(int hash, int l) {
+	private float setLength(final int hash, final int l) {
 		return array[startOfStruct(hash) + LENGTH_OFFSET] = l;
 	}
 
-	private int getLength(int hash) {
+	private int getLength(final int hash) {
 		return array[startOfStruct(hash) + LENGTH_OFFSET];
 	}
 
-	private int getKeyStart(int hash) {
+	private int getKeyStart(final int hash) {
 		return startOfStruct(hash) + KEY_OFFSET;
 	}
 

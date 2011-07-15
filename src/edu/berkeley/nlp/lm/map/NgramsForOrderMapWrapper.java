@@ -2,21 +2,17 @@ package edu.berkeley.nlp.lm.map;
 
 import java.util.AbstractMap;
 import java.util.AbstractSet;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import edu.berkeley.nlp.lm.WordIndexer;
-import edu.berkeley.nlp.lm.collections.Iterators;
-import edu.berkeley.nlp.lm.map.NgramMap.Entry;
 import edu.berkeley.nlp.lm.util.Logger;
-import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 
 /**
- * Wraps an NgramMap as a Java Map, but only ngrams of a particular order. This collection is read-only. It is also uses
- * a lot inefficient boxing and unboxing.
+ * Wraps an NgramMap as a Java Map, but only ngrams of a particular order. This
+ * collection is read-only. It is also uses a lot inefficient boxing and
+ * unboxing.
  * 
  * @author adampauls
  * 
@@ -32,7 +28,7 @@ public class NgramsForOrderMapWrapper<W, V> extends AbstractMap<List<W>, V>
 
 	private final WordIndexer<W> wordIndexer;
 
-	private final NgramsForOrderIterableWrapper<W,V> iterableWrapper;
+	private final NgramsForOrderIterableWrapper<W, V> iterableWrapper;
 
 	/**
 	 * 
@@ -40,7 +36,7 @@ public class NgramsForOrderMapWrapper<W, V> extends AbstractMap<List<W>, V>
 	 * @param ngramOrder
 	 *            0-based, i.e. 0 means unigrams
 	 */
-	public NgramsForOrderMapWrapper(NgramMap<V> map, WordIndexer<W> wordIndexer, int ngramOrder) {
+	public NgramsForOrderMapWrapper(final NgramMap<V> map, final WordIndexer<W> wordIndexer, final int ngramOrder) {
 		this.map = map;
 		this.ngramOrder = ngramOrder;
 		this.wordIndexer = wordIndexer;
@@ -48,25 +44,23 @@ public class NgramsForOrderMapWrapper<W, V> extends AbstractMap<List<W>, V>
 	}
 
 	@Override
-	public V get(Object arg0) {
+	public V get(final Object arg0) {
 		if (!(arg0 instanceof List)) return null;
 		@SuppressWarnings("unchecked")
-		List<W> l = (List<W>) arg0;
+		final List<W> l = (List<W>) arg0;
 
 		if (l.size() != ngramOrder + 1) return null;
-		int[] ngram = WordIndexer.StaticMethods.toArray(wordIndexer, l);
+		final int[] ngram = WordIndexer.StaticMethods.toArray(wordIndexer, l);
 
 		return getForArray(ngram);
 
 	}
 
-	
-
 	@Override
-	public boolean containsKey(Object key) {
+	public boolean containsKey(final Object key) {
 		return get(key) != null;
 	}
-	
+
 	@Override
 	public Set<java.util.Map.Entry<List<W>, V>> entrySet() {
 		return new AbstractSet<java.util.Map.Entry<List<W>, V>>()
@@ -91,13 +85,13 @@ public class NgramsForOrderMapWrapper<W, V> extends AbstractMap<List<W>, V>
 	 * @param scratch
 	 * @param ngram
 	 */
-	private V getForArray(int[] ngram) {
+	private V getForArray(final int[] ngram) {
 		long probContext = 0L;
 		int probContextOrder = -1;
-		V scratch = map.getValues().getScratchValue();
-		NgramMap<V> localMap = map;
-		int endPos_ = ngram.length;
-		int startPos_ = 0;
+		final V scratch = map.getValues().getScratchValue();
+		final NgramMap<V> localMap = map;
+		final int endPos_ = ngram.length;
+		final int startPos_ = 0;
 		for (int i = endPos_ - 1; i >= startPos_; --i) {
 			probContext = localMap.getValueAndOffset(probContext, probContextOrder, ngram[i], scratch);
 			if (probContext < 0) return null;

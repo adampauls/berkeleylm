@@ -26,7 +26,7 @@ public class NgramIterableWrapper<W, V> implements Iterable<java.util.Map.Entry<
 
 	private final NgramsForOrderIterableWrapper<W, V>[] ngramsForOrder;
 
-	public NgramIterableWrapper(NgramMap<V> map, WordIndexer<W> wordIndexer) {
+	public NgramIterableWrapper(final NgramMap<V> map, final WordIndexer<W> wordIndexer) {
 		this(map, wordIndexer, map.getMaxNgramOrder());
 	}
 
@@ -37,7 +37,7 @@ public class NgramIterableWrapper<W, V> implements Iterable<java.util.Map.Entry<
 	 * @param maxOrder
 	 *            this is 1-based (i.e. 1 means keep unigrams but not bigrams)
 	 */
-	public NgramIterableWrapper(NgramMap<V> map, WordIndexer<W> wordIndexer, int maxOrder) {
+	public NgramIterableWrapper(final NgramMap<V> map, final WordIndexer<W> wordIndexer, final int maxOrder) {
 		@SuppressWarnings("unchecked")
 		final NgramsForOrderIterableWrapper<W, V>[] maps = new NgramsForOrderIterableWrapper[maxOrder];
 		ngramsForOrder = maps;
@@ -53,7 +53,7 @@ public class NgramIterableWrapper<W, V> implements Iterable<java.util.Map.Entry<
 		{
 
 			@Override
-			protected Iterator<java.util.Map.Entry<List<W>, V>> transform(NgramsForOrderIterableWrapper<W, V> next) {
+			protected Iterator<java.util.Map.Entry<List<W>, V>> transform(final NgramsForOrderIterableWrapper<W, V> next) {
 				return next.iterator();
 			}
 		};
@@ -63,7 +63,7 @@ public class NgramIterableWrapper<W, V> implements Iterable<java.util.Map.Entry<
 
 	public long size() {
 		long size = 0;
-		for (NgramsForOrderIterableWrapper<W, V> map : ngramsForOrder) {
+		for (final NgramsForOrderIterableWrapper<W, V> map : ngramsForOrder) {
 			size += map.size();
 		}
 		if (size > Integer.MAX_VALUE) Logger.warn(NgramMapWrapper.class.getSimpleName() + " doesn't like maps with size greater than Integer.MAX_VALUE");

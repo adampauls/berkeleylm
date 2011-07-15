@@ -8,7 +8,7 @@ import org.junit.Assert;
 
 public class FileUtils
 {
-	
+
 	/**
 	 * @param testFileName
 	 * @return
@@ -16,14 +16,13 @@ public class FileUtils
 	public static File getFile(final String testFileName) {
 		File txtFile = null;
 		try {
- 			final URL resource = FileUtils.class.getResource(testFileName);
+			final URL resource = FileUtils.class.getResource(testFileName);
 			txtFile = new File(resource.toURI());
-		} catch (URISyntaxException e) {
+		} catch (final URISyntaxException e) {
 			Assert.fail(e.toString());
 		}
 		Assert.assertNotNull("Could not read " + testFileName, txtFile);
 		return txtFile;
 	}
-
 
 }

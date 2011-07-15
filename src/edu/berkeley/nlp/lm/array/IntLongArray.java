@@ -4,9 +4,7 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Arrays;
 
-import edu.berkeley.nlp.lm.util.Logger;
-
-final class ByteSmallLongArray implements Serializable, LongArray
+final class IntLongArray implements Serializable, LongArray
 {
 
 	/**
@@ -16,9 +14,9 @@ final class ByteSmallLongArray implements Serializable, LongArray
 
 	private long size;
 
-	private byte[] data;
+	private int[] data;
 
-	protected ByteSmallLongArray(final long initialCapacity) {
+	protected IntLongArray(final long initialCapacity) {
 		this.size = 0;
 		allocFor(initialCapacity, null);
 	}
@@ -26,17 +24,17 @@ final class ByteSmallLongArray implements Serializable, LongArray
 	/**
 	 * @param capacity
 	 */
-	private void allocFor(final long capacity, final byte[] old) {
+	private void allocFor(final long capacity, final int[] old) {
 		check(capacity);
 		final int numInner = i(capacity);
-		this.data = old == null ? new byte[numInner] : Arrays.copyOf(old, numInner);
+		this.data = old == null ? new int[numInner] : Arrays.copyOf(old, numInner);
 	}
 
 	/**
 	 * @param capacity
 	 */
 	private void check(final long capacity) {
-		if (capacity >= Integer.MAX_VALUE) throw new IllegalArgumentException(capacity + " to big for " + ByteSmallLongArray.class.getSimpleName());
+		if (capacity >= Integer.MAX_VALUE) throw new IllegalArgumentException(capacity + " to big for " + IntLongArray.class.getSimpleName());
 	}
 
 	private static final int i(final long l) {
@@ -60,7 +58,7 @@ final class ByteSmallLongArray implements Serializable, LongArray
 	 * @param val
 	 */
 	private void setHelp(final long pos, final long val) {
-		data[i(pos)] = (byte) val;
+		data[i(pos)] = (int) val;
 	}
 
 	/*
@@ -79,17 +77,18 @@ final class ByteSmallLongArray implements Serializable, LongArray
 	 * @param pos
 	 * @param val
 	 */
-	private void setGrowHelp(final long pos, final long val, boolean growCapacity) {
+	private void setGrowHelp(final long pos, final long val, final boolean growCapacity) {
 		check(pos);
 		if (growCapacity) ensureCapacity(pos + 1);
 		size = Math.max(size, pos + 1);
 		setHelp(pos, val);
 	}
 
+	@Override
 	public void ensureCapacity(final long minCapacity) {
 		final int oldCapacity = sizeOf(data);
 		if (minCapacity > oldCapacity) {
-			final byte[] oldData = data;
+			final int[] oldData = data;
 			int newCapacity = Math.min(Integer.MAX_VALUE, (oldCapacity * 3) / 2 + 1);
 			if (newCapacity < minCapacity) newCapacity = (int) minCapacity;
 
@@ -108,7 +107,7 @@ final class ByteSmallLongArray implements Serializable, LongArray
 		return getHelp(pos);
 	}
 
-	private static int sizeOf(final byte[] a) {
+	private static int sizeOf(final int[] a) {
 		return a.length;
 	}
 
@@ -132,7 +131,7 @@ final class ByteSmallLongArray implements Serializable, LongArray
 
 	public static void main(final String[] argv) {
 
-		final LongArray b = new ByteSmallLongArray(5L + Integer.MAX_VALUE / 9);
+		final LongArray b = new IntLongArray(5L + Integer.MAX_VALUE / 9);
 		final long val = 10000000000000L;
 		b.set(4L + Integer.MAX_VALUE / 9, val);
 		final long z = b.get(4L + Integer.MAX_VALUE / 9);
@@ -188,24 +187,25 @@ final class ByteSmallLongArray implements Serializable, LongArray
 	}
 
 	@Override
-	public long linearSearch(long key, long rangeStart, long rangeEnd, long startIndex, long emptyKey, boolean returnFirstEmptyIndex) {
-		int i = (int) startIndex;
-		boolean goneAroundOnce = false;
-		while (true) {
-			if (i == rangeEnd) {
-				if (goneAroundOnce) return -1L;
-				i = (int) rangeStart;
-				goneAroundOnce = true;
-			}
-			final long searchKey = data[i];
+	public long linearSearch(final long key, final long rangeStart, final long rangeEnd, final long startIndex, final long emptyKey,
+		final boolean returnFirstEmptyIndex) {
+		final int[] localData = data;
+		for (int i = (int) startIndex; i < rangeEnd; ++i) {
+			final long searchKey = localData[i];
 			if (searchKey == key) return i;
 			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
-			++i;
+
 		}
+		for (int i = (int) rangeStart; i < (int) startIndex; ++i) {
+			final long searchKey = localData[i];
+			if (searchKey == key) return i;
+			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
+		}
+		return -1L;
 	}
 
 	@Override
-	public void incrementCount(long index, long count) {
+	public void incrementCount(final long index, final long count) {
 		LongArray.StaticMethods.incrementCount(this, index, count);
 	}
 

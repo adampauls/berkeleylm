@@ -1,14 +1,10 @@
 package edu.berkeley.nlp.lm.map;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Map;
 
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.collections.Iterators;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
-import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.MurmurHash;
 
 /**
@@ -32,7 +28,7 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 
 	private static final int EMPTY_KEY = -1;
 
-	public ExplicitWordHashMap(long capacity) {
+	public ExplicitWordHashMap(final long capacity) {
 		keys = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, capacity, capacity);
 		keys.fill(EMPTY_KEY, capacity);
 		numFilled = 0;
@@ -49,7 +45,7 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 		if (hash < 0) return -1L;
 		final long rangeStart = 0;
 		final long rangeEnd = keys.size();
-		long i = keys.linearSearch(key, rangeStart, rangeEnd, hash, EMPTY_KEY, true);
+		final long i = keys.linearSearch(key, rangeStart, rangeEnd, hash, EMPTY_KEY, true);
 		if (keys.get(i) == EMPTY_KEY) {
 			numFilled++;
 		}
@@ -63,6 +59,7 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 
 	}
 
+	@Override
 	public final long getOffset(final long key) {
 		final long hash = hash(key);
 		if (hash < 0) return -1L;
@@ -74,10 +71,12 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 		return keys.linearSearch(key, rangeStart, rangeEnd, startIndex, EMPTY_KEY, false);
 	}
 
+	@Override
 	public long getCapacity() {
 		return keys.size();
 	}
 
+	@Override
 	public double getLoadFactor() {
 		return (double) numFilled / getCapacity();
 	}
@@ -95,12 +94,12 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 	}
 
 	@Override
-	public long getKey(long contextOffset) {
+	public long getKey(final long contextOffset) {
 		return keys.get(contextOffset);
 	}
 
 	@Override
-	public boolean isEmptyKey(long key) {
+	public boolean isEmptyKey(final long key) {
 		return key == EMPTY_KEY;
 	}
 
@@ -115,7 +114,7 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 	}
 
 	@Override
-	public boolean hasContexts(int word) {
+	public boolean hasContexts(final int word) {
 		return true;
 	}
 

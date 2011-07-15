@@ -8,10 +8,13 @@ import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.collections.Iterators;
 
 /**
- * Wraps an NgramMap as an Iterable, so it is easy to iterate over the n-grams of a particular order. Using this interface
- * is a little inefficient due to the boxing and temporary object allocation necessary to conform to Java's interfaces. 
+ * Wraps an NgramMap as an Iterable, so it is easy to iterate over the n-grams
+ * of a particular order. Using this interface is a little inefficient due to
+ * the boxing and temporary object allocation necessary to conform to Java's
+ * interfaces.
+ * 
  * @author adampauls
- *
+ * 
  * @param <V>
  * @param <W>
  */
@@ -30,7 +33,7 @@ public class NgramsForOrderIterableWrapper<W, V> implements Iterable<java.util.M
 	 * @param ngramOrder
 	 *            0-based, i.e. 0 means unigrams
 	 */
-	public NgramsForOrderIterableWrapper(NgramMap<V> map, WordIndexer<W> wordIndexer, int ngramOrder) {
+	public NgramsForOrderIterableWrapper(final NgramMap<V> map, final WordIndexer<W> wordIndexer, final int ngramOrder) {
 		this.map = map;
 		this.ngramOrder = ngramOrder;
 		this.wordIndexer = wordIndexer;
@@ -58,7 +61,7 @@ public class NgramsForOrderIterableWrapper<W, V> implements Iterable<java.util.M
 					}
 
 					@Override
-					public V setValue(V arg0) {
+					public V setValue(final V arg0) {
 						throw new UnsupportedOperationException("Method not yet implemented");
 					}
 				};

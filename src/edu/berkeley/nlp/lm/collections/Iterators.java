@@ -49,9 +49,9 @@ public class Iterators
 	{
 		Iterator<T> current = null;
 
-		private Iterator<Iterator<T>> iters;
+		private final Iterator<Iterator<T>> iters;
 
-		public IteratorIterator(Iterator<Iterator<T>> iters) {
+		public IteratorIterator(final Iterator<Iterator<T>> iters) {
 			this.iters = iters;
 			current = getNextIterator();
 		}
@@ -66,16 +66,19 @@ public class Iterators
 			return next;
 		}
 
+		@Override
 		public boolean hasNext() {
 			return current != null;
 		}
 
+		@Override
 		public T next() {
-			T next = current.next();
+			final T next = current.next();
 			if (!current.hasNext()) current = getNextIterator();
 			return next;
 		}
 
+		@Override
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}
@@ -88,22 +91,25 @@ public class Iterators
 	public static abstract class Transform<S, T> implements Iterator<T>
 	{
 
-		private Iterator<S> base;
+		private final Iterator<S> base;
 
-		public Transform(Iterator<S> base) {
+		public Transform(final Iterator<S> base) {
 			this.base = base;
 		}
 
+		@Override
 		public boolean hasNext() {
 			return base.hasNext();
 		}
 
+		@Override
 		public T next() {
 			return transform(base.next());
 		}
 
 		protected abstract T transform(S next);
 
+		@Override
 		public void remove() {
 			base.remove();
 		}
@@ -113,14 +119,17 @@ public class Iterators
 	public static <S, T> Iterator<Pair<S, T>> zip(final Iterator<S> s, final Iterator<T> t) {
 		return new Iterator<Pair<S, T>>()
 		{
+			@Override
 			public boolean hasNext() {
 				return s.hasNext() && t.hasNext();
 			}
 
+			@Override
 			public Pair<S, T> next() {
 				return Pair.newPair(s.next(), t.next());
 			}
 
+			@Override
 			public void remove() {
 				throw new UnsupportedOperationException();
 			}

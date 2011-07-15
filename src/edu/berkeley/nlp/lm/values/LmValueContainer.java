@@ -60,7 +60,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 	}
 
 	@Override
-	public void setMap(NgramMap<V> map) {
+	public void setMap(final NgramMap<V> map) {
 
 	}
 
@@ -78,8 +78,8 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 	}
 
 	@Override
-	public boolean add(int[] ngram, int startPos, int endPos, final int ngramOrder, final long offset, final long prefixOffset, final int word, final V val_,
-		final long suffixOffset, boolean ngramIsNew) {
+	public boolean add(final int[] ngram, final int startPos, final int endPos, final int ngramOrder, final long offset, final long prefixOffset,
+		final int word, final V val_, final long suffixOffset, final boolean ngramIsNew) {
 		if (suffixOffset < 0 && storePrefixIndexes) return false;
 		V val = val_;
 		if (val == null) val = getDefaultVal();
@@ -126,7 +126,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 		this.countIndexer = o.countIndexer;
 	}
 
-	protected int getRank(int ngramOrder, long offset) {
+	protected int getRank(final int ngramOrder, final long offset) {
 		return (int) (valueRanks[ngramOrder].get(offset) >>> rankShift);
 	}
 
