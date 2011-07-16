@@ -41,15 +41,21 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 
 	final int rankShift;
 
-	public LmValueContainer(final Indexer<V> countIndexer, final int valueRadix, final boolean storePrefixIndexes) {
+	public LmValueContainer(final Indexer<V> countIndexer_, final int valueRadix, final boolean storePrefixIndexes) {
 		this.valueRadix = valueRadix;
 		valueCoder = new VariableLengthBitCompressor(valueRadix);
-		this.countIndexer = countIndexer;
+		this.countIndexer = new Indexer<V>();
 		this.storePrefixIndexes = storePrefixIndexes;
 		rankShift = this.storePrefixIndexes ? 32 : 0;
 		//	if (storePrefixIndexes) contextOffsets = new LongArray[6];
 		valueRanks = new CustomWidthArray[6];
+		// add default value near the beginning so it has a small rank
+		final int defaultValRank = 10;
+		for (int i = 0; i < Math.min(countIndexer_.size(), defaultValRank); ++i)
+			countIndexer.getIndex(countIndexer_.getObject(i));
 		countIndexer.getIndex(getDefaultVal());
+		for (int i = defaultValRank; i < countIndexer_.size(); ++i)
+			countIndexer.getIndex(countIndexer_.getObject(i));
 		countIndexer.trim();
 		countIndexer.lock();
 		wordWidth = CustomWidthArray.numBitsNeeded(countIndexer.size());
