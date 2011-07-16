@@ -24,7 +24,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 	private static final long serialVersionUID = 964277160049236607L;
 
 	@PrintMemoryCount
-	protected LongArray[] valueRanks;
+	protected CustomWidthArray[] valueRanks;
 
 	//@PrintMemoryCount
 	//private LongArray[] contextOffsets;
@@ -48,7 +48,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 		this.storePrefixIndexes = storePrefixIndexes;
 		rankShift = this.storePrefixIndexes ? 32 : 0;
 		//	if (storePrefixIndexes) contextOffsets = new LongArray[6];
-		valueRanks = new LongArray[6];
+		valueRanks = new CustomWidthArray[6];
 		countIndexer.getIndex(getDefaultVal());
 		countIndexer.trim();
 		countIndexer.lock();
