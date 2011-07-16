@@ -4,7 +4,7 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Arrays;
 
-final class IntLongArray implements Serializable, LongArray
+public final class IntLongArray implements Serializable, LongArray
 {
 
 	/**
