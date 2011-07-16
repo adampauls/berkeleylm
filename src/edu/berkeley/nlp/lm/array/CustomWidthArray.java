@@ -28,7 +28,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 
 	private final long fullMask;
 
-	private final LongArray data;
+	private final LongLongArray data;
 
 	private final static long numLongs(final long size) {
 		//		assert (size + WORD_MASK) >>> LOG2_BITS_PER_WORD <= Integer.MAX_VALUE;
@@ -51,7 +51,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 	public CustomWidthArray(final long numWords, final int width) {
 		final long numBits = numWords * width;
 		//		assert (numBits <= (Integer.MAX_VALUE + 1L) * Long.SIZE) : ("CustomWidthArray can only be 2^37 bits long");
-		data = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, numLongs(numBits));// new long[numLongs(numBits)];
+		data = (LongLongArray) LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, numLongs(numBits));// new long[numLongs(numBits)];
 		size = 0;
 		this.width = width;
 		fullMask = width == Long.SIZE ? -1 : ((1L << width) - 1);

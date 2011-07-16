@@ -2,6 +2,7 @@ package edu.berkeley.nlp.lm.map;
 
 import java.io.Serializable;
 
+import edu.berkeley.nlp.lm.array.IntLongArray;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.collections.Iterators;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
@@ -23,7 +24,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	private static final long serialVersionUID = 1L;
 
 	@PrintMemoryCount
-	private final LongArray keys;
+	private final IntLongArray keys;
 
 	@PrintMemoryCount
 	private final long[] wordRanges;
@@ -47,7 +48,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		this.wordRanges = wordRanges;
 		//wordRanges = new long[(int) numWords];
 		final long totalNumNgrams = setWordRanges(numNgramsForEachWord, loadFactor, numWords);
-		keys = LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
+		keys = (IntLongArray) LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
 		Logger.logss("No word key size " + totalNumNgrams);
 		keys.fill(EMPTY_KEY, totalNumNgrams);
 		numFilled = 0;
