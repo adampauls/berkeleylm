@@ -4,7 +4,7 @@ import edu.berkeley.nlp.lm.collections.Indexer;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 
-public final class ProbBackoffValueContainer extends LmValueContainer<ProbBackoffPair>
+public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBackoffPair>
 {
 
 	private static final long serialVersionUID = 964277160049236607L;

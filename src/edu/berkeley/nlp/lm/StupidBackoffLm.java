@@ -5,7 +5,7 @@ import java.util.List;
 
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.LongRef;
-import edu.berkeley.nlp.lm.values.RankedCountValueContainer;
+import edu.berkeley.nlp.lm.values.CountValueContainer;
 
 /**
  * Language model implementation which uses stupid backoff (Brants et al., 2007)
@@ -48,7 +48,7 @@ public class StupidBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W
 		long probContext = 0L;
 		int probContextOrder = -1;
 
-		long lastCount = ((RankedCountValueContainer) map.getValues()).getUnigramSum();
+		long lastCount = ((CountValueContainer) map.getValues()).getUnigramSum();
 		final LongRef scratch = new LongRef(-1L);
 		for (int i = endPos - 1; i >= startPos; --i) {
 			assert (probContext >= 0);

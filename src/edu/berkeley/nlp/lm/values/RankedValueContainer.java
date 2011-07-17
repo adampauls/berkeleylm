@@ -15,7 +15,7 @@ import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
 
-abstract class LmValueContainer<V extends Comparable<V>> implements CompressibleValueContainer<V>, Serializable
+abstract class RankedValueContainer<V extends Comparable<V>> implements CompressibleValueContainer<V>, Serializable
 {
 
 	/**
@@ -41,7 +41,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 
 	final int rankShift;
 
-	public LmValueContainer(final Indexer<V> countIndexer_, final int valueRadix, final boolean storePrefixIndexes) {
+	public RankedValueContainer(final Indexer<V> countIndexer_, final int valueRadix, final boolean storePrefixIndexes) {
 		this.valueRadix = valueRadix;
 		valueCoder = new VariableLengthBitCompressor(valueRadix);
 		this.countIndexer = new Indexer<V>();
@@ -127,7 +127,7 @@ abstract class LmValueContainer<V extends Comparable<V>> implements Compressible
 
 	@Override
 	public void setFromOtherValues(final ValueContainer<V> other) {
-		final LmValueContainer<V> o = (LmValueContainer<V>) other;
+		final RankedValueContainer<V> o = (RankedValueContainer<V>) other;
 		this.valueRanks = o.valueRanks;
 		this.countIndexer = o.countIndexer;
 	}
