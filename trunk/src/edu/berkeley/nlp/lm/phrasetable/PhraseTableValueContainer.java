@@ -53,7 +53,7 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 	private LongArray[] valueIndexes;
 
 	@PrintMemoryCount
-	private ArrayList<LongArray>[] targetTranslations;
+	private ArrayList<CustomWidthArray>[] targetTranslations;
 
 	private HashNgramMap<PhraseTableValues> map;
 
@@ -96,14 +96,14 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 		}
 	}
 
-	private int[] readOrders(final LongArray longArray) {
+	private int[] readOrders(final CustomWidthArray longArray) {
 		final int[] ret = new int[(int) longArray.size()];
 		for (int i = 0; i < longArray.size(); ++i)
 			ret[i] = (byte) (longArray.get(i) >> Integer.SIZE);
 		return ret;
 	}
 
-	private long[] readOffsets(final LongArray longArray) {
+	private long[] readOffsets(final CustomWidthArray longArray) {
 		final long[] ret = new long[(int) longArray.size()];
 		for (int i = 0; i < longArray.size(); ++i)
 			ret[i] = (int) longArray.get(i);
@@ -159,9 +159,9 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 			targetTranslations = Arrays.copyOf(targetTranslations, targetTranslations.length * 3 / 2);
 		}
 		if (targetTranslations[ngramOrder] == null) {
-			targetTranslations[ngramOrder] = new ArrayList<LongArray>();
+			targetTranslations[ngramOrder] = new ArrayList<CustomWidthArray>();
 		}
-		final ArrayList<LongArray> targetTranslationPointersHere = targetTranslations[ngramOrder];
+		final ArrayList<CustomWidthArray> targetTranslationPointersHere = targetTranslations[ngramOrder];
 		final long currVal = offset >= valueIndexes[ngramOrder].size() ? 0 : valueIndexes[ngramOrder].get((int) (offset));
 		if (currVal == 0) valueIndexes[ngramOrder].setAndGrowIfNeeded((int) (offset), (-targetTranslations[ngramOrder].size() - 1));
 
@@ -185,7 +185,7 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 		}
 
 		final long valueIndex = -valueIndexes[srcPhraseOrder].get(srcPhraseOffset) - 1;
-		final ArrayList<LongArray> targetTranslationPointersHere = targetTranslations[srcPhraseOrder];
+		final ArrayList<CustomWidthArray> targetTranslationPointersHere = targetTranslations[srcPhraseOrder];
 		targetTranslationPointersHere.get((int) valueIndex).add(combineOrderAndOffset(ngramOrder, offset));
 	}
 

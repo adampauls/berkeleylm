@@ -47,13 +47,23 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final int maxNgramOrder = numNgramsForEachWord.length;
 		maps = new HashMap[maxNgramOrder];
 		initCapacities = null;
-		final long[] wordRanges = new long[(maxNgramOrder - 1) * (int) numNgramsForEachWord[0].size()];
+		final long numWords = numNgramsForEachWord[0].size();
+		final long[] wordRanges = new long[(maxNgramOrder - 1) * (int) numWords];
 		for (int ngramOrder = 0; ngramOrder < maxNgramOrder; ++ngramOrder) {
+			final long numNgramsForPreviousOrder = ngramOrder <= 1 ? numWords : total(numNgramsForEachWord[ngramOrder - 1]);
 			maps[ngramOrder] = (ngramOrder == 0) ? new UnigramHashMap(numNgramsForEachWord[ngramOrder].size()) : new ImplicitWordHashMap(
-				numNgramsForEachWord[ngramOrder], maxLoadFactor, wordRanges, ngramOrder, maxNgramOrder - 1);
+				numNgramsForEachWord[ngramOrder], maxLoadFactor, wordRanges, ngramOrder, maxNgramOrder - 1, numNgramsForPreviousOrder);
 			values.setSizeAtLeast(maps[ngramOrder].getCapacity(), ngramOrder);
 		}
 		values.setMap(this);
+	}
+
+	private long total(LongArray longArray) {
+		long ret = 0;
+		for (int i = 0; i < longArray.size(); ++i) {
+			ret += longArray.get(i);
+		}
+		return ret;
 	}
 
 	public static <T> HashNgramMap<T> createExplicitWordHashNgramMap(final ValueContainer<T> values, final ConfigOptions opts, final int maxNgramOrder,

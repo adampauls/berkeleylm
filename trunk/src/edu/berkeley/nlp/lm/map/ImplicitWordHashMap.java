@@ -1,8 +1,9 @@
 package edu.berkeley.nlp.lm.map;
 
 import java.io.Serializable;
+import java.util.Iterator;
 
-import edu.berkeley.nlp.lm.array.IntLongArray;
+import edu.berkeley.nlp.lm.array.CustomWidthArray;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.collections.Iterators;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
@@ -24,14 +25,14 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	private static final long serialVersionUID = 1L;
 
 	@PrintMemoryCount
-	private final IntLongArray keys;
+	private final CustomWidthArray keys;
 
 	@PrintMemoryCount
 	private final long[] wordRanges;
 
 	private long numFilled = 0;
 
-	private static final int EMPTY_KEY = -1;
+	private static final int EMPTY_KEY = 0;
 
 	private final int numWords;
 
@@ -40,7 +41,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	private final int maxNgramOrder;
 
 	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final double loadFactor, final long[] wordRanges, final int ngramOrder,
-		final int maxNgramOrder) {
+		final int maxNgramOrder, final long numNgramsForPreviousOrder) {
 		this.ngramOrder = ngramOrder;
 		assert ngramOrder >= 1;
 		this.maxNgramOrder = maxNgramOrder;
@@ -48,7 +49,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		this.wordRanges = wordRanges;
 		//wordRanges = new long[(int) numWords];
 		final long totalNumNgrams = setWordRanges(numNgramsForEachWord, loadFactor, numWords);
-		keys = (IntLongArray) LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
+		keys = new CustomWidthArray(totalNumNgrams, CustomWidthArray.numBitsNeeded(numNgramsForPreviousOrder));//(IntLongArray) LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
 		Logger.logss("No word key size " + totalNumNgrams);
 		keys.fill(EMPTY_KEY, totalNumNgrams);
 		numFilled = 0;
@@ -88,7 +89,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	private void setKey(final long index, final long putKey) {
 		final long contextOffset = AbstractNgramMap.contextOffsetOf(putKey);
 		assert contextOffset >= 0;
-		keys.set(index, contextOffset);
+		keys.set(index, contextOffset + 1);
 
 	}
 
@@ -103,6 +104,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	 * @return
 	 */
 	private long linearSearch(final long key, final boolean returnFirstEmptyIndex) {
+		assert key >= 0;
 		final int word = AbstractNgramMap.wordOf(key);
 		if (word >= numWords) return -1;
 		final long rangeStart = wordRanges(word);
@@ -111,7 +113,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		if (startIndex < 0) return -1L;
 		assert startIndex >= rangeStart;
 		assert startIndex < rangeEnd;
-		return keys.linearSearch(AbstractNgramMap.contextOffsetOf(key), rangeStart, rangeEnd, startIndex, EMPTY_KEY, returnFirstEmptyIndex);
+		return keys.linearSearch(AbstractNgramMap.contextOffsetOf(key + 1), rangeStart, rangeEnd, startIndex, EMPTY_KEY, returnFirstEmptyIndex);
 	}
 
 	@Override
@@ -139,7 +141,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	 * @see edu.berkeley.nlp.lm.map.HashMap#getNextOffset(long)
 	 */
 	long getNextOffset(final long offset) {
-		return keys.get(offset);
+		return keys.get(offset) - 1;
 	}
 
 	/*
@@ -190,6 +192,46 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	@Override
 	public Iterable<Long> keys() {
 		return Iterators.able(new KeyIterator(keys));
+	}
+
+	public static class KeyIterator implements Iterator<Long>
+	{
+		private final CustomWidthArray keys;
+
+		public KeyIterator(final CustomWidthArray keys) {
+			this.keys = keys;
+			end = keys.size();
+			next = -1;
+			nextIndex();
+		}
+
+		@Override
+		public boolean hasNext() {
+			return end > 0 && next < end;
+		}
+
+		@Override
+		public Long next() {
+			final long nextIndex = nextIndex();
+			return nextIndex;
+		}
+
+		long nextIndex() {
+			final long curr = next;
+			do {
+				next++;
+			} while (next < end && keys != null && keys.get(next) == EMPTY_KEY);
+			return curr;
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
+		private long next;
+
+		private final long end;
 	}
 
 	@Override

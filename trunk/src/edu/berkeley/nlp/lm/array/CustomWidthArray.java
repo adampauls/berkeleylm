@@ -11,7 +11,7 @@ import java.io.Serializable;
  * 
  */
 @SuppressWarnings("ucd")
-public final class CustomWidthArray implements LongArray, Serializable
+public final class CustomWidthArray implements Serializable
 {
 
 	private static final long serialVersionUID = 1L;
@@ -28,7 +28,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 
 	private final long fullMask;
 
-	private final LongLongArray data;
+	private final LongArray data;
 
 	private final static long numLongs(final long size) {
 		//		assert (size + WORD_MASK) >>> LOG2_BITS_PER_WORD <= Integer.MAX_VALUE;
@@ -51,7 +51,7 @@ public final class CustomWidthArray implements LongArray, Serializable
 	public CustomWidthArray(final long numWords, final int width) {
 		final long numBits = numWords * width;
 		//		assert (numBits <= (Integer.MAX_VALUE + 1L) * Long.SIZE) : ("CustomWidthArray can only be 2^37 bits long");
-		data = (LongLongArray) LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, numLongs(numBits));// new long[numLongs(numBits)];
+		data = new LongArray(numLongs(numBits));// new long[numLongs(numBits)];
 		size = 0;
 		this.width = width;
 		fullMask = width == Long.SIZE ? -1 : ((1L << width) - 1);
@@ -61,7 +61,6 @@ public final class CustomWidthArray implements LongArray, Serializable
 		return size;
 	}
 
-	@Override
 	public void ensureCapacity(final long numWords) {
 		final long numBits = numWords * width;
 		//		assert (numBits <= (Integer.MAX_VALUE + 1L) * Long.SIZE) : ("CustomWidthArray can only be 2^37 bits long");
@@ -70,7 +69,6 @@ public final class CustomWidthArray implements LongArray, Serializable
 		if (numLongs > data.size()) data.setAndGrowIfNeeded(numLongs - 1, 0);
 	}
 
-	@Override
 	public void trim() {
 		trimToSize(size);
 	}
@@ -78,7 +76,6 @@ public final class CustomWidthArray implements LongArray, Serializable
 	/**
 	 * @param sizeHere
 	 */
-	@Override
 	public void trimToSize(final long sizeHere) {
 		final long numBits = sizeHere * width;
 		data.trimToSize(numLongs(numBits));
@@ -125,12 +122,10 @@ public final class CustomWidthArray implements LongArray, Serializable
 		return data.get(startWord) >>> startBit | data.get(startWord + 1) << Long.SIZE + l - startBit >>> l;
 	}
 
-	@Override
 	public boolean add(final long value) {
 		return addHelp(value, true);
 	}
 
-	@Override
 	public boolean addWithFixedCapacity(final long value) {
 		return addHelp(value, false);
 	}
@@ -158,8 +153,15 @@ public final class CustomWidthArray implements LongArray, Serializable
 		return true;
 	}
 
-	@Override
 	public long get(final long index) {
+		return getHelp(index);
+	}
+
+	/**
+	 * @param index
+	 * @return
+	 */
+	private long getHelp(final long index) {
 		final long start = index * width;
 		return getLong(start, start + width);
 	}
@@ -171,11 +173,12 @@ public final class CustomWidthArray implements LongArray, Serializable
 		return num;
 	}
 
-	@Override
 	public void set(final long index, final long value) {
 		rangeCheck(index);
 		if (width == 0) return;
-		if (width != Long.SIZE && value > fullMask) throw new IllegalArgumentException("Value too large: " + value);
+		if (width != Long.SIZE && value > fullMask) { //
+			throw new IllegalArgumentException("Value too large: " + value);
+		}
 		final long start = index * width;
 		final long startWord = word(start);
 		final long endWord = word(start + width - 1);
@@ -196,7 +199,6 @@ public final class CustomWidthArray implements LongArray, Serializable
 		}
 	}
 
-	@Override
 	public void setAndGrowIfNeeded(final long pos, final long value) {
 		if (pos >= size) {
 			ensureCapacity(pos + 2);
@@ -205,26 +207,48 @@ public final class CustomWidthArray implements LongArray, Serializable
 		set(pos, value);
 	}
 
-	@Override
 	public long size() {
 		return length();
 	}
 
-	@Override
-	public void fill(final long l, final long initialCapacity) {
-		final long numBits = initialCapacity * width;
-		data.fill(numLongs(numBits), l);
+	public void fill(final long l, final long n) {
+		final long numBits = n * width;
+		final long numLongs = numLongs(numBits);
+		data.fill(l, numLongs);
+		size = Math.max(n, size);
 	}
 
-	@Override
 	public long linearSearch(final long key, final long rangeStart, final long rangeEnd, final long startIndex, final long emptyKey,
 		final boolean returnFirstEmptyIndex) {
-		return LongArray.StaticMethods.linearSearch(this, key, rangeStart, rangeEnd, startIndex, emptyKey, returnFirstEmptyIndex);
+		long i = startIndex;
+		boolean goneAroundOnce = false;
+		if (rangeEnd > size()) {
+			@SuppressWarnings("unused")
+			int x = 5;
+		}
+		assert rangeEnd <= size();
+		assert i < rangeEnd;
+		assert i >= rangeStart;
+		while (true) {
+			if (i == rangeEnd) {
+				if (goneAroundOnce) return -1L;
+				i = rangeStart;
+				goneAroundOnce = true;
+			}
+			final long searchKey = this.getHelp(i);
+			if (searchKey == key) return i;
+			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
+			++i;
+		}
 	}
 
-	@Override
 	public void incrementCount(final long index, final long count) {
-		LongArray.StaticMethods.incrementCount(this, index, count);
+		if (index >= size()) {
+			setAndGrowIfNeeded(index, count);
+		} else {
+			final long l = get(index);
+			set(index, l + count);
+		}
 	}
 
 	@SuppressWarnings("unused")
