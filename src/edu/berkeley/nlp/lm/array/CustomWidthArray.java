@@ -222,13 +222,6 @@ public final class CustomWidthArray implements Serializable
 		final boolean returnFirstEmptyIndex) {
 		long i = startIndex;
 		boolean goneAroundOnce = false;
-		if (rangeEnd > size()) {
-			@SuppressWarnings("unused")
-			int x = 5;
-		}
-		assert rangeEnd <= size();
-		assert i < rangeEnd;
-		assert i >= rangeStart;
 		while (true) {
 			if (i == rangeEnd) {
 				if (goneAroundOnce) return -1L;
