@@ -438,7 +438,7 @@ public class LmReaders
 		Logger.endTrack();
 		final List<int[]> failures = ngramMapAddingCallback.getFailures();
 		if (!failures.isEmpty()) {
-			Logger.startTrack("Some missing suffixes of prefixes were found, doing another pass to add n-grams");
+			Logger.startTrack(failures.size() +" missing suffixes or prefixes were found, doing another pass to add n-grams");
 			for (final int[] failure : failures) {
 				final int ngramOrder = failure.length - 1;
 				final int headWord = failure[reversed ? 0 : ngramOrder];
