@@ -15,6 +15,8 @@ import edu.berkeley.nlp.lm.collections.Iterators;
 final class UnigramHashMap implements Serializable, HashMap
 {
 
+	public static long EMPTY_KEY = -1;
+
 	/**
 	 * 
 	 */
