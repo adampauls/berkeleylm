@@ -27,11 +27,19 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	private static final long serialVersionUID = 1L;
 
 	@PrintMemoryCount
-	private final HashMap[] maps;
+	private final ExplicitWordHashMap[] explicitMaps;
+
+	@PrintMemoryCount
+	private final ImplicitWordHashMap[] implicitMaps;
+
+	@PrintMemoryCount
+	private final UnigramHashMap implicitUnigramMap;
 
 	private final long[] initCapacities;
 
 	private final double maxLoadFactor;
+
+	private final boolean isExplicit;
 
 	private final boolean reversed;
 
@@ -45,15 +53,18 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		this.reversed = reversed;
 		this.maxLoadFactor = opts.hashTableLoadFactor;
 		final int maxNgramOrder = numNgramsForEachWord.length;
-		maps = new HashMap[maxNgramOrder];
-		initCapacities = null;
+		explicitMaps = null;
+		isExplicit = false;
+		implicitMaps = new ImplicitWordHashMap[maxNgramOrder - 1];
 		final long numWords = numNgramsForEachWord[0].size();
+		implicitUnigramMap = new UnigramHashMap(numWords);
+		initCapacities = null;
 		final long[] wordRanges = new long[(maxNgramOrder - 1) * (int) numWords];
-		for (int ngramOrder = 0; ngramOrder < maxNgramOrder; ++ngramOrder) {
-			final long numNgramsForPreviousOrder = ngramOrder <= 1 ? numWords : total(numNgramsForEachWord[ngramOrder - 1]);
-			maps[ngramOrder] = (ngramOrder == 0) ? new UnigramHashMap(numNgramsForEachWord[ngramOrder].size()) : new ImplicitWordHashMap(
-				numNgramsForEachWord[ngramOrder], maxLoadFactor, wordRanges, ngramOrder, maxNgramOrder - 1, numNgramsForPreviousOrder);
-			values.setSizeAtLeast(maps[ngramOrder].getCapacity(), ngramOrder);
+		for (int ngramOrder = 1; ngramOrder < maxNgramOrder; ++ngramOrder) {
+			final long numNgramsForPreviousOrder = ngramOrder == 1 ? numWords : total(numNgramsForEachWord[ngramOrder - 1]);
+			implicitMaps[ngramOrder - 1] = new ImplicitWordHashMap(numNgramsForEachWord[ngramOrder], maxLoadFactor, wordRanges, ngramOrder, maxNgramOrder - 1,
+				numNgramsForPreviousOrder);
+			values.setSizeAtLeast(implicitMaps[ngramOrder - 1].getCapacity(), ngramOrder);
 		}
 		values.setMap(this);
 	}
@@ -75,7 +86,10 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		super(values, opts);
 		this.reversed = reversed;
 		this.maxLoadFactor = opts.hashTableLoadFactor;
-		maps = new HashMap[maxNgramOrder];
+		implicitMaps = null;
+		implicitUnigramMap = null;
+		isExplicit = true;
+		explicitMaps = new ExplicitWordHashMap[maxNgramOrder];
 		initCapacities = new long[maxNgramOrder];
 		Arrays.fill(initCapacities, 100);
 		values.setMap(this);
@@ -85,7 +99,10 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		super(values, opts);
 		this.reversed = reversed;
 		this.maxLoadFactor = opts.hashTableLoadFactor;
-		maps = new ExplicitWordHashMap[newCapacities.length];
+		implicitMaps = null;
+		implicitUnigramMap = null;
+		isExplicit = true;
+		explicitMaps = new ExplicitWordHashMap[newCapacities.length];
 		this.initCapacities = newCapacities;
 		values.setMap(this);
 	}
@@ -94,23 +111,25 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	 * @param values
 	 * @param newCapacities
 	 * @param ngramOrder
+	 * @return
 	 */
-	private void initMap(final long newCapacity, final int ngramOrder) {
-		maps[ngramOrder] = new ExplicitWordHashMap(newCapacity);
-		values.setSizeAtLeast(maps[ngramOrder].getCapacity(), ngramOrder);
+	private ExplicitWordHashMap initMap(final long newCapacity, final int ngramOrder) {
+		final ExplicitWordHashMap newMap = new ExplicitWordHashMap(newCapacity);
+		explicitMaps[ngramOrder] = newMap;
+		values.setSizeAtLeast(explicitMaps[ngramOrder].getCapacity(), ngramOrder);
+		return newMap;
 	}
 
 	@Override
 	public long put(final int[] ngram, final int startPos, final int endPos, final T val) {
 		final int ngramOrder = endPos - startPos - 1;
-		HashMap map = maps[ngramOrder];
+		HashMap map = getMap(ngramOrder);
 		if (map == null) {
-			initMap(initCapacities[ngramOrder], ngramOrder);
-			map = maps[ngramOrder];
+			map = initMap(initCapacities[ngramOrder], ngramOrder);
 		}
 		if (map instanceof ExplicitWordHashMap && map.getLoadFactor() >= maxLoadFactor) {
 			rehash(ngramOrder, map.getCapacity() * 3 / 2);
-			map = maps[ngramOrder];
+			map = explicitMaps[ngramOrder];
 		}
 		final long key = getKey(ngram, startPos, endPos);
 		if (key < 0) return -1L;
@@ -168,14 +187,14 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	 * @return
 	 */
 	private long getKey(final long offset, final int ngramOrder) {
-		return maps[ngramOrder].getKey(offset);
+		return getMap(ngramOrder).getKey(offset);
 	}
 
 	public int[] getNgramForOffset(final long offset, final int ngramOrder) {
 		final int[] ret = new int[ngramOrder + 1];
 		long offset_ = offset;
 		for (int i = 0; i <= ngramOrder; ++i) {
-			final long key = maps[ngramOrder - i].getKey(offset_);
+			final long key = getMap(ngramOrder - i).getKey(offset_);
 			offset_ = AbstractNgramMap.contextOffsetOf(key);
 			final int word_ = AbstractNgramMap.wordOf(key);
 			ret[reversed ? (i) : (ret.length - i - 1)] = word_;
@@ -208,24 +227,29 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final long contextOffset = Math.max(contextOffset_, 0);
 
 		final long key = combineToKey(word, contextOffset);
-		final HashMap map = maps[ngramOrder];
-		final long offset = map.getOffset(key);
+		final long offset = getOffsetHelpFromMap(ngramOrder, key);
 		return offset;
 	}
 
+	private long getOffsetHelpFromMap(int ngramOrder, long key) {
+		if (isExplicit) return explicitMaps[ngramOrder].getOffset(key);
+		return ngramOrder == 0 ? implicitUnigramMap.getOffset(key) : implicitMaps[ngramOrder - 1].getOffset(key);
+	}
+
 	private void rehash(final int changedNgramOrder, final long newCapacity) {
+		assert isExplicit;
 		final ValueContainer<T> newValues = values.createFreshValues();
-		final long[] newCapacities = new long[maps.length];
+		final long[] newCapacities = new long[explicitMaps.length];
 		Arrays.fill(newCapacities, -1L);
 
-		for (int ngramOrder = 0; ngramOrder < maps.length; ++ngramOrder) {
-			if (maps[ngramOrder] == null) break;
-			newCapacities[ngramOrder] = ngramOrder == changedNgramOrder ? newCapacity : maps[ngramOrder].getCapacity();
+		for (int ngramOrder = 0; ngramOrder < explicitMaps.length; ++ngramOrder) {
+			if (explicitMaps[ngramOrder] == null) break;
+			newCapacities[ngramOrder] = ngramOrder == changedNgramOrder ? newCapacity : explicitMaps[ngramOrder].getCapacity();
 		}
 		final HashNgramMap<T> newMap = new HashNgramMap<T>(newValues, opts, newCapacities, reversed);
 
-		for (int ngramOrder = 0; ngramOrder < maps.length; ++ngramOrder) {
-			final HashMap currMap = maps[ngramOrder];
+		for (int ngramOrder = 0; ngramOrder < explicitMaps.length; ++ngramOrder) {
+			final HashMap currMap = explicitMaps[ngramOrder];
 			if (currMap == null) continue;
 			for (long actualIndex = 0; actualIndex < currMap.getCapacity(); ++actualIndex) {
 				final long key = currMap.getKey(actualIndex);
@@ -239,7 +263,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 			}
 		}
-		System.arraycopy(newMap.maps, 0, maps, 0, newMap.maps.length);
+		System.arraycopy(newMap.explicitMaps, 0, explicitMaps, 0, newMap.explicitMaps.length);
 		values.setFromOtherValues(newValues);
 		values.setMap(this);
 
@@ -254,10 +278,10 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	private long getOffsetFromRawNgram(final int[] ngram, final int startPos, final int endPos) {
 		if (containsOutOfVocab(ngram, startPos, endPos)) return -1;
 		final int ngramOrder = endPos - startPos - 1;
-		if (ngramOrder >= maps.length) return -1;
+		if (ngramOrder >= getMaxNgramOrder()) return -1;
 		final long key = getKey(ngram, startPos, endPos);
 		if (key < 0) return -1;
-		final HashMap currMap = maps[ngramOrder];
+		final HashMap currMap = getMap(ngramOrder);
 		final long index = currMap.getOffset(key);
 		return index;
 	}
@@ -298,10 +322,11 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 	@Override
 	public void trim() {
-		for (int ngramOrder = 0; ngramOrder < maps.length; ++ngramOrder) {
-			if (maps[ngramOrder] == null) break;
-			values.trimAfterNgram(ngramOrder, maps[ngramOrder].getCapacity());
-			Logger.logss("Load factor for " + (ngramOrder + 1) + ": " + maps[ngramOrder].getLoadFactor());
+		for (int ngramOrder = 0; ngramOrder < getMaxNgramOrder(); ++ngramOrder) {
+			final HashMap currMap = getMap(ngramOrder);
+			if (currMap == null) break;
+			values.trimAfterNgram(ngramOrder, currMap.getCapacity());
+			Logger.logss("Load factor for " + (ngramOrder + 1) + ": " + currMap.getLoadFactor());
 		}
 		values.trim();
 	}
@@ -344,17 +369,17 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 	@Override
 	public int getMaxNgramOrder() {
-		return maps.length;
+		return explicitMaps == null ? (implicitMaps.length + 1) : explicitMaps.length;
 	}
 
 	@Override
 	public long getNumNgrams(final int ngramOrder) {
-		return maps[ngramOrder].size();
+		return getMap(ngramOrder).size();
 	}
 
 	@Override
 	public Iterable<Entry<T>> getNgramsForOrder(final int ngramOrder) {
-		return Iterators.able(new Iterators.Transform<Long, Entry<T>>(maps[ngramOrder].keys().iterator())
+		return Iterators.able(new Iterators.Transform<Long, Entry<T>>(getMap(ngramOrder).keys().iterator())
 		{
 
 			@Override
@@ -367,13 +392,18 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		});
 	}
 
+	private HashMap getMap(int ngramOrder) {
+		if (explicitMaps == null) { return ngramOrder == 0 ? implicitUnigramMap : implicitMaps[ngramOrder - 1]; }
+		return explicitMaps[ngramOrder];
+	}
+
 	public boolean isReversed() {
 		return reversed;
 	}
 
 	@Override
 	public boolean wordHasBigrams(final int word) {
-		return maps.length < 2 ? false : maps[1].hasContexts(word);
+		return getMaxNgramOrder() < 2 ? false : (explicitMaps == null ? implicitMaps[0].hasContexts(word) : explicitMaps[1].hasContexts(word));
 	}
 
 	@Override
