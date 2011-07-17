@@ -61,20 +61,12 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		initCapacities = null;
 		final long[] wordRanges = new long[(maxNgramOrder - 1) * (int) numWords];
 		for (int ngramOrder = 1; ngramOrder < maxNgramOrder; ++ngramOrder) {
-			final long numNgramsForPreviousOrder = ngramOrder == 1 ? numWords : total(numNgramsForEachWord[ngramOrder - 1]);
+			final long numNgramsForPreviousOrder = ngramOrder == 1 ? numWords : implicitMaps[ngramOrder - 2].getCapacity();
 			implicitMaps[ngramOrder - 1] = new ImplicitWordHashMap(numNgramsForEachWord[ngramOrder], maxLoadFactor, wordRanges, ngramOrder, maxNgramOrder - 1,
 				numNgramsForPreviousOrder);
 			values.setSizeAtLeast(implicitMaps[ngramOrder - 1].getCapacity(), ngramOrder);
 		}
 		values.setMap(this);
-	}
-
-	private long total(LongArray longArray) {
-		long ret = 0;
-		for (int i = 0; i < longArray.size(); ++i) {
-			ret += longArray.get(i);
-		}
-		return ret;
 	}
 
 	public static <T> HashNgramMap<T> createExplicitWordHashNgramMap(final ValueContainer<T> values, final ConfigOptions opts, final int maxNgramOrder,
