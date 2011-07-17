@@ -27,7 +27,7 @@ import edu.berkeley.nlp.lm.util.LongRef;
 import edu.berkeley.nlp.lm.values.CompressibleValueContainer;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
-import edu.berkeley.nlp.lm.values.RankedCountValueContainer;
+import edu.berkeley.nlp.lm.values.CountValueContainer;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 /**
@@ -385,7 +385,7 @@ public class LmReaders
 		final FirstPassCallback<LongRef> valueAddingCallback, final LongArray[] numNgramsForEachWord, final boolean compress) {
 		final boolean contextEncoded = false;
 		final boolean reversed = true;
-		final RankedCountValueContainer values = new RankedCountValueContainer(valueAddingCallback.getIndexer(), opts.valueRadix, contextEncoded);
+		final CountValueContainer values = new CountValueContainer(valueAddingCallback.getIndexer(), opts.valueRadix, contextEncoded);
 		final GoogleLmReader<W> lmReader = new GoogleLmReader<W>(dir, wordIndexer, opts);
 		final NgramMap<LongRef> map = buildMapCommon(opts, wordIndexer, numNgramsForEachWord, valueAddingCallback.getNumNgramsForEachOrder(), reversed,
 			lmReader, values, compress);

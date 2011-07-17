@@ -5,7 +5,7 @@ import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.LongRef;
 
-public final class RankedCountValueContainer extends LmValueContainer<LongRef>
+public final class CountValueContainer extends RankedValueContainer<LongRef>
 {
 
 	private static final long serialVersionUID = 964277160049236607L;
@@ -15,13 +15,13 @@ public final class RankedCountValueContainer extends LmValueContainer<LongRef>
 
 	private long unigramSum = 0L;
 
-	public RankedCountValueContainer(final Indexer<LongRef> countIndexer, final int valueRadix, final boolean storePrefixes) {
+	public CountValueContainer(final Indexer<LongRef> countIndexer, final int valueRadix, final boolean storePrefixes) {
 		super(countIndexer, valueRadix, storePrefixes);
 	}
 
 	@Override
-	public RankedCountValueContainer createFreshValues() {
-		return new RankedCountValueContainer(countIndexer, valueRadix, storePrefixIndexes);
+	public CountValueContainer createFreshValues() {
+		return new CountValueContainer(countIndexer, valueRadix, storePrefixIndexes);
 	}
 
 	@Override
