@@ -10,7 +10,6 @@ import java.io.Serializable;
  * @author adampauls
  * 
  */
-@SuppressWarnings("ucd")
 public final class CustomWidthArray implements Serializable
 {
 
@@ -25,6 +24,8 @@ public final class CustomWidthArray implements Serializable
 	private long size;
 
 	private final int width;
+
+	private final long widthDiff;
 
 	private final long fullMask;
 
@@ -54,6 +55,7 @@ public final class CustomWidthArray implements Serializable
 		data = new LongArray(numLongs(numBits));// new long[numLongs(numBits)];
 		size = 0;
 		this.width = width;
+		widthDiff = Long.SIZE - (width);
 		fullMask = width == Long.SIZE ? -1 : ((1L << width) - 1);
 	}
 
@@ -243,11 +245,10 @@ public final class CustomWidthArray implements Serializable
 		long i = startIndex;
 		long word = word(from);
 		long bit = bit(from);
-		long lastDatum = data.get(word);
 		boolean goneAroundOnce = false;
-		int outerIndex = LongArray.o(word);
 		int innerIndex = LongArray.i(word);
-		long[] currArray = data.data[outerIndex];
+		long[] currArray = data.data[LongArray.o(word)];
+		long lastDatum = currArray[innerIndex];
 		while (true) {
 			if (i == rangeEnd) {
 				if (goneAroundOnce) return -1L;
@@ -256,34 +257,33 @@ public final class CustomWidthArray implements Serializable
 				bit = bit(from);
 				word = word(from);
 				innerIndex = LongArray.i(word);
-				outerIndex = LongArray.o(word);
+				final int outerIndex = LongArray.o(word);
 				currArray = data.data[outerIndex];
 				lastDatum = currArray[(int) word];
 				goneAroundOnce = true;
 			}
-			if (innerIndex == currArray.length) {
-				assert false : "Untested";
-				outerIndex++;
-				innerIndex = 0;
-				currArray = data.data[outerIndex];
-			}
+			//			
 			//			final long searchKey = currArray[innerIndex];
 			final long to = from + width;
-			final long l = Long.SIZE - (to - from);
-			final long startBit = bit;
-			final long searchKey = (startBit <= l) ? (lastDatum << l - startBit >>> l) : (lastDatum >>> startBit | (currArray[(int) (word + 1)]) << Long.SIZE
-				+ l - startBit >>> l);
+
+			//			final long startBit = bit;
+			final long searchKey = (bit <= widthDiff) ? (lastDatum << widthDiff - bit >>> widthDiff)
+				: (lastDatum >>> bit | (currArray[innerIndex + 1]) << Long.SIZE + widthDiff - bit >>> widthDiff);
 			if (searchKey == key) return i;
 			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
 			i++;
-			from += width;
-			long nextWord = word(from);
+			from = to;
+			final long nextWord = word(from);
 			if (nextWord > word) {
 				word = nextWord;
-				lastDatum = currArray[(int) (word)];
+				innerIndex = LongArray.i(word);
+				if (innerIndex == currArray.length) {
+					innerIndex = 0;
+					currArray = data.data[LongArray.o(word)];
+				}
+				lastDatum = currArray[innerIndex];
 			}
 			bit = bit(from);
-			innerIndex = LongArray.i(word);
 
 		}
 	}
@@ -292,8 +292,8 @@ public final class CustomWidthArray implements Serializable
 		if (index >= size()) {
 			setAndGrowIfNeeded(index, count);
 		} else {
-			final long l = get(index);
-			set(index, l + count);
+			final long curr = get(index);
+			set(index, curr + count);
 		}
 	}
 

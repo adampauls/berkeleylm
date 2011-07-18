@@ -20,20 +20,16 @@ public class MissingEntryTest
 
 	@Test
 	public void testArrayEncoded() {
-		final File file = FileUtils.getFile(BIG_TEST_ARPA);
 
 		final ArrayEncodedProbBackoffLm<String> lm = getLm();
-		testArrayEncodedLogProb(lm, file);
-		//		Assert.assertEquals(logScore, -2806.4f, 1e-1);
+		testArrayEncodedLogProb(lm);
 	}
 
 	@Test
 	public void testContextEncoded() {
-		final File file = FileUtils.getFile(BIG_TEST_ARPA);
 
 		final ContextEncodedProbBackoffLm<String> lm = getContextEncodedLm();
-		testContextEncodedLogProb(lm, file);
-		//		Assert.assertEquals(logScore, -2806.4f, 1e-1);
+		testContextEncodedLogProb(lm);
 	}
 
 	/**
@@ -65,7 +61,7 @@ public class MissingEntryTest
 	 * @param file
 	 * @param goldLogProb
 	 */
-	public static void testArrayEncodedLogProb(final ArrayEncodedNgramLanguageModel<String> lm_, final File file) {
+	public static void testArrayEncodedLogProb(final ArrayEncodedNgramLanguageModel<String> lm_) {
 
 		Assert.assertEquals(lm_.getLogProb(Arrays.asList("This another test is".split(" "))), -0.67443009, 1e-2);
 		Assert.assertEquals(lm_.getLogProb(Arrays.asList("another test sentence.".split(" "))), -0.07443009, 1e-2);
@@ -78,7 +74,7 @@ public class MissingEntryTest
 	 * @param file
 	 * @param goldLogProb
 	 */
-	public static void testContextEncodedLogProb(final ContextEncodedNgramLanguageModel<String> lm_, final File file) {
+	public static void testContextEncodedLogProb(final ContextEncodedNgramLanguageModel<String> lm_) {
 
 		Assert.assertEquals(lm_.getLogProb(Arrays.asList("This another test is".split(" "))), -0.67443009, 1e-2);
 		Assert.assertEquals(lm_.getLogProb(Arrays.asList("another test sentence.".split(" "))), -0.07443009, 1e-2);

@@ -49,7 +49,9 @@ public class JavaMapWrapperTest
 			if (order == 0) Assert.assertEquals(map2.get(ngram3).value, 19401194714L);
 			Assert.assertEquals(map.size(), map2.size());
 			for (final Entry<List<String>, LongRef> entry : map.entrySet()) {
-				Assert.assertEquals(map2.get(entry.getKey()), entry.getValue());
+
+				final LongRef val = map2.get(entry.getKey());
+				Assert.assertEquals(val, entry.getValue());
 			}
 			for (final Entry<List<String>, LongRef> entry : map2.entrySet()) {
 				Assert.assertEquals(map.get(entry.getKey()), entry.getValue());

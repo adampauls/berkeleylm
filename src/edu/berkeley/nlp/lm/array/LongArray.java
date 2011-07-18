@@ -30,7 +30,8 @@ public final class LongArray implements Serializable
 			return newLongArray(maxKeySize, maxNumKeys, 10);
 		}
 
-		public static LongArray newLongArray(final long maxKeySize, final long maxNumKeys, final long initCapacity) {
+		public static LongArray newLongArray(@SuppressWarnings("unused") final long maxKeySize, @SuppressWarnings("unused") final long maxNumKeys,
+			final long initCapacity) {
 			return new LongArray(initCapacity);
 			//			if (maxNumKeys <= Integer.MAX_VALUE) {
 			//				if (maxKeySize <= Byte.MAX_VALUE) {
