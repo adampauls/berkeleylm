@@ -12,9 +12,9 @@ public final class LongArray implements Serializable
 	 */
 	private static final long serialVersionUID = -9133624434714616987L;
 
-	private long size;
+	long size;
 
-	private long[][] data;
+	long[][] data;
 
 	// keep a reference to the lowest order array, since that will be used most often
 	private long[] first;
@@ -68,11 +68,11 @@ public final class LongArray implements Serializable
 		}
 	}
 
-	private static final int o(final long l) {
+	protected static final int o(final long l) {
 		return (int) (l >>> Integer.SIZE);
 	}
 
-	private static final int i(final long l) {
+	protected static final int i(final long l) {
 		return (int) l;
 	}
 
