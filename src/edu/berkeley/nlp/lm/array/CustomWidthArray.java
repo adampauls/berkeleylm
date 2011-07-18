@@ -262,11 +262,7 @@ public final class CustomWidthArray implements Serializable
 				lastDatum = currArray[(int) word];
 				goneAroundOnce = true;
 			}
-			//			
-			//			final long searchKey = currArray[innerIndex];
 			final long to = from + width;
-
-			//			final long startBit = bit;
 			final long searchKey = (bit <= widthDiff) ? (lastDatum << widthDiff - bit >>> widthDiff)
 				: (lastDatum >>> bit | (currArray[innerIndex + 1]) << Long.SIZE + widthDiff - bit >>> widthDiff);
 			if (searchKey == key) return i;
@@ -284,7 +280,6 @@ public final class CustomWidthArray implements Serializable
 				lastDatum = currArray[innerIndex];
 			}
 			bit = bit(from);
-
 		}
 	}
 
