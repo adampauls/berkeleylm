@@ -82,7 +82,9 @@ public final class CustomWidthArray implements Serializable
 	}
 
 	private void rangeCheck(final long index) {
-		if (index >= length()) throw new IndexOutOfBoundsException("Index (" + index + ") is greater than length (" + (length()) + ")");
+		if (index >= length()) { //
+			throw new IndexOutOfBoundsException("Index (" + index + ") is greater than length (" + (length()) + ")");
+		}
 	}
 
 	public boolean getBit(final long index) {
@@ -218,7 +220,7 @@ public final class CustomWidthArray implements Serializable
 		size = Math.max(n, size);
 	}
 
-	public long linearSearch(final long key, final long rangeStart, final long rangeEnd, final long startIndex, final long emptyKey,
+	public long linearSearch2(final long key, final long rangeStart, final long rangeEnd, final long startIndex, final long emptyKey,
 		final boolean returnFirstEmptyIndex) {
 		long i = startIndex;
 		boolean goneAroundOnce = false;
@@ -232,6 +234,57 @@ public final class CustomWidthArray implements Serializable
 			if (searchKey == key) return i;
 			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
 			++i;
+		}
+	}
+
+	public long linearSearch(final long key, final long rangeStart, final long rangeEnd, final long startIndex, final long emptyKey,
+		final boolean returnFirstEmptyIndex) {
+		long from = startIndex * width;
+		long i = startIndex;
+		long word = word(from);
+		long bit = bit(from);
+		long lastDatum = data.get(word);
+		boolean goneAroundOnce = false;
+		int outerIndex = LongArray.o(word);
+		int innerIndex = LongArray.i(word);
+		long[] currArray = data.data[outerIndex];
+		while (true) {
+			if (i == rangeEnd) {
+				if (goneAroundOnce) return -1L;
+				i = rangeStart;
+				from = i * width;
+				bit = bit(from);
+				word = word(from);
+				innerIndex = LongArray.i(word);
+				outerIndex = LongArray.o(word);
+				currArray = data.data[outerIndex];
+				lastDatum = currArray[(int) word];
+				goneAroundOnce = true;
+			}
+			if (innerIndex == currArray.length) {
+				assert false : "Untested";
+				outerIndex++;
+				innerIndex = 0;
+				currArray = data.data[outerIndex];
+			}
+			//			final long searchKey = currArray[innerIndex];
+			final long to = from + width;
+			final long l = Long.SIZE - (to - from);
+			final long startBit = bit;
+			final long searchKey = (startBit <= l) ? (lastDatum << l - startBit >>> l) : (lastDatum >>> startBit | (currArray[(int) (word + 1)]) << Long.SIZE
+				+ l - startBit >>> l);
+			if (searchKey == key) return i;
+			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
+			i++;
+			from += width;
+			long nextWord = word(from);
+			if (nextWord > word) {
+				word = nextWord;
+				lastDatum = currArray[(int) (word)];
+			}
+			bit = bit(from);
+			innerIndex = LongArray.i(word);
+
 		}
 	}
 

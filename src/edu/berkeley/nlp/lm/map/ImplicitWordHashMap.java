@@ -49,6 +49,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		this.wordRanges = wordRanges;
 		//wordRanges = new long[(int) numWords];
 		final long totalNumNgrams = setWordRanges(numNgramsForEachWord, loadFactor, numWords);
+		//		keys = new CustomWidthArray(totalNumNgrams);//(IntLongArray) LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
 		keys = new CustomWidthArray(totalNumNgrams, CustomWidthArray.numBitsNeeded(numNgramsForPreviousOrder));//(IntLongArray) LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
 		Logger.logss("No word key size " + totalNumNgrams);
 		keys.fill(EMPTY_KEY, totalNumNgrams);
