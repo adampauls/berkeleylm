@@ -166,6 +166,7 @@ public final class CustomWidthArray implements Serializable
 	 * @return
 	 */
 	private long getHelp(final long index) {
+		System.out.printf("getHelp: %d\n", index);
 		final long start = index * width;
 		return getLong(start, start + width);
 	}
