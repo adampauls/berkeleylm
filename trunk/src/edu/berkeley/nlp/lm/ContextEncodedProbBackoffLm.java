@@ -69,7 +69,7 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 			}
 			if (offset >= 0 && !Float.isNaN(prob)) {
 				setOutputContext(outputContext, longestOffset, longestOrder);
-				System.out.printf("myprob: %f %d %d", backoffSum + prob, (int)offset, ngramOrder);
+				System.out.printf("myprob: %f %d %d\n", backoffSum + prob, (int) offset, ngramOrder);
 				return backoffSum + prob;
 			} else if (currContextOrder >= 0) {
 				final long backoffIndex = currContextOffset;
