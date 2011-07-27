@@ -63,6 +63,7 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 			final int ngramOrder = currContextOrder + 1;
 			System.out.printf("curr: %d %d\n", ngramOrder, currContextOffset);
 			final long offset = (onlyUnigram && currContextOrder >= 0) ? -1 : localMap.getOffset(currContextOffset, currContextOrder, word);
+			System.out.printf("returned: %d %d\n", offset);
 			final float prob = offset < 0 ? Float.NaN : values.getProb(ngramOrder, offset);
 			if (offset >= 0 && longestOffset == -2) {
 				longestOffset = offset;
