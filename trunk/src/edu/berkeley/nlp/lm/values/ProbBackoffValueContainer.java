@@ -28,6 +28,7 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 	@Override
 	public void getFromOffset(final long index, final int ngramOrder, @OutputParameter final ProbBackoffPair outputVal) {
 		final int rank = getRank(ngramOrder, index);
+		System.out.println("getting from rank " + rank);
 		getFromRank(rank, outputVal);
 	}
 
