@@ -39,7 +39,7 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 	 */
 	private float getCount(final int ngramOrder, final long index, final boolean backoff) {
 		final int rank = getRank(ngramOrder, index);
-		System.out.println("getting from rank " + rank);
+		System.out.println("getting from rank " + rank + " " + index + " " + ngramOrder);
 		return getFromRank(rank, backoff);
 	}
 
