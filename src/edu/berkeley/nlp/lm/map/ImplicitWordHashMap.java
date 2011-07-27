@@ -25,7 +25,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	private static final long serialVersionUID = 1L;
 
 	@PrintMemoryCount
-	private final CustomWidthArray keys;
+	final CustomWidthArray keys;
 
 	@PrintMemoryCount
 	private final long[] wordRanges;
