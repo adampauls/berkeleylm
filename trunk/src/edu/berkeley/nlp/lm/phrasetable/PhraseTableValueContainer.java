@@ -241,7 +241,7 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 		for (int ngramOrder = 0; ngramOrder < features.length; ++ngramOrder) {
 			if (features[ngramOrder] != null) features[ngramOrder].trim();
 			if (valueIndexes[ngramOrder] != null) valueIndexes[ngramOrder].trim();
-			if (targetTranslations[ngramOrder] != null) {
+			if (ngramOrder < targetTranslations.length && targetTranslations[ngramOrder] != null) {
 				targetTranslations[ngramOrder].trimToSize();
 
 				for (int j = 0; j < targetTranslations[ngramOrder].size(); ++j) {
