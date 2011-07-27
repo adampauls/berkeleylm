@@ -5,6 +5,7 @@ import java.util.List;
 
 import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
+import edu.berkeley.nlp.lm.array.CustomWidthArray;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.collections.Iterators;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
@@ -401,6 +402,18 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	@Override
 	public boolean contains(final int[] ngram, final int startPos, final int endPos) {
 		return getOffsetFromRawNgram(ngram, startPos, endPos) >= 0;
+	}
+
+	public String successRate(int i) {
+
+		final CustomWidthArray keys = implicitMaps[i - 1].keys;
+		return "" + (double) keys.numSuccessProbes / keys.numSuccessQueries;
+	}
+
+	public String failureRate(int i) {
+
+		final CustomWidthArray keys = implicitMaps[i - 1].keys;
+		return "" + (double) keys.numFailProbes / keys.numFailQueries;
 	}
 
 }

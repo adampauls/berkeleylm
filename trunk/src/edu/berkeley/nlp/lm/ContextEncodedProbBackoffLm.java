@@ -6,6 +6,7 @@ import edu.berkeley.nlp.lm.map.ContextEncodedNgramMap;
 import edu.berkeley.nlp.lm.map.HashNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
+import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
 
@@ -30,6 +31,10 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 	private final ProbBackoffValueContainer values;
 
 	private final long numWords;
+
+	public long numBackoffs = 0;
+
+	public long numQueries = 0;
 
 	public ContextEncodedProbBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final ContextEncodedNgramMap<ProbBackoffPair> map,
 		final ConfigOptions opts) {
@@ -59,7 +64,9 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 		long longestOffset = -2;
 		int longestOrder = -2;
 
+		numQueries++;
 		while (currContextOrder >= -1) {
+			numBackoffs++;
 			final int ngramOrder = currContextOrder + 1;
 			final long offset = (onlyUnigram && currContextOrder >= 0) ? -1 : localMap.getOffset(currContextOffset, currContextOrder, word);
 			final float prob = offset < 0 ? Float.NaN : values.getProb(ngramOrder, offset);
@@ -134,4 +141,10 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 		}
 	}
 
+	public void printSpeedInfo() {
+		Logger.logss("Avg num backoffs was " + (double) numBackoffs / numQueries);
+		for (int i = 1; i < map.getMaxNgramOrder(); ++i) {
+			Logger.logss("Order " + i + " " + map.successRate(i) + " " + map.failureRate(i));
+		}
+	}
 }
