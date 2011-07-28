@@ -2,7 +2,6 @@ package edu.berkeley.nlp.lm;
 
 import java.io.Serializable;
 
-import edu.berkeley.nlp.lm.array.CustomWidthArray;
 import edu.berkeley.nlp.lm.map.ContextEncodedNgramMap;
 import edu.berkeley.nlp.lm.map.HashNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap;
@@ -66,13 +65,11 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 		int longestOrder = -2;
 
 		numQueries++;
-		CustomWidthArray valueRanksForOrder = null;
 		while (currContextOrder >= -1) {
 			numBackoffs++;
 			final int ngramOrder = currContextOrder + 1;
 			final long offset = (onlyUnigram && currContextOrder >= 0) ? -1 : localMap.getOffset(currContextOffset, currContextOrder, word);
-			if (offset >= 0 && valueRanksForOrder == null) valueRanksForOrder = values.getRankArrayForOrder(ngramOrder);
-			final float prob = offset < 0 ? Float.NaN : values.getProb(valueRanksForOrder, offset);
+			final float prob = offset < 0 ? Float.NaN : values.getProb(ngramOrder, offset);
 			if (offset >= 0 && longestOffset == -2) {
 				longestOffset = offset;
 				longestOrder = ngramOrder;
@@ -81,15 +78,14 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 				setOutputContext(outputContext, longestOffset, longestOrder);
 				return backoffSum + prob;
 			} else if (currContextOrder >= 0) {
-				valueRanksForOrder = values.getRankArrayForOrder(ngramOrder - 1);
 				final long backoffIndex = currContextOffset;
 				//				for (int x = 0; x < 100; ++x) {
 				//					final float backOff = backoffIndex < 0 ? 0.0f : values.getBackoff(currContextOrder, backoffIndex);
 				//				}
 
-				final float backOff = backoffIndex < 0 ? 0.0f : values.getBackoff(valueRanksForOrder, backoffIndex);
+				final float backOff = backoffIndex < 0 ? 0.0f : values.getBackoff(currContextOrder, backoffIndex);
 				backoffSum += (Float.isNaN(backOff) ? 0.0f : backOff);
-				currContextOffset = currContextOrder == 0 ? 0 : values.getSuffixOffset(currContextOffset, valueRanksForOrder);
+				currContextOffset = currContextOrder == 0 ? 0 : values.getSuffixOffset(currContextOffset, currContextOrder);
 			}
 			currContextOrder--;
 		}
