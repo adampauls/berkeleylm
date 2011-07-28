@@ -112,7 +112,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		final long rangeStart = wordRanges(word);
 		final long rangeEnd = ((word == numWords - 1) ? getCapacity() : wordRanges(word + 1));
 		final long contextOffsetOf = AbstractNgramMap.contextOffsetOf(key);
-		final long startIndex = hash(contextOffsetOf, rangeStart, rangeEnd);
+		final long startIndex = hash(key, rangeStart, rangeEnd);
 		if (startIndex < 0) return -1L;
 		assert startIndex >= rangeStart;
 		assert startIndex < rangeEnd;
