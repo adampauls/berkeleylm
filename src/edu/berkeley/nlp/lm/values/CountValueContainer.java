@@ -15,18 +15,18 @@ public final class CountValueContainer extends RankedValueContainer<LongRef>
 
 	private long unigramSum = 0L;
 
-	public CountValueContainer(final Indexer<LongRef> countIndexer, final int valueRadix, final boolean storePrefixes) {
-		super(countIndexer, valueRadix, storePrefixes);
-		countsForRank = new long[countIndexer.size()];
+	public CountValueContainer(final Indexer<LongRef> countIndexer, final int valueRadix, final boolean storePrefixes, final int maxNgramOrder) {
+		super(countIndexer, valueRadix, storePrefixes, maxNgramOrder);
+		countsForRank = new long[this.countIndexer.size()];
 		int k = 0;
-		for (final LongRef pair : countIndexer.getObjects()) {
+		for (final LongRef pair : this.countIndexer.getObjects()) {
 			countsForRank[k++] = pair.value;
 		}
 	}
 
 	@Override
 	public CountValueContainer createFreshValues() {
-		return new CountValueContainer(countIndexer, valueRadix, storePrefixIndexes);
+		return new CountValueContainer(countIndexer, valueRadix, storePrefixIndexes, valueRanks.length);
 	}
 
 	@Override
