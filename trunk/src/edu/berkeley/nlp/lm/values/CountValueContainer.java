@@ -11,12 +11,17 @@ public final class CountValueContainer extends RankedValueContainer<LongRef>
 	private static final long serialVersionUID = 964277160049236607L;
 
 	@PrintMemoryCount
-	private long[] countsForRank;
+	private final long[] countsForRank;
 
 	private long unigramSum = 0L;
 
 	public CountValueContainer(final Indexer<LongRef> countIndexer, final int valueRadix, final boolean storePrefixes) {
 		super(countIndexer, valueRadix, storePrefixes);
+		countsForRank = new long[countIndexer.size()];
+		int k = 0;
+		for (final LongRef pair : countIndexer.getObjects()) {
+			countsForRank[k++] = pair.value;
+		}
 	}
 
 	@Override
@@ -54,15 +59,6 @@ public final class CountValueContainer extends RankedValueContainer<LongRef>
 	@Override
 	protected LongRef getDefaultVal() {
 		return new LongRef(-1L);
-	}
-
-	@Override
-	protected void storeCounts() {
-		countsForRank = new long[countIndexer.size()];
-		int k = 0;
-		for (final LongRef pair : countIndexer.getObjects()) {
-			countsForRank[k++] = pair.value;
-		}
 	}
 
 	@Override
