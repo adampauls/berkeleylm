@@ -37,7 +37,7 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 
 	protected final int valueRadix;
 
-	private final int wordWidth;
+	protected final int wordWidth;
 
 	final int rankShift;
 
@@ -59,10 +59,6 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 		countIndexer.trim();
 		countIndexer.lock();
 		wordWidth = CustomWidthArray.numBitsNeeded(countIndexer.size());
-		Logger.startTrack("Storing count indices using " + wordWidth + " bits.");
-		storeCounts();
-		Logger.endTrack();
-
 	}
 
 	@Override
@@ -105,7 +101,7 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 
 	abstract protected V getDefaultVal();
 
-	abstract protected void storeCounts();
+	//	abstract protected void storeCounts();
 
 	abstract protected void getFromRank(final int rank, @OutputParameter V outputVal);
 

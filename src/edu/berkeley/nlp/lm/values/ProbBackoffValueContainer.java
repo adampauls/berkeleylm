@@ -1,6 +1,7 @@
 package edu.berkeley.nlp.lm.values;
 
 import edu.berkeley.nlp.lm.collections.Indexer;
+import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 
@@ -10,10 +11,19 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 	private static final long serialVersionUID = 964277160049236607L;
 
 	@PrintMemoryCount
-	float[] probsAndBackoffsForRank; // ugly, but we but probs and backoffs consecutively in this area to improve cache locality
+	final float[] probsAndBackoffsForRank; // ugly, but we but probs and backoffs consecutively in this area to improve cache locality
 
 	public ProbBackoffValueContainer(final Indexer<ProbBackoffPair> countIndexer, final int valueRadix, final boolean storePrefixes) {
 		super(countIndexer, valueRadix, storePrefixes);
+		Logger.startTrack("Storing count indices using " + wordWidth + " bits.");
+		probsAndBackoffsForRank = new float[2 * countIndexer.size()];
+		int k = 0;
+		for (final ProbBackoffPair pair : countIndexer.getObjects()) {
+
+			probsAndBackoffsForRank[k++] = pair.prob;
+			probsAndBackoffsForRank[k++] = pair.backoff;
+		}
+		Logger.endTrack();
 	}
 
 	@Override
@@ -55,16 +65,7 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 		return new ProbBackoffPair(Float.NaN, Float.NaN);
 	}
 
-	@Override
-	protected void storeCounts() {
-		probsAndBackoffsForRank = new float[2 * countIndexer.size()];
-		int k = 0;
-		for (final ProbBackoffPair pair : countIndexer.getObjects()) {
-
-			probsAndBackoffsForRank[k++] = pair.prob;
-			probsAndBackoffsForRank[k++] = pair.backoff;
-		}
-	}
+	
 
 	@Override
 	protected void getFromRank(final int rank, @OutputParameter final ProbBackoffPair outputVal) {
