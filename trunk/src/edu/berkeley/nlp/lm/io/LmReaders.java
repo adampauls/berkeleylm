@@ -385,7 +385,8 @@ public class LmReaders
 		final FirstPassCallback<LongRef> valueAddingCallback, final LongArray[] numNgramsForEachWord, final boolean compress) {
 		final boolean contextEncoded = false;
 		final boolean reversed = true;
-		final CountValueContainer values = new CountValueContainer(valueAddingCallback.getIndexer(), opts.valueRadix, contextEncoded);
+		final CountValueContainer values = new CountValueContainer(valueAddingCallback.getIndexer(), opts.valueRadix, contextEncoded,
+			numNgramsForEachWord.length);
 		final GoogleLmReader<W> lmReader = new GoogleLmReader<W>(dir, wordIndexer, opts);
 		final NgramMap<LongRef> map = buildMapCommon(opts, wordIndexer, numNgramsForEachWord, valueAddingCallback.getNumNgramsForEachOrder(), reversed,
 			lmReader, values, compress);
@@ -408,7 +409,8 @@ public class LmReaders
 		final WordIndexer<W> wordIndexer, final FirstPassCallback<ProbBackoffPair> valueAddingCallback, final LongArray[] numNgramsForEachWord,
 		final boolean contextEncoded, final boolean reversed, final boolean compress) {
 		final ArpaLmReader<W> lmReader = new ArpaLmReader<W>(lmFile, wordIndexer, lmOrder);
-		final ProbBackoffValueContainer values = new ProbBackoffValueContainer(valueAddingCallback.getIndexer(), opts.valueRadix, contextEncoded);
+		final ProbBackoffValueContainer values = new ProbBackoffValueContainer(valueAddingCallback.getIndexer(), opts.valueRadix, contextEncoded,
+			valueAddingCallback.getNumNgramsForEachOrder().length);
 		assert !(contextEncoded && compress) : "Compression is not supported by context-encoded LMs";
 		final NgramMap<ProbBackoffPair> map = buildMapCommon(opts, wordIndexer, numNgramsForEachWord, valueAddingCallback.getNumNgramsForEachOrder(), reversed,
 			lmReader, values, compress);
@@ -438,7 +440,7 @@ public class LmReaders
 		Logger.endTrack();
 		final List<int[]> failures = ngramMapAddingCallback.getFailures();
 		if (!failures.isEmpty()) {
-			Logger.startTrack(failures.size() +" missing suffixes or prefixes were found, doing another pass to add n-grams");
+			Logger.startTrack(failures.size() + " missing suffixes or prefixes were found, doing another pass to add n-grams");
 			for (final int[] failure : failures) {
 				final int ngramOrder = failure.length - 1;
 				final int headWord = failure[reversed ? 0 : ngramOrder];

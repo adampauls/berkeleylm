@@ -1,5 +1,6 @@
 package edu.berkeley.nlp.lm.values;
 
+import edu.berkeley.nlp.lm.array.CustomWidthArray;
 import edu.berkeley.nlp.lm.collections.Indexer;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
@@ -13,12 +14,12 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 	@PrintMemoryCount
 	final float[] probsAndBackoffsForRank; // ugly, but we but probs and backoffs consecutively in this area to improve cache locality
 
-	public ProbBackoffValueContainer(final Indexer<ProbBackoffPair> countIndexer, final int valueRadix, final boolean storePrefixes) {
-		super(countIndexer, valueRadix, storePrefixes);
+	public ProbBackoffValueContainer(final Indexer<ProbBackoffPair> countIndexer, final int valueRadix, final boolean storePrefixes, int maxNgramOrder) {
+		super(countIndexer, valueRadix, storePrefixes, maxNgramOrder);
 		Logger.startTrack("Storing count indices using " + wordWidth + " bits.");
-		probsAndBackoffsForRank = new float[2 * countIndexer.size()];
+		probsAndBackoffsForRank = new float[2 * this.countIndexer.size()];
 		int k = 0;
-		for (final ProbBackoffPair pair : countIndexer.getObjects()) {
+		for (final ProbBackoffPair pair : this.countIndexer.getObjects()) {
 
 			probsAndBackoffsForRank[k++] = pair.prob;
 			probsAndBackoffsForRank[k++] = pair.backoff;
@@ -28,11 +29,19 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 
 	@Override
 	public ProbBackoffValueContainer createFreshValues() {
-		return new ProbBackoffValueContainer(countIndexer, valueRadix, storePrefixIndexes);
+		return new ProbBackoffValueContainer(countIndexer, valueRadix, storePrefixIndexes, valueRanks.length);
 	}
 
 	public final float getProb(final int ngramOrder, final long index) {
 		return getCount(ngramOrder, index, false);
+	}
+
+	public final float getProb(final CustomWidthArray valueRanksForOrder, final long index) {
+		return getCount(valueRanksForOrder, index, false);
+	}
+
+	public CustomWidthArray getRankArrayForOrder(int ngramOrder) {
+		return valueRanks[ngramOrder];
 	}
 
 	@Override
@@ -52,6 +61,11 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 		return getFromRank(rank, backoff);
 	}
 
+	private float getCount(final CustomWidthArray valueRanksForOrder, final long index, final boolean backoff) {
+		final int rank = getRank(valueRanksForOrder, index);
+		return getFromRank(rank, backoff);
+	}
+
 	private float getFromRank(final int rank, final boolean backoff) {
 		return probsAndBackoffsForRank[2 * rank + (backoff ? 1 : 0)];
 	}
@@ -60,12 +74,14 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 		return getCount(ngramOrder, index, true);
 	}
 
+	public final float getBackoff(final CustomWidthArray valueRanksForNgramOrder, final long index) {
+		return getCount(valueRanksForNgramOrder, index, true);
+	}
+
 	@Override
 	protected ProbBackoffPair getDefaultVal() {
 		return new ProbBackoffPair(Float.NaN, Float.NaN);
 	}
-
-	
 
 	@Override
 	protected void getFromRank(final int rank, @OutputParameter final ProbBackoffPair outputVal) {

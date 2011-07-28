@@ -24,7 +24,7 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 	private static final long serialVersionUID = 964277160049236607L;
 
 	@PrintMemoryCount
-	protected CustomWidthArray[] valueRanks;
+	protected final CustomWidthArray[] valueRanks;
 
 	//@PrintMemoryCount
 	//private LongArray[] contextOffsets;
@@ -41,14 +41,14 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 
 	final int rankShift;
 
-	public RankedValueContainer(final Indexer<V> countIndexer_, final int valueRadix, final boolean storePrefixIndexes) {
+	public RankedValueContainer(final Indexer<V> countIndexer_, final int valueRadix, final boolean storePrefixIndexes, int maxNgramOrder) {
 		this.valueRadix = valueRadix;
 		valueCoder = new VariableLengthBitCompressor(valueRadix);
 		this.countIndexer = new Indexer<V>();
 		this.storePrefixIndexes = storePrefixIndexes;
 		rankShift = this.storePrefixIndexes ? 32 : 0;
 		//	if (storePrefixIndexes) contextOffsets = new LongArray[6];
-		valueRanks = new CustomWidthArray[6];
+		valueRanks = new CustomWidthArray[maxNgramOrder];
 		// add default value near the beginning so it has a small rank
 		final int defaultValRank = 10;
 		for (int i = 0; i < Math.min(countIndexer_.size(), defaultValRank); ++i)
@@ -107,9 +107,9 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 
 	@Override
 	public void setSizeAtLeast(final long size, final int ngramOrder) {
-		if (ngramOrder >= valueRanks.length) {
-			valueRanks = Arrays.copyOf(valueRanks, valueRanks.length * 2);
-		}
+		//		if (ngramOrder >= valueRanks.length) {
+		//			valueRanks = Arrays.copyOf(valueRanks, valueRanks.length * 2);
+		//		}
 		if (valueRanks[ngramOrder] == null) {
 			valueRanks[ngramOrder] = new CustomWidthArray(size, rankShift + wordWidth);
 		}
@@ -118,18 +118,28 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 	}
 
 	public long getSuffixOffset(final long index, final int ngramOrder) {
-		return !storePrefixIndexes ? -1 : (int) valueRanks[ngramOrder].get(index);
+		return getSuffixOffset(index, valueRanks[ngramOrder]);
+	}
+
+	public long getSuffixOffset(final long index, final CustomWidthArray valueRanksForOrder) {
+		return !storePrefixIndexes ? -1 : (int) valueRanksForOrder.get(index);
 	}
 
 	@Override
 	public void setFromOtherValues(final ValueContainer<V> other) {
 		final RankedValueContainer<V> o = (RankedValueContainer<V>) other;
-		this.valueRanks = o.valueRanks;
+		for (int i = 0; i < valueRanks.length; ++i) {
+			this.valueRanks[i] = o.valueRanks[i];
+		}
 		this.countIndexer = o.countIndexer;
 	}
 
 	protected int getRank(final int ngramOrder, final long offset) {
-		return (int) (valueRanks[ngramOrder].get(offset) >>> rankShift);
+		return getRank(valueRanks[ngramOrder], offset);
+	}
+
+	protected int getRank(final CustomWidthArray valueRanksForOrder, final long offset) {
+		return (int) (valueRanksForOrder.get(offset) >>> rankShift);
 	}
 
 	@Override
