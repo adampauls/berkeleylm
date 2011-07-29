@@ -31,14 +31,6 @@ public final class CustomWidthArray implements Serializable
 
 	private final LongArray data;
 
-	public long numFailQueries;
-
-	public long numFailProbes;
-
-	public long numSuccessQueries;
-
-	public long numSuccessProbes;
-
 	private final static long numLongs(final long size) {
 		//		assert (size + WORD_MASK) >>> LOG2_BITS_PER_WORD <= Integer.MAX_VALUE;
 		return ((size + WORD_MASK) >>> LOG2_BITS_PER_WORD);
@@ -257,9 +249,7 @@ public final class CustomWidthArray implements Serializable
 		int innerIndex = LongArray.i(word);
 		long[] currArray = data.data[LongArray.o(word)];
 		long lastDatum = currArray[innerIndex];
-		long numProbes = 0;
 		while (true) {
-			numProbes++;
 			if (i == rangeEnd) {
 				if (goneAroundOnce) return -1L;
 				i = rangeStart;
@@ -275,16 +265,8 @@ public final class CustomWidthArray implements Serializable
 			final long to = from + width;
 			final long searchKey = (bit <= widthDiff) ? (lastDatum << widthDiff - bit >>> widthDiff)
 				: (lastDatum >>> bit | (currArray[innerIndex + 1]) << Long.SIZE + widthDiff - bit >>> widthDiff);
-			if (searchKey == key) {
-				numSuccessProbes += numProbes;
-				numSuccessQueries++;
-				return i;
-			}
-			if (searchKey == emptyKey) {
-				numFailProbes += numProbes;
-				numFailQueries++;
-				return returnFirstEmptyIndex ? i : -1L;
-			}
+			if (searchKey == key) { return i; }
+			if (searchKey == emptyKey) { return returnFirstEmptyIndex ? i : -1L; }
 			i++;
 			from = to;
 			final long nextWord = word(from);
