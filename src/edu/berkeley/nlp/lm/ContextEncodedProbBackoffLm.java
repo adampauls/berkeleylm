@@ -32,10 +32,6 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 
 	private final long numWords;
 
-	public long numBackoffs = 0;
-
-	public long numQueries = 0;
-
 	public ContextEncodedProbBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final ContextEncodedNgramMap<ProbBackoffPair> map,
 		final ConfigOptions opts) {
 		super(lmOrder, wordIndexer, (float) opts.unknownWordLogProb);
@@ -64,9 +60,7 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 		long longestOffset = -2;
 		int longestOrder = -2;
 
-		numQueries++;
 		while (currContextOrder >= -1) {
-			numBackoffs++;
 			final int ngramOrder = currContextOrder + 1;
 			final long offset = (onlyUnigram && currContextOrder >= 0) ? -1 : localMap.getOffset(currContextOffset, currContextOrder, word);
 			final float prob = offset < 0 ? Float.NaN : values.getProb(ngramOrder, offset);
@@ -83,12 +77,15 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 				//					final float backOff = backoffIndex < 0 ? 0.0f : values.getBackoff(currContextOrder, backoffIndex);
 				//				}
 
+				for (int x = 0; x < 100; ++x) {
+					final float backOff = backoffIndex < 0 ? 0.0f : values.getBackoff(currContextOrder, backoffIndex);
+				}
 				final float backOff = backoffIndex < 0 ? 0.0f : values.getBackoff(currContextOrder, backoffIndex);
 				backoffSum += (Float.isNaN(backOff) ? 0.0f : backOff);
 				currContextOffset = currContextOrder == 0 ? 0 : values.getSuffixOffset(currContextOffset, currContextOrder);
-//				for (int x = 0; x < 100; ++x) {
-//					long y = currContextOrder == 0 ? 0 : values.getSuffixOffset(backoffIndex, currContextOrder);
-//				}
+				//				for (int x = 0; x < 100; ++x) {
+				//					long y = currContextOrder == 0 ? 0 : values.getSuffixOffset(backoffIndex, currContextOrder);
+				//				}
 			}
 			currContextOrder--;
 		}
@@ -148,10 +145,4 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 		}
 	}
 
-	public void printSpeedInfo() {
-		Logger.logss("Avg num backoffs was " + (double) numBackoffs / numQueries);
-		for (int i = 1; i < map.getMaxNgramOrder(); ++i) {
-			Logger.logss("Order " + i + " " + map.successRate(i) + " " + map.failureRate(i));
-		}
-	}
 }
