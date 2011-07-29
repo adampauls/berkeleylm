@@ -257,7 +257,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	}
 
 	private int wordRangeIndex(final int i) {
-		return ngramOrder - 1 + i * maxNgramOrder;
+		return (ngramOrder - 1) * maxNgramOrder + i;
 	}
 
 	private long wordRanges(final int i) {
