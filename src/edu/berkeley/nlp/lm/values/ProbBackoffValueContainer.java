@@ -1,6 +1,7 @@
 package edu.berkeley.nlp.lm.values;
 
 import edu.berkeley.nlp.lm.array.CustomWidthArray;
+import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.collections.Indexer;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
@@ -36,11 +37,11 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 		return getCount(ngramOrder, index, false);
 	}
 
-	public final float getProb(final CustomWidthArray valueRanksForOrder, final long index) {
+	public final float getProb(final LongArray valueRanksForOrder, final long index) {
 		return getCount(valueRanksForOrder, index, false);
 	}
 
-	public CustomWidthArray getRankArrayForOrder(int ngramOrder) {
+	public LongArray getRankArrayForOrder(int ngramOrder) {
 		return valueRanks[ngramOrder];
 	}
 
@@ -61,7 +62,7 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 		return getFromRank(rank, backoff);
 	}
 
-	private float getCount(final CustomWidthArray valueRanksForOrder, final long index, final boolean backoff) {
+	private float getCount(final LongArray valueRanksForOrder, final long index, final boolean backoff) {
 		final int rank = getRank(valueRanksForOrder, index);
 		return getFromRank(rank, backoff);
 	}
@@ -74,7 +75,7 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 		return getCount(ngramOrder, index, true);
 	}
 
-	public final float getBackoff(final CustomWidthArray valueRanksForNgramOrder, final long index) {
+	public final float getBackoff(final LongArray valueRanksForNgramOrder, final long index) {
 		return getCount(valueRanksForNgramOrder, index, true);
 	}
 
