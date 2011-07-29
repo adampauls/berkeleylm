@@ -24,6 +24,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	 */
 	private static final long serialVersionUID = 1L;
 
+	private static long xxx = 0;
+
 	@PrintMemoryCount
 	final CustomWidthArray keys;
 
@@ -111,6 +113,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 			final int word = AbstractNgramMap.wordOf(key);
 			if (word >= numWords) return -1;
 			final long rangeStart = wordRanges(word);
+			xxx += rangeStart;
 		}
 		assert key >= 0;
 		final int word = AbstractNgramMap.wordOf(key);
