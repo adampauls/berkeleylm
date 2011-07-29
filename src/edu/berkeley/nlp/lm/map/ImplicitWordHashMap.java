@@ -40,14 +40,15 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 
 	private final int ngramOrder;
 
-	private final int maxNgramOrder;
+	private final int totalNumWords;
 
 	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final double loadFactor, final long[] wordRanges, final int ngramOrder,
-		final int maxNgramOrder, final long numNgramsForPreviousOrder) {
+		final int maxNgramOrder, final long numNgramsForPreviousOrder, final int totalNumWords) {
 		this.ngramOrder = ngramOrder;
 		assert ngramOrder >= 1;
-		this.maxNgramOrder = maxNgramOrder;
-		numWords = (int) numNgramsForEachWord.size();
+		this.totalNumWords = totalNumWords;
+		this.numWords = (int) numNgramsForEachWord.size();
+
 		this.wordRanges = wordRanges;
 		//wordRanges = new long[(int) numWords];
 		final long totalNumNgrams = setWordRanges(numNgramsForEachWord, loadFactor, numWords);
@@ -109,13 +110,13 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	 * @return
 	 */
 	private long linearSearch(final long key, final boolean returnFirstEmptyIndex) {
-//		for (int i = 0; i < 100; ++i) {
-//			final int word = AbstractNgramMap.wordOf(key);
-//			if (word >= numWords) return -1;
-//			final long rangeEnd = ((word == numWords - 1) ? getCapacity() : wordRanges(word + 1));
-//			final long contextOffsetOf = AbstractNgramMap.contextOffsetOf(key);
-//			xxx += rangeEnd + contextOffsetOf;
-//		}
+		//		for (int i = 0; i < 100; ++i) {
+		//			final int word = AbstractNgramMap.wordOf(key);
+		//			if (word >= numWords) return -1;
+		//			final long rangeEnd = ((word == numWords - 1) ? getCapacity() : wordRanges(word + 1));
+		//			final long contextOffsetOf = AbstractNgramMap.contextOffsetOf(key);
+		//			xxx += rangeEnd + contextOffsetOf;
+		//		}
 		assert key >= 0;
 		final int word = AbstractNgramMap.wordOf(key);
 		if (word >= numWords) return -1;
@@ -257,7 +258,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	}
 
 	private int wordRangeIndex(final int i) {
-		return (ngramOrder - 1) * maxNgramOrder + i;
+		return (ngramOrder - 1) * totalNumWords + i;
 	}
 
 	private long wordRanges(final int i) {
