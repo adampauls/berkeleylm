@@ -112,13 +112,6 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	private long linearSearch(final long key, final boolean returnFirstEmptyIndex) {
 		final int word = AbstractNgramMap.wordOf(key);
 		final long contextOffsetOf = AbstractNgramMap.contextOffsetOf(key);
-		//		for (int i = 0; i < 100; ++i) {
-		//			//			final long rangeStart = wordRanges(word);
-		//			final long rangeEnd = ((word == numWords - 1) ? getCapacity() : wordRanges(word + 1));
-		//			//			xxx += rangeStart;
-		//			xxx += rangeEnd;
-		//			//			xxx += contextOffsetOf;
-		//		}
 		assert key >= 0;
 		if (word >= numWords) return -1;
 		final long rangeStart = wordRanges(word);
@@ -128,8 +121,6 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		assert startIndex >= rangeStart;
 		assert startIndex < rangeEnd;
 
-		for (int i = 0; i < 100; ++i)
-			keys.linearSearch(contextOffsetOf + 1, rangeStart, rangeEnd, startIndex, EMPTY_KEY, returnFirstEmptyIndex);
 		return keys.linearSearch(contextOffsetOf + 1, rangeStart, rangeEnd, startIndex, EMPTY_KEY, returnFirstEmptyIndex);
 	}
 
