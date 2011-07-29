@@ -113,7 +113,10 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 			final int word = AbstractNgramMap.wordOf(key);
 			if (word >= numWords) return -1;
 			final long rangeStart = wordRanges(word);
-			xxx += rangeStart;
+			final long rangeEnd = ((word == numWords - 1) ? getCapacity() : wordRanges(word + 1));
+			final long contextOffsetOf = AbstractNgramMap.contextOffsetOf(key);
+			final long startIndex = hash(key, rangeStart, rangeEnd);
+			xxx += startIndex + contextOffsetOf;
 		}
 		assert key >= 0;
 		final int word = AbstractNgramMap.wordOf(key);
