@@ -404,16 +404,4 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		return getOffsetFromRawNgram(ngram, startPos, endPos) >= 0;
 	}
 
-	public String successRate(int i) {
-
-		final CustomWidthArray keys = implicitMaps[i - 1].keys;
-		return "" + (double) keys.numSuccessProbes / keys.numSuccessQueries;
-	}
-
-	public String failureRate(int i) {
-
-		final CustomWidthArray keys = implicitMaps[i - 1].keys;
-		return "" + (double) keys.numFailProbes / keys.numFailQueries;
-	}
-
 }
