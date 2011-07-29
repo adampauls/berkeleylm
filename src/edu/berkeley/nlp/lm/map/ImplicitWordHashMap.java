@@ -98,6 +98,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	@Override
 	public final long getOffset(final long key) {
 
+		for (int i = 0; i < 100; ++i)
+			linearSearch(key, false);
 		return linearSearch(key, false);
 	}
 
@@ -117,8 +119,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		if (startIndex < 0) return -1L;
 		assert startIndex >= rangeStart;
 		assert startIndex < rangeEnd;
-		for (int i = 0; i < 100; ++i) 
-			keys.linearSearch(contextOffsetOf + 1, rangeStart, rangeEnd, startIndex, EMPTY_KEY, returnFirstEmptyIndex);
+
 		return keys.linearSearch(contextOffsetOf + 1, rangeStart, rangeEnd, startIndex, EMPTY_KEY, returnFirstEmptyIndex);
 	}
 
