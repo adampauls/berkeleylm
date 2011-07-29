@@ -24,10 +24,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private static long xxx = 0;
-
 	@PrintMemoryCount
-	final CustomWidthArray keys;
+	final LongArray keys;
 
 	@PrintMemoryCount
 	private final long[] wordRanges;
@@ -52,9 +50,9 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		this.wordRanges = wordRanges;
 		//wordRanges = new long[(int) numWords];
 		final long totalNumNgrams = setWordRanges(numNgramsForEachWord, loadFactor, numWords);
-		//		keys = new IntLongArray(totalNumNgrams);//(IntLongArray) LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
+		keys = new LongArray(totalNumNgrams);//(IntLongArray) LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
 		//		keys = new CustomWidthArray(totalNumNgrams);//(IntLongArray) LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
-		keys = new CustomWidthArray(totalNumNgrams, CustomWidthArray.numBitsNeeded(numNgramsForPreviousOrder));//(IntLongArray) LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
+		//		keys = new CustomWidthArray(totalNumNgrams, CustomWidthArray.numBitsNeeded(numNgramsForPreviousOrder));//(IntLongArray) LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
 		Logger.logss("No word key size " + totalNumNgrams);
 		keys.fill(EMPTY_KEY, totalNumNgrams);
 		numFilled = 0;
@@ -204,9 +202,9 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 
 	public static class KeyIterator implements Iterator<Long>
 	{
-		private final CustomWidthArray keys;
+		private final LongArray keys;
 
-		public KeyIterator(final CustomWidthArray keys) {
+		public KeyIterator(final LongArray keys) {
 			this.keys = keys;
 			end = keys.size();
 			next = -1;
