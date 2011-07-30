@@ -37,12 +37,12 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 		return getCount(ngramOrder, index, false);
 	}
 
-	public final float getProb(final LongArray valueRanksForOrder, final long index) {
-		return getCount(valueRanksForOrder, index, false);
+	public final long getInternalVal(final int ngramOrder, final long index) {
+		return valueRanks[ngramOrder].get(index);
 	}
 
-	public LongArray getRankArrayForOrder(int ngramOrder) {
-		return valueRanks[ngramOrder];
+	public final float getProb(final CustomWidthArray valueRanksForOrder, final long index) {
+		return getCount(valueRanksForOrder, index, false);
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 		return getFromRank(rank, backoff);
 	}
 
-	private float getCount(final LongArray valueRanksForOrder, final long index, final boolean backoff) {
+	private float getCount(final CustomWidthArray valueRanksForOrder, final long index, final boolean backoff) {
 		final int rank = getRank(valueRanksForOrder, index);
 		return getFromRank(rank, backoff);
 	}
@@ -75,7 +75,7 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 		return getCount(ngramOrder, index, true);
 	}
 
-	public final float getBackoff(final LongArray valueRanksForNgramOrder, final long index) {
+	public final float getBackoff(final CustomWidthArray valueRanksForNgramOrder, final long index) {
 		return getCount(valueRanksForNgramOrder, index, true);
 	}
 

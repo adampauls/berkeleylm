@@ -24,7 +24,7 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 	private static final long serialVersionUID = 964277160049236607L;
 
 	@PrintMemoryCount
-	protected final LongArray[] valueRanks;
+	protected final CustomWidthArray[] valueRanks;
 
 	//@PrintMemoryCount
 	//private LongArray[] contextOffsets;
@@ -48,7 +48,7 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 		this.storePrefixIndexes = storePrefixIndexes;
 		rankShift = this.storePrefixIndexes ? 32 : 0;
 		//	if (storePrefixIndexes) contextOffsets = new LongArray[6];
-		valueRanks = new LongArray[maxNgramOrder];
+		valueRanks = new CustomWidthArray[maxNgramOrder];
 		// add default value near the beginning so it has a small rank
 		final int defaultValRank = 10;
 		for (int i = 0; i < Math.min(countIndexer_.size(), defaultValRank); ++i)
@@ -111,8 +111,8 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 		//			valueRanks = Arrays.copyOf(valueRanks, valueRanks.length * 2);
 		//		}
 		if (valueRanks[ngramOrder] == null) {
-			valueRanks[ngramOrder] = new LongArray(size);
-			//			valueRanks[ngramOrder] = new CustomWidthArray(size, rankShift + wordWidth);
+			//			valueRanks[ngramOrder] = new LongArray(size);
+			valueRanks[ngramOrder] = new CustomWidthArray(size, rankShift + wordWidth);
 		}
 		valueRanks[ngramOrder].ensureCapacity(size + 1);
 
@@ -122,8 +122,17 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 		return getSuffixOffset(index, valueRanks[ngramOrder]);
 	}
 
-	public long getSuffixOffset(final long index, final LongArray valueRanksForOrder) {
-		return !storePrefixIndexes ? -1 : (int) valueRanksForOrder.get(index);
+	public long getSuffixOffset(final long index, final CustomWidthArray valueRanksForOrder) {
+		final long internalVal = valueRanksForOrder.get(index);
+		return getSuffixOffsetFromInternalVal(internalVal);
+	}
+
+	/**
+	 * @param internalVal
+	 * @return
+	 */
+	protected int getSuffixOffsetFromInternalVal(final long internalVal) {
+		return !storePrefixIndexes ? -1 : (int) internalVal;
 	}
 
 	@Override
@@ -139,8 +148,17 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 		return getRank(valueRanks[ngramOrder], offset);
 	}
 
-	protected int getRank(final LongArray valueRanksForOrder, final long offset) {
-		return (int) (valueRanksForOrder.get(offset) >>> rankShift);
+	protected int getRank(final CustomWidthArray valueRanksForOrder, final long offset) {
+		final long internalVal = valueRanksForOrder.get(offset);
+		return getRankFromInternalVal(internalVal);
+	}
+
+	/**
+	 * @param internalVal
+	 * @return
+	 */
+	protected int getRankFromInternalVal(final long internalVal) {
+		return (int) (internalVal >>> rankShift);
 	}
 
 	@Override
