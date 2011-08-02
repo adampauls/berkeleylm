@@ -278,12 +278,4 @@ public final class LongArray implements Serializable
 		}
 	}
 
-	@SuppressWarnings("unused")
-	private Object readResolve() throws ObjectStreamException {
-		System.gc();
-		System.gc();
-		System.gc();
-		return this;
-	}
-
 }

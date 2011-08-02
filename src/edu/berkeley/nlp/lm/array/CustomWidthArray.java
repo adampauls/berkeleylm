@@ -292,12 +292,4 @@ public final class CustomWidthArray implements Serializable
 		}
 	}
 
-	@SuppressWarnings("unused")
-	private Object readResolve() throws ObjectStreamException {
-		System.gc();
-		System.gc();
-		System.gc();
-		return this;
-	}
-
 }

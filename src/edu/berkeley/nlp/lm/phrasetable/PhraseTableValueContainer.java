@@ -87,10 +87,6 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 
 	@Override
 	public void getFromOffset(final long offset, final int ngramOrder, @OutputParameter final PhraseTableValues outputVal) {
-		if (valueIndexes[ngramOrder] == null) {
-			@SuppressWarnings("unused")
-			final int x = 5;
-		}
 		if (offset >= valueIndexes[ngramOrder].size()) return;
 		final long valueIndex = valueIndexes[ngramOrder].get(offset);
 		if (valueIndex == EMPTY_VALUE_INDEX) return;
