@@ -1,5 +1,6 @@
 package edu.berkeley.nlp.lm.phrasetable;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,8 +22,13 @@ import edu.berkeley.nlp.lm.util.Logger;
  * @author adampauls
  * 
  */
-public class MosesPhraseTable
+public class MosesPhraseTable implements Serializable
 {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	public static class TargetSideTranslation
 	{
