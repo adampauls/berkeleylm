@@ -1,5 +1,7 @@
 package edu.berkeley.nlp.lm.values;
 
+import java.io.Serializable;
+
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 
@@ -10,7 +12,7 @@ import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
  * 
  * @param <V>
  */
-public interface ValueContainer<V>
+public interface ValueContainer<V> extends Serializable
 {
 
 	/**

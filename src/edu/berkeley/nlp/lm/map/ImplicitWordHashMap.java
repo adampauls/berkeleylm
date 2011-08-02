@@ -41,7 +41,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	private final int totalNumWords;
 
 	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final double loadFactor, final long[] wordRanges, final int ngramOrder,
-		final int maxNgramOrder, final long numNgramsForPreviousOrder, final int totalNumWords) {
+		@SuppressWarnings("unused") final int maxNgramOrder, @SuppressWarnings("unused") final long numNgramsForPreviousOrder, final int totalNumWords) {
 		this.ngramOrder = ngramOrder;
 		assert ngramOrder >= 1;
 		this.totalNumWords = totalNumWords;
