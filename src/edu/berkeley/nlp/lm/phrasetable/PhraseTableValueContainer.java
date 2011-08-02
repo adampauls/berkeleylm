@@ -1,5 +1,6 @@
 package edu.berkeley.nlp.lm.phrasetable;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -24,13 +25,17 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 
 	private static final int EMPTY_VALUE_INDEX = Integer.MAX_VALUE;
 
-	public interface PhraseTableValues
+	public interface PhraseTableValues extends Serializable
 	{
 
 	}
 
 	public static class FeaturePhraseTableValues implements PhraseTableValues
 	{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		float[] features;
 
 		public FeaturePhraseTableValues(final float[] features) {
@@ -41,6 +46,11 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 
 	public static class TargetTranslationsValues implements PhraseTableValues
 	{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
 		long[] targetTranslationOffsets;
 
 		int[] targetTranslationOrders;
