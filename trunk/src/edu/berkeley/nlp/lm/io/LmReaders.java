@@ -285,12 +285,16 @@ public class LmReaders
 	}
 
 	/**
-	 * Reads in a binarized
+	 * Reads in a pre-built Google n-gram binary. The user must supply the
+	 * <code>vocab_cs.gz</code> file (so that the corpus cannot be reproduced
+	 * unless the user has the rights to do so).
 	 * 
 	 * @param <W>
 	 * @param file
+	 *            The binary
 	 * @param wordIndexer
 	 * @param sortedVocabFile
+	 *            the <code>vocab_cs.gz</code> vocabulary file.
 	 * @return
 	 */
 	public static <W> StupidBackoffLm<W> readGoogleLmBinary(final String file, final WordIndexer<W> wordIndexer, final String sortedVocabFile) {
