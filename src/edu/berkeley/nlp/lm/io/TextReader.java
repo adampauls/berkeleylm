@@ -16,16 +16,21 @@ import edu.berkeley.nlp.lm.util.Logger;
  * 
  * @param <W>
  */
-public class TextReader<W> implements LmReader<Object, LmReaderCallback<Object>>
+public class TextReader<W, V> implements LmReader<V, LmReaderCallback<V>>
 {
 	private final int lmOrder;
 
 	private final WordIndexer<W> wordIndexer;
 
-	private final List<File> inputFiles;
+	private final Iterable<String> lineIterator;
 
 	public TextReader(final List<File> inputFiles, final WordIndexer<W> wordIndexer, final int maxOrder) {
-		this.inputFiles = inputFiles;
+		this(getLineIterator(inputFiles), wordIndexer, maxOrder);
+
+	}
+
+	public TextReader(Iterable<String> lineIterator, final WordIndexer<W> wordIndexer, final int maxOrder) {
+		this.lineIterator = lineIterator;
 		this.lmOrder = maxOrder;
 		this.wordIndexer = wordIndexer;
 
@@ -40,15 +45,14 @@ public class TextReader<W> implements LmReader<Object, LmReaderCallback<Object>>
 	 * @param outputFile
 	 */
 	@Override
-	public void parse(final LmReaderCallback<Object> callback) {
+	public void parse(final LmReaderCallback<V> callback) {
 		readFromFiles(callback);
 	}
 
-	private void readFromFiles(final LmReaderCallback<Object> callback) {
-		Logger.startTrack("Reading from files " + inputFiles);
-		final Iterable<String> allLinesIterator = getLineIterator(inputFiles);
+	private void readFromFiles(final LmReaderCallback<V> callback) {
+		Logger.startTrack("Reading in ngrams from raw text");
 
-		countNgrams(allLinesIterator, callback);
+		countNgrams(lineIterator, callback);
 		Logger.endTrack();
 
 	}
@@ -62,7 +66,7 @@ public class TextReader<W> implements LmReader<Object, LmReaderCallback<Object>>
 	 * @param ngrams
 	 * @return
 	 */
-	private void countNgrams(final Iterable<String> allLinesIterator, final LmReaderCallback<Object> callback) {
+	private void countNgrams(final Iterable<String> allLinesIterator, final LmReaderCallback<V> callback) {
 		long numLines = 0;
 
 		for (final String line : allLinesIterator) {
@@ -89,7 +93,7 @@ public class TextReader<W> implements LmReader<Object, LmReaderCallback<Object>>
 	 * @param files
 	 * @return
 	 */
-	private Iterable<String> getLineIterator(final Iterable<File> files) {
+	private static Iterable<String> getLineIterator(final Iterable<File> files) {
 		final Iterable<String> allLinesIterator = Iterators.flatten(new Iterators.Transform<File, Iterator<String>>(files.iterator())
 		{
 
