@@ -29,6 +29,8 @@ public class NgramMapWrapper<W, V> extends AbstractMap<List<W>, V>
 
 	private final WordIndexer<W> wordIndexer;
 
+	private final NgramMap<V> ngramMap;
+
 	public NgramMapWrapper(final NgramMap<V> map, final WordIndexer<W> wordIndexer) {
 		this(map, wordIndexer, map.getMaxNgramOrder());
 	}
@@ -48,6 +50,7 @@ public class NgramMapWrapper<W, V> extends AbstractMap<List<W>, V>
 			ngramsForOrder[ngramOrder] = new NgramsForOrderMapWrapper<W, V>(map, wordIndexer, ngramOrder);
 		}
 		this.wordIndexer = wordIndexer;
+		this.ngramMap = map;
 	}
 
 	@Override
@@ -119,5 +122,9 @@ public class NgramMapWrapper<W, V> extends AbstractMap<List<W>, V>
 
 	public WordIndexer<W> getWordIndexer() {
 		return wordIndexer;
+	}
+
+	public NgramMap<V> getNgramMap() {
+		return ngramMap;
 	}
 }
