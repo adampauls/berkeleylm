@@ -70,7 +70,9 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 			matchedProbContextOrder = probContextOrder;
 			probContextOrder++;
 		}
-		if (matchedProbContext < 0) return oovWordLogProb;
+		if (matchedProbContext < 0) {//
+			return oovWordLogProb;
+		}
 		float logProb = scratch == null ? values.getProb(matchedProbContextOrder + 1, matchedProbContext) : scratch.prob;
 		if (Float.isNaN(logProb)) {
 			// this was a fake entry, let's do it again, but only keep track of the biggest match which was not fake
