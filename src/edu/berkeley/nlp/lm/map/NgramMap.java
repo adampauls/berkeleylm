@@ -46,4 +46,6 @@ public interface NgramMap<V>
 
 	public boolean contains(int[] ngram, int startPos, int endPos);
 
+	public V get(int[] ngram, int startPos, int endPos);
+
 }

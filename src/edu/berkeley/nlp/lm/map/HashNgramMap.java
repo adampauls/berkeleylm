@@ -404,4 +404,16 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		return getOffsetFromRawNgram(ngram, startPos, endPos) >= 0;
 	}
 
+	@Override
+	public T get(int[] ngram, int startPos, int endPos) {
+		final long offset = getOffsetFromRawNgram(ngram, startPos, endPos);
+		if (offset < 0) {
+			return null;
+		} else {
+			final T val = values.getScratchValue();
+			values.getFromOffset(offset, endPos - startPos - 1, val);
+			return val;
+		}
+	}
+
 }

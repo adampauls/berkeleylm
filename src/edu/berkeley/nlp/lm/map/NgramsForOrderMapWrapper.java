@@ -86,18 +86,20 @@ public class NgramsForOrderMapWrapper<W, V> extends AbstractMap<List<W>, V>
 	 * @param ngram
 	 */
 	private V getForArray(final int[] ngram) {
-		long probContext = 0L;
-		int probContextOrder = -1;
-		final V scratch = map.getValues().getScratchValue();
-		final NgramMap<V> localMap = map;
-		final int endPos_ = ngram.length;
-		final int startPos_ = 0;
-		for (int i = endPos_ - 1; i >= startPos_; --i) {
-			probContext = localMap.getValueAndOffset(probContext, probContextOrder, ngram[i], scratch);
-			if (probContext < 0) return null;
-			probContextOrder++;
-		}
-		return scratch;
+		return map.get(ngram, 0, ngram.length);
+		//		long probContext = 0L;
+		//		int probContextOrder = -1;
+		//		final V scratch = map.getValues().getScratchValue();
+		//		final NgramMap<V> localMap = map;
+		//		final int endPos_ = ngram.length;
+		//		final int startPos_ = 0;
+		//		localMap.
+		//		for (int i = endPos_ - 1; i >= startPos_; --i) {
+		//			probContext = localMap.getValueAndOffset(probContext, probContextOrder, ngram[i], scratch);
+		//			if (probContext < 0) return null;
+		//			probContextOrder++;
+		//		}
+		//		return scratch;
 	}
 
 }
