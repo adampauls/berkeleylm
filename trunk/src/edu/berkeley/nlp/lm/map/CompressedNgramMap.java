@@ -579,4 +579,17 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	}
 
+	@Override
+	public T get(int[] ngram, int startPos, int endPos) {
+		final long offset = getContextOffset(ngram, startPos, endPos);
+		if (offset < 0) {
+			return null;
+		} else {
+			final T val = values.getScratchValue();
+			values.getFromOffset(offset, endPos - startPos - 1, val);
+			return val;
+		}
+
+	}
+
 }
