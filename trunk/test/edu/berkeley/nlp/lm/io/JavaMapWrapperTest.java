@@ -15,6 +15,11 @@ import edu.berkeley.nlp.lm.util.LongRef;
 
 public class JavaMapWrapperTest
 {
+
+	public static void main(String[] argv) {
+		new JavaMapWrapperTest().testBothMapWrapper();
+	}
+
 	@Test
 	public void testBothMapWrapper() {
 		final StupidBackoffLm<String> lm = LmReaders.readLmFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), false);
