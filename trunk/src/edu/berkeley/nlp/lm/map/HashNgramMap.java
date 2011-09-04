@@ -116,6 +116,18 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	@Override
 	public long put(final int[] ngram, final int startPos, final int endPos, final T val) {
 		final int ngramOrder = endPos - startPos - 1;
+		final HashMap map = getHashMapForOrder(ngramOrder);
+		final long key = getKey(ngram, startPos, endPos);
+		if (key < 0) return -1L;
+		return putHelp(map, ngram, startPos, endPos, key, val);
+
+	}
+
+	/**
+	 * @param ngramOrder
+	 * @return
+	 */
+	private HashMap getHashMapForOrder(final int ngramOrder) {
 		HashMap map = getMap(ngramOrder);
 		if (map == null) {
 			map = initMap(initCapacities[ngramOrder], ngramOrder);
@@ -124,8 +136,18 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 			rehash(ngramOrder, map.getCapacity() * 3 / 2);
 			map = explicitMaps[ngramOrder];
 		}
-		final long key = getKey(ngram, startPos, endPos);
-		if (key < 0) return -1L;
+		return map;
+	}
+
+	public long putWithOffset(final int[] ngram, final int startPos, final int endPos, final long contextOffset, final T val) {
+		final int ngramOrder = endPos - startPos - 1;
+		final long key = combineToKey(ngram[endPos - 1], contextOffset);
+		final HashMap map = getHashMapForOrder(ngramOrder);
+		return putHelp(map, ngram, startPos, endPos, key, val);
+	}
+
+	private long putHelp(final HashMap map, final int[] ngram, final int startPos, final int endPos, final long key, final T val) {
+		final int ngramOrder = endPos - startPos - 1;
 		final long oldSize = map.size();
 		final long index = map.put(key);
 
@@ -134,6 +156,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 			map.size() > oldSize);
 		if (!addWorked) return -1;
 		return index;
+
 	}
 
 	@Override
