@@ -85,7 +85,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		final int ngramOrder = endPos - startPos - 1;
 		final int word = reverseTrie ? ngram[startPos] : ngram[endPos - 1];
 
-		final long contextOffset = reverseTrie ? getContextOffset(ngram, startPos + 1, endPos) : getContextOffset(ngram, startPos, endPos - 1);
+		final long contextOffset = reverseTrie ? getContextOffset(ngram, startPos + 1, endPos, null) : getContextOffset(ngram, startPos, endPos - 1, null);
 		if (contextOffset < 0) return -1;
 
 		CompressedMap map = maps[ngramOrder];
@@ -103,7 +103,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	}
 
-	private long getContextOffset(final int[] ngram, final int startPos, final int endPos) {
+	private long getContextOffset(final int[] ngram, final int startPos, final int endPos, T val) {
 		if (endPos == startPos) return 0;
 		long hasValueSuffixIndex = 0;
 		if (endPos > startPos) {
@@ -113,7 +113,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 				final long key = combineToKey(firstWord, lastSuffix);
 
 				final LongArray compressedKeys = (maps[ngramOrder]).compressedKeys;
-				final long currIndex = decompressSearch(compressedKeys, key, ngramOrder, null);
+				final long currIndex = decompressSearch(compressedKeys, key, ngramOrder, val);
 				if (currIndex < 0) return -1;
 				lastSuffix = currIndex;
 			}
@@ -575,20 +575,16 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	@Override
 	public boolean contains(final int[] ngram, final int startPos, final int endPos) {
-		return getContextOffset(ngram, startPos, endPos) >= 0;
+		return getContextOffset(ngram, startPos, endPos, null) >= 0;
 
 	}
 
 	@Override
 	public T get(int[] ngram, int startPos, int endPos) {
-		final long offset = getContextOffset(ngram, startPos, endPos);
-		if (offset < 0) {
-			return null;
-		} else {
-			final T val = values.getScratchValue();
-			values.getFromOffset(offset, endPos - startPos - 1, val);
-			return val;
-		}
+		T val = values.getScratchValue();
+		final long offset = getContextOffset(ngram, startPos, endPos, val);
+		if (offset < 0) { return null; }
+		return val;
 
 	}
 
