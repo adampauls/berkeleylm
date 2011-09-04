@@ -154,6 +154,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		if (!addWorked) return -1;
 		if (map instanceof ExplicitWordHashMap && map.getLoadFactor() >= maxLoadFactor) {
 			rehash(ngramOrder, map.getCapacity() * 3 / 2);
+			return getOffsetForNgramInModel(ngram, startPos, endPos);
 		}
 		return index;
 
