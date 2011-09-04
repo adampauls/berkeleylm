@@ -290,10 +290,6 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 			for (long actualIndex = 0; actualIndex < currMap.getCapacity(); ++actualIndex) {
 
 				final long key = currMap.getKey(actualIndex);
-				if (key == 1374389534771L && actualIndex == 2) {
-					@SuppressWarnings("unused")
-					int x = 5;
-				}
 				if (currMap.isEmptyKey(key)) continue;
 				final int[] ngram = getNgramFromContextEncoding(AbstractNgramMap.contextOffsetOf(key), ngramOrder - 1, AbstractNgramMap.wordOf(key));
 
