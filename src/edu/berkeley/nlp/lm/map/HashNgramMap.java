@@ -132,10 +132,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		if (map == null) {
 			map = initMap(initCapacities[ngramOrder], ngramOrder);
 		}
-		if (map instanceof ExplicitWordHashMap && map.getLoadFactor() >= maxLoadFactor) {
-			rehash(ngramOrder, map.getCapacity() * 3 / 2);
-			map = explicitMaps[ngramOrder];
-		}
+
 		return map;
 	}
 
@@ -155,6 +152,9 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final boolean addWorked = values.add(ngram, startPos, endPos, ngramOrder, index, contextOffsetOf(key), wordOf(key), val, suffixIndex,
 			map.size() > oldSize);
 		if (!addWorked) return -1;
+		if (map instanceof ExplicitWordHashMap && map.getLoadFactor() >= maxLoadFactor) {
+			rehash(ngramOrder, map.getCapacity() * 3 / 2);
+		}
 		return index;
 
 	}
