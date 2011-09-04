@@ -116,7 +116,11 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	@Override
 	public long put(final int[] ngram, final int startPos, final int endPos, final T val) {
 		final int ngramOrder = endPos - startPos - 1;
-		final HashMap map = getHashMapForOrder(ngramOrder);
+		HashMap map = getHashMapForOrder(ngramOrder);
+		if (map instanceof ExplicitWordHashMap && map.getLoadFactor() >= maxLoadFactor) {
+			rehash(ngramOrder, map.getCapacity() * 3 / 2);
+			map = getHashMapForOrder(ngramOrder);
+		}
 		final long key = getKey(ngram, startPos, endPos);
 		if (key < 0) return -1L;
 		return putHelp(map, ngram, startPos, endPos, key, val);
@@ -136,11 +140,29 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		return map;
 	}
 
+	/**
+	 * Warning: does not rehash if load factor is exceeded, must call
+	 * rehashIfNecessary explicitly
+	 * 
+	 * @param ngram
+	 * @param startPos
+	 * @param endPos
+	 * @param contextOffset
+	 * @param val
+	 * @return
+	 */
 	public long putWithOffset(final int[] ngram, final int startPos, final int endPos, final long contextOffset, final T val) {
 		final int ngramOrder = endPos - startPos - 1;
 		final long key = combineToKey(ngram[endPos - 1], contextOffset);
 		final HashMap map = getHashMapForOrder(ngramOrder);
 		return putHelp(map, ngram, startPos, endPos, key, val);
+	}
+
+	public void rehashIfNecessary() {
+		if (explicitMaps == null) return;
+		for (int ngramOrder = 0; ngramOrder < explicitMaps.length; ++ngramOrder) {
+			if (explicitMaps[ngramOrder].getLoadFactor() >= maxLoadFactor) rehash(ngramOrder, explicitMaps[ngramOrder].getCapacity() * 3 / 2);
+		}
 	}
 
 	private long putHelp(final HashMap map, final int[] ngram, final int startPos, final int endPos, final long key, final T val) {
@@ -152,10 +174,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final boolean addWorked = values.add(ngram, startPos, endPos, ngramOrder, index, contextOffsetOf(key), wordOf(key), val, suffixIndex,
 			map.size() > oldSize);
 		if (!addWorked) return -1;
-		if (map instanceof ExplicitWordHashMap && map.getLoadFactor() >= maxLoadFactor) {
-			rehash(ngramOrder, map.getCapacity() * 3 / 2);
-			return getOffsetForNgramInModel(ngram, startPos, endPos);
-		}
+
 		return index;
 
 	}
@@ -269,7 +288,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 			final HashMap currMap = explicitMaps[ngramOrder];
 			if (currMap == null) continue;
 			for (long actualIndex = 0; actualIndex < currMap.getCapacity(); ++actualIndex) {
-				
+
 				final long key = currMap.getKey(actualIndex);
 				if (key == 1374389534771L && actualIndex == 2) {
 					@SuppressWarnings("unused")
