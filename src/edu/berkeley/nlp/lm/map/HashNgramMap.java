@@ -160,8 +160,12 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 	public void rehashIfNecessary() {
 		if (explicitMaps == null) return;
+		boolean rehash = false;
 		for (int ngramOrder = 0; ngramOrder < explicitMaps.length; ++ngramOrder) {
-			if (explicitMaps[ngramOrder].getLoadFactor() >= maxLoadFactor) rehash(ngramOrder, explicitMaps[ngramOrder].getCapacity() * 3 / 2);
+			rehash |= (explicitMaps[ngramOrder].getLoadFactor() >= maxLoadFactor);
+		}
+		if (rehash) {
+			rehash(-1, -1);
 		}
 	}
 
@@ -280,7 +284,13 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 		for (int ngramOrder = 0; ngramOrder < explicitMaps.length; ++ngramOrder) {
 			if (explicitMaps[ngramOrder] == null) break;
-			newCapacities[ngramOrder] = ngramOrder == changedNgramOrder ? newCapacity : explicitMaps[ngramOrder].getCapacity();
+			if (changedNgramOrder < 0) {
+				newCapacities[ngramOrder] = explicitMaps[ngramOrder].getLoadFactor() >= maxLoadFactor //
+				? explicitMaps[ngramOrder].getCapacity() * 3 / 2
+					: explicitMaps[ngramOrder].getCapacity();
+			} else {
+				newCapacities[ngramOrder] = ngramOrder == changedNgramOrder ? newCapacity : explicitMaps[ngramOrder].getCapacity();
+			}
 		}
 		final HashNgramMap<T> newMap = new HashNgramMap<T>(newValues, opts, newCapacities, reversed);
 
