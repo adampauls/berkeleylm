@@ -13,7 +13,7 @@ import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
  * @author adampauls
  * 
  */
-public final class KneseryNeyCountValueContainer implements ValueContainer<KneseryNeyCountValueContainer.KneserNeyCounts>
+public final class KneserNeyCountValueContainer implements ValueContainer<KneserNeyCountValueContainer.KneserNeyCounts>
 {
 
 	/**
@@ -53,7 +53,7 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 
 	private HashNgramMap<KneserNeyCounts> map;
 
-	public KneseryNeyCountValueContainer(final int maxNgramOrder) {
+	public KneserNeyCountValueContainer(final int maxNgramOrder) {
 		this.tokenCounts = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, Integer.MAX_VALUE);
 		this.prefixTokenCounts = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, Integer.MAX_VALUE);
 		rightDotTypeCounts = new LongArray[maxNgramOrder - 1];
@@ -67,8 +67,8 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 	}
 
 	@Override
-	public KneseryNeyCountValueContainer createFreshValues() {
-		final KneseryNeyCountValueContainer kneseryNeyCountValueContainer = new KneseryNeyCountValueContainer(rightDotTypeCounts.length + 1);
+	public KneserNeyCountValueContainer createFreshValues() {
+		final KneserNeyCountValueContainer kneseryNeyCountValueContainer = new KneserNeyCountValueContainer(rightDotTypeCounts.length + 1);
 
 		return kneseryNeyCountValueContainer;
 	}
@@ -152,7 +152,7 @@ public final class KneseryNeyCountValueContainer implements ValueContainer<Knese
 
 	@Override
 	public void setFromOtherValues(final ValueContainer<KneserNeyCounts> other) {
-		final KneseryNeyCountValueContainer other_ = (KneseryNeyCountValueContainer) other;
+		final KneserNeyCountValueContainer other_ = (KneserNeyCountValueContainer) other;
 		tokenCounts = other_.tokenCounts;
 		System.arraycopy(other_.dotdotTypeCounts, 0, dotdotTypeCounts, 0, dotdotTypeCounts.length);
 		System.arraycopy(other_.rightDotTypeCounts, 0, rightDotTypeCounts, 0, rightDotTypeCounts.length);
