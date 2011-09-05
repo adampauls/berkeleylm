@@ -11,8 +11,8 @@ import edu.berkeley.nlp.lm.map.HashNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap.Entry;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.StrUtils;
-import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer;
-import edu.berkeley.nlp.lm.values.KneseryNeyCountValueContainer.KneserNeyCounts;
+import edu.berkeley.nlp.lm.values.KneserNeyCountValueContainer;
+import edu.berkeley.nlp.lm.values.KneserNeyCountValueContainer.KneserNeyCounts;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 
 /**
@@ -94,7 +94,7 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 					+ Arrays.toString(opts.kneserNeyMinCounts) + ")");
 		}
 		this.wordIndexer = wordIndexer;
-		final KneseryNeyCountValueContainer values = new KneseryNeyCountValueContainer(lmOrder);
+		final KneserNeyCountValueContainer values = new KneserNeyCountValueContainer(lmOrder);
 		ngrams = HashNgramMap.createExplicitWordHashNgramMap(values, new ConfigOptions(), lmOrder, false);
 
 	}
