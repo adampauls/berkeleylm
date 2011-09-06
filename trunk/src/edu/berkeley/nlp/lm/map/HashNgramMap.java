@@ -314,6 +314,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 				newMap.put(ngram, 0, ngram.length, val);
 
 			}
+			values.clearStorageForOrder(ngramOrder);
 		}
 		System.arraycopy(newMap.explicitMaps, 0, explicitMaps, 0, newMap.explicitMaps.length);
 		values.setFromOtherValues(newValues);

@@ -36,6 +36,7 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 		 * 
 		 */
 		private static final long serialVersionUID = 1L;
+
 		float[] features;
 
 		public FeaturePhraseTableValues(final float[] features) {
@@ -264,6 +265,13 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 
 	public int getSeparatorWord() {
 		return separatorWord;
+	}
+
+	@Override
+	public void clearStorageForOrder(int ngramOrder) {
+		features[ngramOrder] = null;
+		valueIndexes[ngramOrder] = null;
+		targetTranslations[ngramOrder] = null;
 	}
 
 }

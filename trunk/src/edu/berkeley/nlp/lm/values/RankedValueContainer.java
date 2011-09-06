@@ -200,4 +200,9 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 
 	}
 
+	@Override
+	public void clearStorageForOrder(final int ngramOrder) {
+		valueRanks[ngramOrder] = null;
+	}
+
 }
