@@ -177,4 +177,18 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 		this.map = (HashNgramMap<KneserNeyCounts>) map;
 	}
 
+	@Override
+	public void clearStorageForOrder(int ngramOrder) {
+		if (ngramOrder == rightDotTypeCounts.length) {
+			tokenCounts = null;
+		} else if (ngramOrder == rightDotTypeCounts.length - 1) {
+			prefixTokenCounts = null;
+		}
+		if (ngramOrder < rightDotTypeCounts.length) {
+			rightDotTypeCounts[ngramOrder] = null;
+			leftDotTypeCounts[ngramOrder] = null;
+			dotdotTypeCounts[ngramOrder] = null;
+		}
+	}
+
 }

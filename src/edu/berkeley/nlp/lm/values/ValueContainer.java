@@ -87,4 +87,6 @@ public interface ValueContainer<V> extends Serializable
 	 */
 	public void setMap(NgramMap<V> map);
 
+	public void clearStorageForOrder(final int ngramOrder);
+
 }
