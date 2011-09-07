@@ -287,7 +287,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		for (int ngramOrder = 0; ngramOrder < explicitMaps.length; ++ngramOrder) {
 			if (explicitMaps[ngramOrder] == null) break;
 			if (changedNgramOrder < 0) {
-				if (growing || explicitMaps[ngramOrder].getLoadFactor() >= maxLoadFactor) {
+				if ((growing && explicitMaps[ngramOrder].getLoadFactor() >= maxLoadFactor / 2) || explicitMaps[ngramOrder].getLoadFactor() >= maxLoadFactor) {
 					growing = true;
 					newCapacities[ngramOrder] = explicitMaps[ngramOrder].getCapacity() * 3 / 2;
 				} else {
