@@ -20,7 +20,8 @@ import edu.berkeley.nlp.lm.util.Logger;
  * thresholds counts for n-grams with n > 3).
  * <p>
  * Note that if the input/output files have a .gz suffix, they will be
- * unzipped/zipped as necessary.
+ * unzipped/zipped as necessary. If no input files or given (or "-" is
+ * specified), lines will be read from standard input.
  * 
  * @author adampauls
  * 
@@ -32,7 +33,7 @@ public class MakeKneserNeyArpaFromText
 	 * 
 	 */
 	private static void usage() {
-		System.err.println("Usage: <lmOrder> <ARPA lm output file> <textfiles>+");
+		System.err.println("Usage: <lmOrder> <ARPA lm output file> <textfiles>*");
 		System.exit(1);
 	}
 
