@@ -224,7 +224,7 @@ public class LmReaders
 	 * @param opts
 	 * @return
 	 */
-	public static <W> ContextEncodedProbBackoffLm<W> readContextEncodedKneserNeyLmFromTextFile(final List<File> files, final WordIndexer<W> wordIndexer,
+	public static <W> ContextEncodedProbBackoffLm<W> readContextEncodedKneserNeyLmFromTextFile(final List<String> files, final WordIndexer<W> wordIndexer,
 		final int lmOrder, final ConfigOptions opts) {
 		final File tmpFile = getTempFile();
 		return readContextEncodedKneserNeyLmFromTextFile(files, wordIndexer, lmOrder, opts, tmpFile);
@@ -245,19 +245,19 @@ public class LmReaders
 	 * @param opts
 	 * @return
 	 */
-	public static <W> ArrayEncodedProbBackoffLm<W> readKneserNeyLmFromTextFile(final List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder,
+	public static <W> ArrayEncodedProbBackoffLm<W> readKneserNeyLmFromTextFile(final List<String> files, final WordIndexer<W> wordIndexer, final int lmOrder,
 		final ConfigOptions opts, final boolean compress) {
 		final File tmpFile = getTempFile();
 		return readKneserNeyLmFromTextFile(files, wordIndexer, lmOrder, compress, opts, tmpFile);
 	}
 
-	public static <W> ContextEncodedProbBackoffLm<W> readContextEncodedKneserNeyLmFromTextFile(final List<File> files, final WordIndexer<W> wordIndexer,
+	public static <W> ContextEncodedProbBackoffLm<W> readContextEncodedKneserNeyLmFromTextFile(final List<String> files, final WordIndexer<W> wordIndexer,
 		final int lmOrder, final ConfigOptions opts, final File tmpFile) {
 		createKneserNeyLmFromTextFiles(files, wordIndexer, lmOrder, tmpFile, opts);
 		return readContextEncodedLmFromArpa(tmpFile.getPath(), wordIndexer, opts, lmOrder);
 	}
 
-	public static <W> ArrayEncodedProbBackoffLm<W> readKneserNeyLmFromTextFile(final List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder,
+	public static <W> ArrayEncodedProbBackoffLm<W> readKneserNeyLmFromTextFile(final List<String> files, final WordIndexer<W> wordIndexer, final int lmOrder,
 		final boolean compress, final ConfigOptions opts, final File tmpFile) {
 		createKneserNeyLmFromTextFiles(files, wordIndexer, lmOrder, tmpFile, opts);
 		return readArrayEncodedLmFromArpa(tmpFile.getPath(), compress, wordIndexer, opts, lmOrder);
@@ -274,7 +274,7 @@ public class LmReaders
 	 * @param lmOrder
 	 * @param arpaOutputFile
 	 */
-	public static <W> void createKneserNeyLmFromTextFiles(final List<File> files, final WordIndexer<W> wordIndexer, final int lmOrder,
+	public static <W> void createKneserNeyLmFromTextFiles(final List<String> files, final WordIndexer<W> wordIndexer, final int lmOrder,
 		final File arpaOutputFile, final ConfigOptions opts) {
 		final TextReader<W, Object> reader = new TextReader<W, Object>(files, wordIndexer, lmOrder);
 		reader.parse(new KneserNeyLmReaderCallback<W>(arpaOutputFile, wordIndexer, lmOrder, opts));

@@ -24,7 +24,7 @@ public class TextReader<W, V> implements LmReader<V, LmReaderCallback<V>>
 
 	private final Iterable<String> lineIterator;
 
-	public TextReader(final List<File> inputFiles, final WordIndexer<W> wordIndexer, final int maxOrder) {
+	public TextReader(final List<String> inputFiles, final WordIndexer<W> wordIndexer, final int maxOrder) {
 		this(getLineIterator(inputFiles), wordIndexer, maxOrder);
 
 	}
@@ -93,14 +93,17 @@ public class TextReader<W, V> implements LmReader<V, LmReaderCallback<V>>
 	 * @param files
 	 * @return
 	 */
-	private static Iterable<String> getLineIterator(final Iterable<File> files) {
-		final Iterable<String> allLinesIterator = Iterators.flatten(new Iterators.Transform<File, Iterator<String>>(files.iterator())
+	private static Iterable<String> getLineIterator(final Iterable<String> files) {
+		final Iterable<String> allLinesIterator = Iterators.flatten(new Iterators.Transform<String, Iterator<String>>(files.iterator())
 		{
 
 			@Override
-			protected Iterator<String> transform(final File file) {
+			protected Iterator<String> transform(final String file) {
 				try {
-					return IOUtils.lineIterator(file.getPath());
+					if (file.equals("-")) {
+						return IOUtils.lineIterator(IOUtils.getReader(System.in));
+					} else
+						return IOUtils.lineIterator(file);
 				} catch (final IOException e) {
 					throw new RuntimeException(e);
 

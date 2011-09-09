@@ -42,10 +42,11 @@ public class MakeKneserNeyArpaFromText
 		}
 		final int lmOrder = Integer.parseInt(argv[0]);
 		final String outputFile = argv[1];
-		final List<File> inputFiles = new ArrayList<File>();
+		final List<String> inputFiles = new ArrayList<String>();
 		for (int i = 2; i < argv.length; ++i) {
-			inputFiles.add(new File(argv[i]));
+			inputFiles.add(argv[i]);
 		}
+		if (inputFiles.isEmpty()) inputFiles.add("-");
 		Logger.setGlobalLogger(new Logger.SystemLogger(System.out, System.err));
 		Logger.startTrack("Reading text files " + inputFiles + " and writing to file " + outputFile);
 		final StringWordIndexer wordIndexer = new StringWordIndexer();
