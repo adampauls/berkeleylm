@@ -52,7 +52,7 @@ public class KneserNeyFromTextReaderTest
 		wordIndexer.setStartSymbol("<s>");
 		wordIndexer.setEndSymbol("</s>");
 		wordIndexer.setUnkSymbol("<unk>");
-		final File txtFile = FileUtils.getFile(prefix + ".txt");
+		final String txtFile = FileUtils.getFile(prefix + ".txt").getPath();
 		final File goldArpaFile = FileUtils.getFile(prefix + ".arpa");
 		final StringWriter stringWriter = new StringWriter();
 		final TextReader<String, Object> reader = new TextReader<String, Object>(Arrays.asList(txtFile), wordIndexer, order);
