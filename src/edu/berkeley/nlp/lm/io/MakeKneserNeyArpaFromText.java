@@ -38,7 +38,7 @@ public class MakeKneserNeyArpaFromText
 	}
 
 	public static void main(final String[] argv) {
-		if (argv.length < 3) {
+		if (argv.length < 2) {
 			usage();
 		}
 		final int lmOrder = Integer.parseInt(argv[0]);
