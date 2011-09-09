@@ -124,11 +124,10 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 		writeHeader(ngrams, lmOrder, out);
 		for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
 			out.println("\\" + (ngramOrder + 1) + "-grams:");
-			final int line = 0;
 			Logger.logss("On order " + (ngramOrder + 1));
 			int linenum = 0;
 			for (final Entry<KneserNeyCounts> entry : ngrams.getNgramsForOrder(ngramOrder)) {
-				if (linenum++ % 10000 == 0) Logger.logs("Writing line " + line);
+				if (linenum++ % 10000 == 0) Logger.logs("Writing line " + linenum);
 				if (ngramOrder >= lmOrder - 2 && entry.value.tokenCounts < opts.kneserNeyMinCounts[ngramOrder]) continue;
 				final String ngramString = StrUtils.join(WordIndexer.StaticMethods.toList(wordIndexer, entry.key));
 
