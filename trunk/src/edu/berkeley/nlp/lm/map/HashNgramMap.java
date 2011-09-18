@@ -28,7 +28,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	private static final long serialVersionUID = 1L;
 
 	@PrintMemoryCount
-	private final ExplicitWordHashMap[] explicitMaps;
+	private ExplicitWordHashMap[] explicitMaps;
 
 	@PrintMemoryCount
 	private final ImplicitWordHashMap[] implicitMaps;
@@ -36,7 +36,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	@PrintMemoryCount
 	private final UnigramHashMap implicitUnigramMap;
 
-	private final long[] initCapacities;
+	private long[] initCapacities;
 
 	private final double maxLoadFactor;
 
@@ -70,6 +70,16 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		values.setMap(this);
 	}
 
+	/**
+	 * Note: Explicint HashNgramMap can grow beyond maxNgramOrder
+	 * 
+	 * @param <T>
+	 * @param values
+	 * @param opts
+	 * @param maxNgramOrder
+	 * @param reversed
+	 * @return
+	 */
 	public static <T> HashNgramMap<T> createExplicitWordHashNgramMap(final ValueContainer<T> values, final ConfigOptions opts, final int maxNgramOrder,
 		final boolean reversed) {
 		return new HashNgramMap<T>(values, opts, maxNgramOrder, reversed);
@@ -447,6 +457,12 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 	private HashMap getMap(int ngramOrder) {
 		if (explicitMaps == null) { return ngramOrder == 0 ? implicitUnigramMap : implicitMaps[ngramOrder - 1]; }
+		if (ngramOrder >= explicitMaps.length) {
+			int oldLength = explicitMaps.length;
+			explicitMaps = Arrays.copyOf(explicitMaps, explicitMaps.length * 2);
+			initCapacities = Arrays.copyOf(initCapacities, initCapacities.length * 2);
+			Arrays.fill(initCapacities, oldLength, initCapacities.length, 100);
+		}
 		return explicitMaps[ngramOrder];
 	}
 
