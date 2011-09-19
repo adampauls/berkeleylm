@@ -1,6 +1,7 @@
 package edu.berkeley.nlp.lm.map;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import edu.berkeley.nlp.lm.ConfigOptions;
@@ -442,17 +443,21 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 	@Override
 	public Iterable<Entry<T>> getNgramsForOrder(final int ngramOrder) {
-		return Iterators.able(new Iterators.Transform<Long, Entry<T>>(getMap(ngramOrder).keys().iterator())
-		{
+		final HashMap map = getMap(ngramOrder);
+		if (map == null)
+			return Collections.emptyList();
+		else
+			return Iterators.able(new Iterators.Transform<Long, Entry<T>>(map.keys().iterator())
+			{
 
-			@Override
-			protected Entry<T> transform(final Long next) {
-				final long offset = next;
-				final T val = values.getScratchValue();
-				values.getFromOffset(offset, ngramOrder, val);
-				return new Entry<T>(getNgramForOffset(offset, ngramOrder), val);
-			}
-		});
+				@Override
+				protected Entry<T> transform(final Long next) {
+					final long offset = next;
+					final T val = values.getScratchValue();
+					values.getFromOffset(offset, ngramOrder, val);
+					return new Entry<T>(getNgramForOffset(offset, ngramOrder), val);
+				}
+			});
 	}
 
 	private HashMap getMap(int ngramOrder) {
