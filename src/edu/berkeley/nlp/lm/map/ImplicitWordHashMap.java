@@ -30,6 +30,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	@PrintMemoryCount
 	private final long[] wordRanges;
 
+	private final AbstractNgramMap<?> ngramMap;
+
 	private long numFilled = 0;
 
 	private static final int EMPTY_KEY = 0;
@@ -41,8 +43,10 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	private final int totalNumWords;
 
 	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final double loadFactor, final long[] wordRanges, final int ngramOrder,
-		@SuppressWarnings("unused") final int maxNgramOrder, @SuppressWarnings("unused") final long numNgramsForPreviousOrder, final int totalNumWords) {
+		@SuppressWarnings("unused") final int maxNgramOrder, @SuppressWarnings("unused") final long numNgramsForPreviousOrder, final int totalNumWords,
+		final AbstractNgramMap<?> ngramMap) {
 		this.ngramOrder = ngramOrder;
+		this.ngramMap = ngramMap;
 		assert ngramOrder >= 1;
 		this.totalNumWords = totalNumWords;
 		this.numWords = (int) numNgramsForEachWord.size();
@@ -90,7 +94,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	}
 
 	private void setKey(final long index, final long putKey) {
-		final long contextOffset = AbstractNgramMap.contextOffsetOf(putKey);
+		final long contextOffset = ngramMap.contextOffsetOf(putKey);
 		assert contextOffset >= 0;
 		keys.set(index, contextOffset + 1);
 
@@ -108,8 +112,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	 * @return
 	 */
 	private long linearSearch(final long key, final boolean returnFirstEmptyIndex) {
-		final int word = AbstractNgramMap.wordOf(key);
-		final long contextOffsetOf = AbstractNgramMap.contextOffsetOf(key);
+		final int word = ngramMap.wordOf(key);
+		final long contextOffsetOf = ngramMap.contextOffsetOf(key);
 		assert key >= 0;
 		if (word >= numWords) return -1;
 		final long rangeStart = wordRanges(word);
@@ -182,7 +186,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 
 	@Override
 	public long getKey(final long contextOffset) {
-		return AbstractNgramMap.combineToKey(getWordForContext(contextOffset), getNextOffset(contextOffset));
+		return ngramMap.combineToKey(getWordForContext(contextOffset), getNextOffset(contextOffset));
 	}
 
 	@Override
