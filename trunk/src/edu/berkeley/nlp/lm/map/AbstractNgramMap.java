@@ -15,19 +15,19 @@ public abstract class AbstractNgramMap<T> implements NgramMap<T>, Serializable
 
 	protected static final byte NUM_BITS_PER_BYTE = Byte.SIZE;
 
-	protected static final int NUM_WORD_BITS = 26;
+	protected  final int NUM_WORD_BITS;
 
-	protected static final int NUM_SUFFIX_BITS = (64 - NUM_WORD_BITS);
+	protected  final int NUM_SUFFIX_BITS = (64 - NUM_WORD_BITS);
 
-	protected static final long WORD_BIT_MASK = ((1L << NUM_WORD_BITS) - 1) << (NUM_SUFFIX_BITS);
+	protected  final long WORD_BIT_MASK = ((1L << NUM_WORD_BITS) - 1) << (NUM_SUFFIX_BITS);
 
-	protected static final long SUFFIX_BIT_MASK = ((1L << NUM_SUFFIX_BITS) - 1);
+	protected  final long SUFFIX_BIT_MASK = ((1L << NUM_SUFFIX_BITS) - 1);
 
 	/**
 	 * @param key
 	 * @return
 	 */
-	protected static long contextOffsetOf(final long key) {
+	protected  long contextOffsetOf(final long key) {
 		return (key & SUFFIX_BIT_MASK);
 	}
 
@@ -35,7 +35,7 @@ public abstract class AbstractNgramMap<T> implements NgramMap<T>, Serializable
 	 * @param key
 	 * @return
 	 */
-	protected static int wordOf(final long key) {
+	protected  int wordOf(final long key) {
 		return (int) ((key & WORD_BIT_MASK) >>> (NUM_SUFFIX_BITS));
 	}
 
@@ -44,7 +44,7 @@ public abstract class AbstractNgramMap<T> implements NgramMap<T>, Serializable
 	 * @param suffixIndex
 	 * @return
 	 */
-	protected static long combineToKey(final int word, final long suffixIndex) {
+	protected  long combineToKey(final int word, final long suffixIndex) {
 		return (((long) word) << (NUM_SUFFIX_BITS)) | suffixIndex;
 	}
 
@@ -55,6 +55,7 @@ public abstract class AbstractNgramMap<T> implements NgramMap<T>, Serializable
 	protected AbstractNgramMap(final ValueContainer<T> values, final ConfigOptions opts) {
 		this.values = values;
 		this.opts = opts;
+		this.NUM_WORD_BITS = opts.numWordBits;
 	}
 
 	protected static boolean equals(final int[] ngram, final int startPos, final int endPos, final int[] cachedNgram) {
