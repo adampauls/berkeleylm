@@ -113,10 +113,8 @@ public final class LongArray implements Serializable
 	 * @param val
 	 */
 	private void setGrowHelp(final long pos, final long val) {
-		final long oldSize = size;
 		size = Math.max(size, pos + 1);
-		for (long i = oldSize; i < size; ++i)
-			setHelp(i, val);
+		setHelp(pos, val);
 	}
 
 	public void ensureCapacity(final long minCapacity) {

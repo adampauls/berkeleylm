@@ -419,10 +419,10 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 		if (ngramOrder == 0) {
 			final boolean lookingForOffset = searchKey >= 0;
-			final int word = lookingForOffset ? AbstractNgramMap.wordOf(searchKey) : (int) searchOffset;
+			final int word = lookingForOffset ? wordOf(searchKey) : (int) searchOffset;
 			if (word < 0 || word >= maps[0].size()) return -1;
 			if (outputVal != null) values.getFromOffset(word, 0, outputVal);
-			return lookingForOffset ? word : AbstractNgramMap.combineToKey(word, 0);
+			return lookingForOffset ? word : combineToKey(word, 0);
 		}
 		final long fromIndex = 0;
 		final long toIndex = ((compressed.size() / compressedBlockSize) - 1);
@@ -551,8 +551,8 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 							final T scratch = i == ngramOrder ? scratch_ : null;
 							final long foundKey = decompressSearch(maps[i].compressedKeys, -1, i, scratch, offset);
 							assert foundKey >= 0;
-							ngram[reverseTrie ? (ngramOrder - i) : i] = AbstractNgramMap.wordOf(foundKey);
-							offset = AbstractNgramMap.contextOffsetOf(foundKey);
+							ngram[reverseTrie ? (ngramOrder - i) : i] = wordOf(foundKey);
+							offset = contextOffsetOf(foundKey);
 						}
 						currOffset++;
 

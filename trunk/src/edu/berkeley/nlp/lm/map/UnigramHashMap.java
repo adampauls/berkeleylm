@@ -24,8 +24,11 @@ final class UnigramHashMap implements Serializable, HashMap
 
 	private final long numWords;
 
-	public UnigramHashMap(final long numWords) {
+	private final AbstractNgramMap<?> ngramMap;
+
+	public UnigramHashMap(final long numWords, final AbstractNgramMap<?> ngramMap) {
 		this.numWords = numWords;
+		this.ngramMap = ngramMap;
 	}
 
 	/*
@@ -35,19 +38,18 @@ final class UnigramHashMap implements Serializable, HashMap
 	 */
 	@Override
 	public long put(final long key) {
-
-		return AbstractNgramMap.wordOf(key);
+		return ngramMap.wordOf(key);
 	}
 
 	@Override
 	public final long getOffset(final long key) {
-		final long word = AbstractNgramMap.wordOf(key);
+		final long word = ngramMap.wordOf(key);
 		return (word < 0 || word >= numWords) ? EMPTY_KEY : word;
 	}
 
 	@Override
 	public long getKey(final long contextOffset) {
-		return AbstractNgramMap.combineToKey((int) contextOffset, 0L);
+		return ngramMap.combineToKey((int) contextOffset, 0L);
 	}
 
 	@Override
