@@ -242,6 +242,11 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		return getMap(ngramOrder).getKey(offset);
 	}
 
+	public int getLastWordForOffset(final long offset, final int ngramOrder) {
+		final long key = getMap(ngramOrder).getKey(offset);
+		return wordOf(key);
+	}
+
 	public int[] getNgramForOffset(final long offset, final int ngramOrder) {
 		final int[] ret = new int[ngramOrder + 1];
 		long offset_ = offset;
