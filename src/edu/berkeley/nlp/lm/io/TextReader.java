@@ -8,6 +8,7 @@ import java.util.List;
 import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.collections.Iterators;
 import edu.berkeley.nlp.lm.util.Logger;
+import edu.berkeley.nlp.lm.util.LongRef;
 
 /**
  * Class for reading raw text files.
@@ -79,12 +80,14 @@ public class TextReader<W, V> implements LmReader<V, LmReaderCallback<V>>
 			for (int i = 0; i < words.length; ++i) {
 				sent[i + 1] = wordIndexer.getOrAddIndexFromString(words[i]);
 			}
-			for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
-				for (int i = 0; i < sent.length; ++i) {
-					if (i - ngramOrder < 0) continue;
-					callback.call(sent, i - ngramOrder, i + 1, null, line);
-				}
-			}
+			callback.call(sent, 0, sent.length, null, line);
+
+			//			for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
+			//				for (int i = 0; i < sent.length; ++i) {
+			//					if (i - ngramOrder < 0) continue;
+			//					callback.call(sent, i - ngramOrder, i + 1, null, line);
+			//				}
+			//			}
 		}
 		callback.cleanup();
 	}

@@ -12,6 +12,7 @@ import edu.berkeley.nlp.lm.collections.Iterators;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
+import edu.berkeley.nlp.lm.util.LongRef;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 /**
@@ -153,7 +154,9 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 	/**
 	 * Warning: does not rehash if load factor is exceeded, must call
-	 * rehashIfNecessary explicitly
+	 * rehashIfNecessary explicitly. This is so that the offsets returned remain
+	 * valid. Basically, you should not use this function unless you really know
+	 * what you're doing.
 	 * 
 	 * @param ngram
 	 * @param startPos

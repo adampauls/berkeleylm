@@ -10,6 +10,7 @@ import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.map.HashNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap.Entry;
 import edu.berkeley.nlp.lm.util.Logger;
+import edu.berkeley.nlp.lm.util.LongRef;
 import edu.berkeley.nlp.lm.util.StrUtils;
 import edu.berkeley.nlp.lm.values.KneserNeyCountValueContainer;
 import edu.berkeley.nlp.lm.values.KneserNeyCountValueContainer.KneserNeyCounts;
@@ -101,9 +102,18 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>
 
 	@Override
 	public void call(final int[] ngram, final int startPos, final int endPos, final Object value, final String words) {
-		final KneserNeyCounts counts = new KneserNeyCounts();
-		counts.tokenCounts = 1;
-		ngrams.put(ngram, startPos, endPos, counts);
+		final long[][] prevOffsets = new long[lmOrder][endPos - startPos];
+		for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
+			for (int i = startPos; i < endPos; ++i) {
+				int j = i + ngramOrder + 1;
+				if (j > endPos) continue;
+				final KneserNeyCounts counts = new KneserNeyCounts();
+				counts.tokenCounts = 1;
+				final long prevOffset = ngramOrder == 0 ? 0 : prevOffsets[ngramOrder - 1][i];
+				prevOffsets[ngramOrder][i - startPos] = ngrams.putWithOffset(ngram, i, j, prevOffset, counts);
+			}
+		}
+		ngrams.rehashIfNecessary();
 	}
 
 	@Override
