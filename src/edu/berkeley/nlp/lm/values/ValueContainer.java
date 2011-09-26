@@ -89,4 +89,6 @@ public interface ValueContainer<V> extends Serializable
 
 	public void clearStorageForOrder(final int ngramOrder);
 
+	public boolean storeSuffixoffsets();
+
 }

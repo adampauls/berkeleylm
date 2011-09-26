@@ -26,7 +26,7 @@ public final class CountValueContainer extends RankedValueContainer<LongRef>
 
 	@Override
 	public CountValueContainer createFreshValues() {
-		return new CountValueContainer(countIndexer, valueRadix, storePrefixIndexes, valueRanks.length);
+		return new CountValueContainer(countIndexer, valueRadix, storeSuffixIndexes, valueRanks.length);
 	}
 
 	@Override
