@@ -31,7 +31,7 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 
 	protected transient Indexer<V> countIndexer;
 
-	protected final boolean storePrefixIndexes;
+	protected final boolean storeSuffixIndexes;
 
 	protected final BitCompressor valueCoder;
 
@@ -45,8 +45,8 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 		this.valueRadix = valueRadix;
 		valueCoder = new VariableLengthBitCompressor(valueRadix);
 		this.countIndexer = new Indexer<V>();
-		this.storePrefixIndexes = storePrefixIndexes;
-		rankShift = this.storePrefixIndexes ? 32 : 0;
+		this.storeSuffixIndexes = storePrefixIndexes;
+		rankShift = this.storeSuffixIndexes ? 32 : 0;
 		//	if (storePrefixIndexes) contextOffsets = new LongArray[6];
 		valueRanks = new CustomWidthArray[maxNgramOrder];
 		// add default value near the beginning so it has a small rank
@@ -82,14 +82,14 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 	@Override
 	public boolean add(final int[] ngram, final int startPos, final int endPos, final int ngramOrder, final long offset, final long prefixOffset,
 		final int word, final V val_, final long suffixOffset, final boolean ngramIsNew) {
-		if (suffixOffset < 0 && storePrefixIndexes) return false;
+		if (suffixOffset < 0 && storeSuffixIndexes) return false;
 		V val = val_;
 		if (val == null) val = getDefaultVal();
 
 		setSizeAtLeast(10, ngramOrder);
 
 		final int indexOfCounts = countIndexer.getIndex(val);
-		if (storePrefixIndexes) {
+		if (storeSuffixIndexes) {
 			assert suffixOffset >= 0;
 			assert suffixOffset <= Integer.MAX_VALUE;
 			valueRanks[ngramOrder].setAndGrowIfNeeded(offset, suffixOffset | (long) indexOfCounts << rankShift);
@@ -132,7 +132,7 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 	 * @return
 	 */
 	protected int getSuffixOffsetFromInternalVal(final long internalVal) {
-		return !storePrefixIndexes ? -1 : (int) internalVal;
+		return !storeSuffixIndexes ? -1 : (int) internalVal;
 	}
 
 	@Override
@@ -203,6 +203,11 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 	@Override
 	public void clearStorageForOrder(final int ngramOrder) {
 		valueRanks[ngramOrder] = null;
+	}
+
+	@Override
+	public boolean storeSuffixoffsets() {
+		return storeSuffixIndexes;
 	}
 
 }

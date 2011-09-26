@@ -30,7 +30,7 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 
 	@Override
 	public ProbBackoffValueContainer createFreshValues() {
-		return new ProbBackoffValueContainer(countIndexer, valueRadix, storePrefixIndexes, valueRanks.length);
+		return new ProbBackoffValueContainer(countIndexer, valueRadix, storeSuffixIndexes, valueRanks.length);
 	}
 
 	public final float getProb(final int ngramOrder, final long index) {
@@ -95,5 +95,7 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 	public ProbBackoffPair getScratchValue() {
 		return new ProbBackoffPair(Float.NaN, Float.NaN);
 	}
+
+
 
 }

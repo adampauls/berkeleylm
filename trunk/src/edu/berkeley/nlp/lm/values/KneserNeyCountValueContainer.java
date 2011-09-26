@@ -191,4 +191,9 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 		}
 	}
 
+	@Override
+	public boolean storeSuffixoffsets() {
+		return true;
+	}
+
 }

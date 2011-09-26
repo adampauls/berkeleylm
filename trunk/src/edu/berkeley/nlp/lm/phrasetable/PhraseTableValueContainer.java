@@ -274,4 +274,9 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 		targetTranslations[ngramOrder] = null;
 	}
 
+	@Override
+	public boolean storeSuffixoffsets() {
+		return false;
+	}
+
 }
