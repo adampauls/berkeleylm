@@ -468,6 +468,14 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 			});
 	}
 
+	public Iterable<Long> getNgramOffsetsForOrder(final int ngramOrder) {
+		final HashMap map = getMap(ngramOrder);
+		if (map == null)
+			return Collections.emptyList();
+		else
+			return map.keys();
+	}
+
 	private HashMap getMap(int ngramOrder) {
 		if (explicitMaps == null) { return ngramOrder == 0 ? implicitUnigramMap : implicitMaps[ngramOrder - 1]; }
 		if (ngramOrder >= explicitMaps.length) {

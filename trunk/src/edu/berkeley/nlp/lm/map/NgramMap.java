@@ -26,6 +26,7 @@ public interface NgramMap<V>
 
 	public Iterable<Entry<V>> getNgramsForOrder(final int ngramOrder);
 
+
 	public static class Entry<T>
 	{
 		/**
