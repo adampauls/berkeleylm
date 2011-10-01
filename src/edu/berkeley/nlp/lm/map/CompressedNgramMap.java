@@ -524,6 +524,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	public int getMaxNgramOrder() {
 		return maps.length;
 	}
+	
 
 	@Override
 	public Iterable<Entry<T>> getNgramsForOrder(final int ngramOrder) {
