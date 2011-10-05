@@ -261,7 +261,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 			final long key = getMap(ngramOrder - i).getKey(offset_);
 			offset_ = contextOffsetOf(key);
 			final int word_ = wordOf(key);
-			ret[reversed ? (i) : (ret.length - i - 1)] = word_;
+			ret[reversed ? (i) : (ngramOrder - i )] = word_;
 		}
 		return ret;
 	}
