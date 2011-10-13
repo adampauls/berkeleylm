@@ -80,7 +80,7 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 		outputVal.tokenCounts = isHighestOrder ? tokenCounts.get(offset) : (isSecondHighestOrder ? prefixTokenCounts.get(offset) : -1);
 		outputVal.rightDotTypeCounts = (int) (isHighestOrder ? -1 : rightDotTypeCounts[ngramOrder].get(offset));
 		outputVal.leftDotTypeCounts = (int) (isHighestOrder ? -1 : leftDotTypeCounts[ngramOrder].get(offset));
-		outputVal.dotdotTypeCounts = (int) (isHighestOrder ? -1 : dotdotTypeCounts[ngramOrder].get(offset));
+		outputVal.dotdotTypeCounts = (int) ((isHighestOrder || (offset >= dotdotTypeCounts[ngramOrder].size())) ? -1 : dotdotTypeCounts[ngramOrder].get(offset));
 	}
 
 	@Override
