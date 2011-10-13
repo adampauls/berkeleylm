@@ -202,10 +202,6 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final long index = map.put(key);
 
 		final long suffixIndex = values.storeSuffixoffsets() ? getSuffixOffset(ngram, startPos, endPos) : -1L;
-		if (map.size() > oldSize && forcedNew) {
-			@SuppressWarnings("unused")
-			int x = 5;
-		}
 		final boolean addWorked = values.add(ngram, startPos, endPos, ngramOrder, index, contextOffsetOf(key), wordOf(key), val, suffixIndex,
 			map.size() > oldSize || forcedNew);
 		if (!addWorked) return -1;
@@ -339,7 +335,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 			} else if (ngramOrder == changedNgramOrder) {
 				newCapacities[ngramOrder] = newCapacity;
 			} else {
-				newCapacities[ngramOrder] = explicitMaps[ngramOrder].getLoadFactor() >= maxLoadFactor ? (explicitMaps[ngramOrder].getCapacity() * 3 / 2)
+				newCapacities[ngramOrder] = explicitMaps[ngramOrder].getLoadFactor() >= maxLoadFactor  / 2? (explicitMaps[ngramOrder].getCapacity() * 3 / 2)
 					: explicitMaps[ngramOrder].getCapacity();
 			}
 		}
