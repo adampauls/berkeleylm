@@ -108,6 +108,14 @@ public final class LongArray implements Serializable
 		setGrowHelp(pos, val);
 	}
 
+	public void setAndGrowIfNeededFill(final long pos, final long val) {
+		ensureCapacity(pos + 1);
+		final long oldSize = size;
+		size = Math.max(size, pos + 1);
+		for (long i = oldSize; i < size; ++i)
+			setHelp(i, val);
+	}
+
 	/**
 	 * @param pos
 	 * @param val
@@ -115,6 +123,7 @@ public final class LongArray implements Serializable
 	private void setGrowHelp(final long pos, final long val) {
 		size = Math.max(size, pos + 1);
 		setHelp(pos, val);
+
 	}
 
 	public void ensureCapacity(final long minCapacity) {
