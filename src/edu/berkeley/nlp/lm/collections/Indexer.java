@@ -70,6 +70,7 @@ public class Indexer<E extends Comparable<E>> implements Serializable
 			if (locked) throw new RuntimeException("Attempt to add to locked indexer");
 			index = size();
 			objects.add(e);
+			assert size() >= 0 : "Too many objects in indexer";
 			indexes.put(e, index);
 		}
 		if (sem != null) sem.release();
