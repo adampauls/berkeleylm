@@ -257,6 +257,14 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		return getMap(ngramOrder).getKey(offset);
 	}
 
+	public int getFirstWordForOffset(final long offset, final int ngramOrder) {
+		final long key = getMap(ngramOrder).getKey(offset);
+		if (ngramOrder == 0)
+			return wordOf(key);
+		else
+			return getFirstWordForOffset(contextOffsetOf(key), ngramOrder - 1);
+	}
+
 	public int getLastWordForOffset(final long offset, final int ngramOrder) {
 		final long key = getMap(ngramOrder).getKey(offset);
 		return wordOf(key);
@@ -308,7 +316,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	}
 
 	private long getOffsetHelpFromMap(int ngramOrder, long key) {
-		if (isExplicit) return explicitMaps[ngramOrder].getOffset(key);
+		if (isExplicit) { return explicitMaps[ngramOrder] == null ? -1 : explicitMaps[ngramOrder].getOffset(key); }
 		return ngramOrder == 0 ? implicitUnigramMap.getOffset(key) : implicitMaps[ngramOrder - 1].getOffset(key);
 	}
 
@@ -335,7 +343,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 			} else if (ngramOrder == changedNgramOrder) {
 				newCapacities[ngramOrder] = newCapacity;
 			} else {
-				newCapacities[ngramOrder] = explicitMaps[ngramOrder].getLoadFactor() >= maxLoadFactor  / 2? (explicitMaps[ngramOrder].getCapacity() * 3 / 2)
+				newCapacities[ngramOrder] = explicitMaps[ngramOrder].getLoadFactor() >= maxLoadFactor / 2 ? (explicitMaps[ngramOrder].getCapacity() * 3 / 2)
 					: explicitMaps[ngramOrder].getCapacity();
 			}
 		}
