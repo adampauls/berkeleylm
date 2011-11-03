@@ -342,10 +342,12 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 				newCapacities[ngramOrder] = explicitMaps[ngramOrder].getCapacity();
 			} else if (ngramOrder == changedNgramOrder) {
 				newCapacities[ngramOrder] = newCapacity;
+
 			} else {
 				newCapacities[ngramOrder] = explicitMaps[ngramOrder].getLoadFactor() >= maxLoadFactor / 2 ? (explicitMaps[ngramOrder].getCapacity() * 3 / 2)
 					: explicitMaps[ngramOrder].getCapacity();
 			}
+			assert newCapacities[ngramOrder] >= 0 : "Bad capacity " + newCapacities[ngramOrder];
 		}
 		final HashNgramMap<T> newMap = new HashNgramMap<T>(newValues, opts, newCapacities, reversed, Arrays.copyOf(explicitMaps, changedNgramOrder));
 
