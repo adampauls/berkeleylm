@@ -12,6 +12,10 @@ public final class LongArray implements Serializable
 	 */
 	private static final long serialVersionUID = -9133624434714616987L;
 
+	private static final int MAX_ARRAY_BITS = 30;
+
+	private static final int MAX_ARRAY_SIZE = 1 << MAX_ARRAY_BITS;
+
 	long size;
 
 	long[][] data;
@@ -55,28 +59,24 @@ public final class LongArray implements Serializable
 		final int numInner = i(capacity);
 		this.data = new long[numOuter][];
 		for (int i = 0; i < numOuter; ++i) {
-			final int currSize = (i == numOuter - 1) ? numInner : Integer.MAX_VALUE;
-			if (old != null && currSize == old[i].length) {
+			final int currSize = (i == numOuter - 1) ? numInner : MAX_ARRAY_SIZE;
+			if (old == null || i >= old.length) {
+				data[i] = new long[currSize];
+			} else if (currSize == old[i].length) {
 				data[i] = old[i];
 			} else {
-				if (old != null && i < old.length) {
-					data[i] = Arrays.copyOf(old[i], currSize);
-				} else {
-					System.out.println("creating an array of size " + currSize);
-					data[i] = new long[currSize];
-					System.out.println("success");
-				}
-				if (i == 0) first = data[i];
+				data[i] = Arrays.copyOf(old[i], currSize);
 			}
+			if (i == 0) first = data[i];
 		}
 	}
 
 	protected static final int o(final long l) {
-		return (int) (l >>> (Integer.SIZE - 1));
+		return (int) (l >>> MAX_ARRAY_BITS);
 	}
 
 	protected static final int i(final long l) {
-		return (int) (l & Integer.MAX_VALUE);
+		return (int) (l & (MAX_ARRAY_SIZE - 1));
 	}
 
 	/*
@@ -182,7 +182,7 @@ public final class LongArray implements Serializable
 
 		long mem = Runtime.getRuntime().maxMemory();
 		System.out.println("VM size is " + mem);
-		long pos = -9L + Integer.MAX_VALUE;//;4L + Integer.MAX_VALUE;
+		long pos = -9L + Integer.MAX_VALUE / 2;//;4L + Integer.MAX_VALUE;
 		final LongArray b = new LongArray(pos + 1);
 		final long val = 10000000000000L;
 		b.setAndGrowIfNeeded(pos, val);
