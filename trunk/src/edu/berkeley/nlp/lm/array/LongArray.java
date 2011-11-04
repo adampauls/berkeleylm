@@ -182,7 +182,7 @@ public final class LongArray implements Serializable
 
 		long mem = Runtime.getRuntime().maxMemory();
 		System.out.println("VM size is " + mem);
-		long pos = -1L + Integer.MAX_VALUE;//;4L + Integer.MAX_VALUE;
+		long pos = -9L + Integer.MAX_VALUE;//;4L + Integer.MAX_VALUE;
 		final LongArray b = new LongArray(pos + 1);
 		final long val = 10000000000000L;
 		b.setAndGrowIfNeeded(pos, val);
