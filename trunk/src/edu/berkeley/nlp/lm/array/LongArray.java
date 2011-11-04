@@ -12,7 +12,11 @@ public final class LongArray implements Serializable
 	 */
 	private static final long serialVersionUID = -9133624434714616987L;
 
-	private static final int MAX_ARRAY_BITS = 4;
+	/**
+	 * For some reason, some VMs will refuse to allocate long[] arrays of size
+	 * Integer.MAX_VALUE, so we stick to at most MAX_VALUE / 2
+	 */
+	private static final int MAX_ARRAY_BITS = 30;
 
 	private static final int MAX_ARRAY_SIZE = 1 << MAX_ARRAY_BITS;
 
