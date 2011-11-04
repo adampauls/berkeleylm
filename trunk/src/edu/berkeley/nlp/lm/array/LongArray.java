@@ -183,6 +183,7 @@ public final class LongArray implements Serializable
 		b.setAndGrowIfNeeded(4L + Integer.MAX_VALUE, val);
 		final long z = b.get(4L + Integer.MAX_VALUE);
 		assert z == val;
+		System.out.println("Finished with value " + z + " for " + val);
 	}
 
 	/*
