@@ -70,11 +70,11 @@ public final class LongArray implements Serializable
 	}
 
 	protected static final int o(final long l) {
-		return (int) (l >>> Integer.SIZE);
+		return (int) (l >>> (Integer.SIZE - 1));
 	}
 
 	protected static final int i(final long l) {
-		return (int) l;
+		return (int) (l & Integer.MAX_VALUE);
 	}
 
 	/*
@@ -178,10 +178,10 @@ public final class LongArray implements Serializable
 
 	public static void main(final String[] argv) {
 
-		final LongArray b = new LongArray(5L + Integer.MAX_VALUE / 9);
+		final LongArray b = new LongArray(5L + Integer.MAX_VALUE);
 		final long val = 10000000000000L;
-		b.set(4L + Integer.MAX_VALUE / 9, val);
-		final long z = b.get(4L + Integer.MAX_VALUE / 9);
+		b.setAndGrowIfNeeded(4L + Integer.MAX_VALUE, val);
+		final long z = b.get(4L + Integer.MAX_VALUE);
 		assert z == val;
 	}
 
