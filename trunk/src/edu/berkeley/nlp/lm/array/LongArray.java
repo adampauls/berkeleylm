@@ -62,6 +62,7 @@ public final class LongArray implements Serializable
 				if (old != null && i < old.length) {
 					data[i] = Arrays.copyOf(old[i], currSize);
 				} else {
+					System.out.println("creating an array of size " + currSize);
 					data[i] = new long[currSize];
 				}
 				if (i == 0) first = data[i];
