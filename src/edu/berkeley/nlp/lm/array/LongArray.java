@@ -64,6 +64,7 @@ public final class LongArray implements Serializable
 				} else {
 					System.out.println("creating an array of size " + currSize);
 					data[i] = new long[currSize];
+					System.out.println("success");
 				}
 				if (i == 0) first = data[i];
 			}
@@ -181,7 +182,7 @@ public final class LongArray implements Serializable
 
 		long mem = Runtime.getRuntime().maxMemory();
 		System.out.println("VM size is " + mem);
-		long pos = -100L + Integer.MAX_VALUE/2;//;4L + Integer.MAX_VALUE;
+		long pos = -100L + Integer.MAX_VALUE / 2;//;4L + Integer.MAX_VALUE;
 		final LongArray b = new LongArray(pos + 1);
 		final long val = 10000000000000L;
 		b.setAndGrowIfNeeded(pos, val);
