@@ -158,7 +158,9 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	private HashMap getHashMapForOrder(final int ngramOrder) {
 		HashMap map = getMap(ngramOrder);
 		if (map == null) {
-			map = initMap(initCapacities[ngramOrder], ngramOrder);
+			final long newCapacity = initCapacities[ngramOrder];
+			assert newCapacity >= 0 : "Bad capacity " + newCapacity + " for order " + ngramOrder;
+			map = initMap(newCapacity, ngramOrder);
 		}
 
 		return map;
