@@ -12,7 +12,7 @@ public final class LongArray implements Serializable
 	 */
 	private static final long serialVersionUID = -9133624434714616987L;
 
-	private static final int MAX_ARRAY_BITS = 30;
+	private static final int MAX_ARRAY_BITS = 4;
 
 	private static final int MAX_ARRAY_SIZE = 1 << MAX_ARRAY_BITS;
 
