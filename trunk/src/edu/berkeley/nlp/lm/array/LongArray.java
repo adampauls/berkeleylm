@@ -255,7 +255,7 @@ public final class LongArray implements Serializable
 	 * @see edu.berkeley.nlp.mt.lm.util.collections.LongArray#fill(long, long)
 	 */
 	public void fill(final long l, final long n) {
-		for (int i = 0; i < n; ++i)
+		for (long i = 0; i < n; ++i)
 			setAndGrowIfNeeded(i, l);
 	}
 
