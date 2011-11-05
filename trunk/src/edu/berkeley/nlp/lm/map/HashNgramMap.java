@@ -318,7 +318,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	}
 
 	private long getOffsetHelpFromMap(int ngramOrder, long key) {
-		if (isExplicit) { return explicitMaps[ngramOrder] == null ? -1 : explicitMaps[ngramOrder].getOffset(key); }
+		if (isExplicit) { return (ngramOrder >= explicitMaps.length || explicitMaps[ngramOrder] == null) ? -1 : explicitMaps[ngramOrder].getOffset(key); }
 		return ngramOrder == 0 ? implicitUnigramMap.getOffset(key) : implicitMaps[ngramOrder - 1].getOffset(key);
 	}
 
