@@ -129,7 +129,7 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 				if (currLine % 100000 == 0) Logger.logs("Read " + currLine + " lines");
 				currLine++;
 				final String line = reader.readLine();
-				assert line != null;
+				assert line != null : "Bad ARPA file: null line at " + currLine;
 				if (line.length() == 0) {
 					// nothing to do (skip blank lines)
 				} else if (line.charAt(0) == '\\') {
