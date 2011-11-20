@@ -19,8 +19,6 @@ import edu.berkeley.nlp.lm.util.LongRef;
  */
 public class TextReader<W, V> implements LmReader<V, LmReaderCallback<V>>
 {
-	private final int lmOrder;
-
 	private final WordIndexer<W> wordIndexer;
 
 	private final Iterable<String> lineIterator;
@@ -32,7 +30,6 @@ public class TextReader<W, V> implements LmReader<V, LmReaderCallback<V>>
 
 	public TextReader(Iterable<String> lineIterator, final WordIndexer<W> wordIndexer, final int maxOrder) {
 		this.lineIterator = lineIterator;
-		this.lmOrder = maxOrder;
 		this.wordIndexer = wordIndexer;
 
 	}
