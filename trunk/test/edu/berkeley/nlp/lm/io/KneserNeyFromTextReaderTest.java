@@ -59,7 +59,13 @@ public class KneserNeyFromTextReaderTest
 		final ConfigOptions opts = new ConfigOptions();
 		opts.kneserNeyDiscounts = discounts;
 		opts.kneserNeyMinCounts = new double[] { 1, 1, 1, 1, 1, 1, 1 };
-		reader.parse(new KneserNeyLmReaderCallback<String>(new PrintWriter(stringWriter), wordIndexer, order, opts));
+		final KneserNeyLmReaderCallback<String> kneserNeyReader = new KneserNeyLmReaderCallback<String>(wordIndexer, order, opts);
+		reader.parse(kneserNeyReader);
+		KneserNeyFileWritingLmReaderCallback<String> kneserNeyFileWriter = new KneserNeyFileWritingLmReaderCallback<String>(new PrintWriter(stringWriter),
+			wordIndexer);
+		kneserNeyReader.parse(kneserNeyFileWriter);
+		
+
 		final List<String> arpaLines = new ArrayList<String>(Arrays.asList(stringWriter.toString().split("\n")));
 		sortAndRemoveBlankLines(arpaLines);
 		final List<String> goldArpaLines = getLines(goldArpaFile);
