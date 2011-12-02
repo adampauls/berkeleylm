@@ -41,8 +41,6 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 
 	private final String file;
 
-	private ArpaLmReaderCallback<ProbBackoffPair> callback;
-
 	/**
 	 * 
 	 * @return
@@ -69,16 +67,15 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 	 * 
 	 */
 	@Override
-	public void parse(final ArpaLmReaderCallback<ProbBackoffPair> callback_) {
+	public void parse(final ArpaLmReaderCallback<ProbBackoffPair> callback) {
 		currentNGramLength = 1;
 		currentNGramCount = 0;
 		lineNumber = 1;
-		this.callback = callback_;
 		this.reader = IOUtils.openInHard(file);
 		Logger.startTrack("Parsing ARPA language model file");
-		final List<Long> numNGrams = parseHeader();
+		final List<Long> numNGrams = parseHeader(callback);
 		callback.initWithLengths(numNGrams);
-		parseNGrams();
+		parseNGrams(callback);
 		Logger.endTrack();
 		callback.cleanup();
 		wordIndexer.setStartSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(START_SYMBOL)));
@@ -88,10 +85,11 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 
 	/**
 	 * 
+	 * @param callback
 	 * @throws IOException
 	 * @throws ARPAParserException
 	 */
-	protected List<Long> parseHeader() {
+	protected List<Long> parseHeader(final ArpaLmReaderCallback<ProbBackoffPair> callback) {
 		final List<Long> numEachNgrams = new ArrayList<Long>();
 		try {
 			while (reader.ready()) {
@@ -120,10 +118,11 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 		 * 
 		 * 
 		 */
-	protected void parseNGrams() {
+	protected void parseNGrams(final ArpaLmReaderCallback<ProbBackoffPair> callback) {
 
 		int currLine = 0;
 		Logger.startTrack("Reading 1-grams");
+		callback.handleNgramOrderStarted(currentNGramLength);
 		try {
 			String line = null;
 			while ((line = reader.readLine()) != null) {
@@ -140,10 +139,11 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 						currentNGramLength++;
 						if (currentNGramLength > maxOrder) return;
 						currentNGramCount = 0;
+						callback.handleNgramOrderStarted(currentNGramLength);
 						Logger.startTrack("Reading " + currentNGramLength + "-grams");
 					}
 				} else {
-					parseLine(line);
+					parseLine(callback, line);
 				}
 			}
 			reader.close();
@@ -160,7 +160,7 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 	 * @param line
 	 * @throws ARPAParserException
 	 */
-	protected void parseLine(final String line) {
+	protected void parseLine(final ArpaLmReaderCallback<ProbBackoffPair> callback, final String line) {
 		// this is a 2 or 3 columns n-gram entry
 		final int firstTab = line.indexOf('\t');
 		final int secondTab = line.indexOf('\t', firstTab + 1);

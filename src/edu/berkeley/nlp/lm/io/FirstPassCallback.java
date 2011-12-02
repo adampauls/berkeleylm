@@ -128,4 +128,9 @@ public final class FirstPassCallback<V extends Comparable<V>> implements ArpaLmR
 		return ngramOrder;
 	}
 
+	@Override
+	public void handleNgramOrderStarted(int order) {
+
+	}
+
 }
