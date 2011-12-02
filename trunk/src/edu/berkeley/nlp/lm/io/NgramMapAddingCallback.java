@@ -77,4 +77,9 @@ public final class NgramMapAddingCallback<V> implements ArpaLmReaderCallback<V>
 		return failures;
 	}
 
+	@Override
+	public void handleNgramOrderStarted(int order) {
+
+	}
+
 }

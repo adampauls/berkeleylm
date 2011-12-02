@@ -1,6 +1,5 @@
 package edu.berkeley.nlp.lm.io;
 
-
 /**
  * Callback that is called for each n-gram in the collection
  * 
@@ -18,5 +17,12 @@ public interface NgramOrderedLmReaderCallback<V> extends LmReaderCallback<V>
 	 * @param order
 	 */
 	public void handleNgramOrderFinished(int order);
+
+	/**
+	 * Called when n-grams of a given order are started
+	 * 
+	 * @param order
+	 */
+	public void handleNgramOrderStarted(int order);
 
 }
