@@ -55,7 +55,7 @@ public class KneserNeyFromTextReaderTest
 		final String txtFile = FileUtils.getFile(prefix + ".txt").getPath();
 		final File goldArpaFile = FileUtils.getFile(prefix + ".arpa");
 		final StringWriter stringWriter = new StringWriter();
-		final TextReader<String, Object> reader = new TextReader<String, Object>(Arrays.asList(txtFile), wordIndexer, order);
+		final TextReader<String, Object> reader = new TextReader<String, Object>(Arrays.asList(txtFile), wordIndexer);
 		final ConfigOptions opts = new ConfigOptions();
 		opts.kneserNeyDiscounts = discounts;
 		opts.kneserNeyMinCounts = new double[] { 1, 1, 1, 1, 1, 1, 1 };
@@ -64,7 +64,6 @@ public class KneserNeyFromTextReaderTest
 		KneserNeyFileWritingLmReaderCallback<String> kneserNeyFileWriter = new KneserNeyFileWritingLmReaderCallback<String>(new PrintWriter(stringWriter),
 			wordIndexer);
 		kneserNeyReader.parse(kneserNeyFileWriter);
-		
 
 		final List<String> arpaLines = new ArrayList<String>(Arrays.asList(stringWriter.toString().split("\n")));
 		sortAndRemoveBlankLines(arpaLines);
