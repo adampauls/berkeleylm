@@ -23,12 +23,12 @@ public class TextReader<W, V> implements LmReader<V, LmReaderCallback<V>>
 
 	private final Iterable<String> lineIterator;
 
-	public TextReader(final List<String> inputFiles, final WordIndexer<W> wordIndexer, final int maxOrder) {
-		this(getLineIterator(inputFiles), wordIndexer, maxOrder);
+	public TextReader(final List<String> inputFiles, final WordIndexer<W> wordIndexer) {
+		this(getLineIterator(inputFiles), wordIndexer);
 
 	}
 
-	public TextReader(Iterable<String> lineIterator, final WordIndexer<W> wordIndexer, final int maxOrder) {
+	public TextReader(Iterable<String> lineIterator, final WordIndexer<W> wordIndexer) {
 		this.lineIterator = lineIterator;
 		this.wordIndexer = wordIndexer;
 

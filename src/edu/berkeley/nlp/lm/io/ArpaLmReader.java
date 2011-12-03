@@ -73,7 +73,7 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 		lineNumber = 1;
 		this.reader = IOUtils.openInHard(file);
 		Logger.startTrack("Parsing ARPA language model file");
-		final List<Long> numNGrams = parseHeader(callback);
+		final List<Long> numNGrams = parseHeader();
 		callback.initWithLengths(numNGrams);
 		parseNGrams(callback);
 		Logger.endTrack();
@@ -89,7 +89,7 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 	 * @throws IOException
 	 * @throws ARPAParserException
 	 */
-	protected List<Long> parseHeader(final ArpaLmReaderCallback<ProbBackoffPair> callback) {
+	protected List<Long> parseHeader() {
 		final List<Long> numEachNgrams = new ArrayList<Long>();
 		try {
 			while (reader.ready()) {
