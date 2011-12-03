@@ -88,9 +88,8 @@ public class StringWordIndexer implements WordIndexer<String>
 	public void trimAndLock() {
 		sparseIndexer.trim();
 		sparseIndexer.lock();
-
 	}
-
+	
 	@Override
 	public int getIndexPossiblyUnk(final String word) {
 		final int id = sparseIndexer.indexOf(word);

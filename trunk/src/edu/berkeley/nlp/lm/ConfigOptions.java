@@ -46,6 +46,9 @@ public class ConfigOptions implements Serializable
 	@Option(gloss = "Number of bits allocated for a word in a context encoding (remaining bits of a long are used to encode an offset0")
 	public int numWordBits = 26;
 
+	@Option(gloss = "Whether to lock indexers after language model creation. This prevents the vocabulary from growing.")
+	public boolean lockIndexer = true;
+
 	@Option(gloss = "Number of bits to round the mantissa of floats to when reading from ARPA LM files. Note that the mantissa of a float is at most 24 bits long.")
 	public static int roundBits = 24;
 
