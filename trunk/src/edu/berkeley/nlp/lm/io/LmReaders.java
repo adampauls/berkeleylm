@@ -285,7 +285,7 @@ public class LmReaders
 	 */
 	public static <W> void createKneserNeyLmFromTextFiles(final List<String> files, final WordIndexer<W> wordIndexer, final int lmOrder,
 		final File arpaOutputFile, final ConfigOptions opts) {
-		final TextReader<W, Object> reader = new TextReader<W, Object>(files, wordIndexer, lmOrder);
+		final TextReader<W, Object> reader = new TextReader<W, Object>(files, wordIndexer);
 		KneserNeyLmReaderCallback<W> kneserNeyReader = new KneserNeyLmReaderCallback<W>(wordIndexer, lmOrder, opts);
 		reader.parse(kneserNeyReader);
 		kneserNeyReader.parse(new KneserNeyFileWritingLmReaderCallback<W>(arpaOutputFile, wordIndexer));
