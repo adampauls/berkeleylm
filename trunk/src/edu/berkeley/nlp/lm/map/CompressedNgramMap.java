@@ -65,7 +65,7 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	@Override
 	public long getValueAndOffset(final long contextOffset, final int contextNgramOrder, final int word, @OutputParameter final T outputVal) {
-
+		if (word < 0) return -1L;
 		final long hash = combineToKey(word, contextOffset);
 		final int ngramOrder = contextNgramOrder + 1;
 		final LongArray compressedKeys = (maps[ngramOrder]).compressedKeys;
@@ -524,7 +524,6 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	public int getMaxNgramOrder() {
 		return maps.length;
 	}
-	
 
 	@Override
 	public Iterable<Entry<T>> getNgramsForOrder(final int ngramOrder) {

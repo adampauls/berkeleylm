@@ -190,6 +190,7 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>, L
 
 	@Override
 	public void parse(ArpaLmReaderCallback<ProbBackoffPair> callback) {
+		Logger.startTrack("Writing Kneser-Ney probabilities");
 		List<Long> lengths = new ArrayList<Long>();
 		for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
 			final long numNgrams = ngrams.getNumNgrams(ngramOrder);
@@ -223,5 +224,4 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>, L
 
 		Logger.endTrack();
 	}
-
 }
