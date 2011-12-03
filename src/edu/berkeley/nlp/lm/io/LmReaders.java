@@ -452,7 +452,7 @@ public class LmReaders
 
 		final NgramMapAddingCallback<V> ngramMapAddingCallback = new NgramMapAddingCallback<V>(map, null);
 		lmReader.parse(ngramMapAddingCallback);
-		wordIndexer.trimAndLock();
+		if (opts.lockIndexer) wordIndexer.trimAndLock();
 		Logger.endTrack();
 		final List<int[]> failures = ngramMapAddingCallback.getFailures();
 		if (!failures.isEmpty()) {

@@ -96,6 +96,13 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>, L
 
 	}
 
+	public void call(final W[] ngram) {
+		final int[] ints = new int[ngram.length];
+		for (int i = 0; i < ngram.length; ++i)
+			ints[i] = wordIndexer.getOrAddIndex(ngram[i]);
+		call(ints, 0, ints.length, null, "");
+	}
+
 	@Override
 	public void call(final int[] ngram, final int startPos, final int endPos, final Object value, final String words) {
 		final long[][] prevOffsets = new long[lmOrder][endPos - startPos];
@@ -223,5 +230,9 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>, L
 		callback.cleanup();
 
 		Logger.endTrack();
+	}
+
+	public WordIndexer<W> getWordIndexer() {
+		return wordIndexer;
 	}
 }
