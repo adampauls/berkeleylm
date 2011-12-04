@@ -220,8 +220,7 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>, L
 				final float logProb = isStartEndSym ? -99 : ((float) (Math.log10(prob)));
 				final float backoff = (float) Math.log10(val.backoff);
 				final int[] ngram = entry.key;
-				callback.call(ngram, 0, ngram.length, new ProbBackoffPair(logProb, backoff),
-					StrUtils.join(WordIndexer.StaticMethods.toList(wordIndexer, ngram)));
+				callback.call(ngram, 0, ngram.length, new ProbBackoffPair(logProb, backoff), "");
 
 			}
 			callback.handleNgramOrderFinished(ngramOrder + 1);
