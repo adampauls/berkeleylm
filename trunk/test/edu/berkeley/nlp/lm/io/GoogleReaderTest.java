@@ -5,7 +5,9 @@ import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
 
+import edu.berkeley.nlp.lm.ArrayEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.StupidBackoffLm;
+import edu.berkeley.nlp.lm.cache.ArrayEncodedCachingLmWrapper;
 
 public class GoogleReaderTest
 {
@@ -13,6 +15,12 @@ public class GoogleReaderTest
 	public void testHash() {
 		final StupidBackoffLm<String> lm = LmReaders.readLmFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), false);
 		checkScores(lm);
+	}
+
+	@Test
+	public void testHashCached() {
+		final StupidBackoffLm<String> lm = LmReaders.readLmFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), false);
+		checkScores(ArrayEncodedCachingLmWrapper.wrapWithCacheNotThreadSafe(lm));
 	}
 
 	@Test
@@ -24,12 +32,14 @@ public class GoogleReaderTest
 	/**
 	 * @param lm
 	 */
-	private void checkScores(final StupidBackoffLm<String> lm) {
+	private void checkScores(final ArrayEncodedNgramLanguageModel<String> lm) {
 		Assert.assertEquals(lm.getLogProb(Arrays.asList("the", "(")), -12.314105, 1e-3);
+		Assert.assertEquals(lm.getLogProb(Arrays.asList("of", "the", "(")), -6.684612, 1e-3);
 		Assert.assertEquals(lm.getLogProb(Arrays.asList("of", "the", "(")), -6.684612, 1e-3);
 		Assert.assertEquals(lm.getLogProb(Arrays.asList("a", "the", "(")), -13.230395, 1e-3);
 		Assert.assertEquals(lm.getLogProb(Arrays.asList("a", ")", "(")), -5.6564045, 1e-3);
 		Assert.assertEquals(lm.getLogProb(Arrays.asList("the", "of", "a")), -15.491532, 1e-3);
+		Assert.assertEquals(lm.getLogProb(Arrays.asList("of", "the", "(")), -6.684612, 1e-3);
 	}
 
 }
