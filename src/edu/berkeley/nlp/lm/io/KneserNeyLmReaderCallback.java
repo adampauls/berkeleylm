@@ -198,6 +198,7 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>, L
 	@Override
 	public void parse(ArpaLmReaderCallback<ProbBackoffPair> callback) {
 		Logger.startTrack("Writing Kneser-Ney probabilities");
+		final int startIndex = wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
 		List<Long> lengths = new ArrayList<Long>();
 		for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
 			final long numNgrams = ngrams.getNumNgrams(ngramOrder);
@@ -216,7 +217,7 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>, L
 				final ProbBackoffPair val = ngramOrder == lmOrder - 1 ? getHighestOrderProb(entry.key, entry.value) : getLowerOrderProb(entry.key, 0,
 					entry.key.length);
 				final float prob = val.prob + getLowerOrderProb(entry.key, 0, entry.key.length - 1).backoff * interpolateProb(entry.key, 1, entry.key.length);
-				final boolean isStartEndSym = entry.key.length == 1 && entry.key[0] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
+				final boolean isStartEndSym = entry.key.length == 1 && entry.key[0] == startIndex;
 				final float logProb = isStartEndSym ? -99 : ((float) (Math.log10(prob)));
 				final float backoff = (float) Math.log10(val.backoff);
 				final int[] ngram = entry.key;
