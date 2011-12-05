@@ -21,11 +21,16 @@ import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 /**
  * Class for producing a Kneser-Ney language model in ARPA format from raw text.
  * 
+ * Confusingly, this class is both a {@link LmReaderCallback} (called from
+ * {@link TextReader}, which reads plain text), and a {@link LmReader}, which
+ * "reads" counts and produces Kneser-Ney probabilities and backoffs and passes
+ * them on an {@link ArpaLmReaderCallback}
+ * 
  * @author adampauls
  * 
  * @param <W>
  */
-public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>, LmReader<ProbBackoffPair, ArpaLmReaderCallback<ProbBackoffPair>>
+public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallback<LongRef>, LmReader<ProbBackoffPair, ArpaLmReaderCallback<ProbBackoffPair>>
 {
 
 	//	from http://www-speech.sri.com/projects/srilm/manpages/ngram-discount.7.html
@@ -75,12 +80,24 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>, L
 
 	protected final ConfigOptions opts;
 
-	public KneserNeyLmReaderCallback(final WordIndexer<W> wordIndexer, final int maxOrder) {
-		this(wordIndexer, maxOrder, new ConfigOptions());
+	private boolean inputIsSentences;
+
+	/**
+	 * 
+	 * @param wordIndexer
+	 * @param maxOrder
+	 * @param inputIsSentences
+	 *            If true, input n-grams are assumed to be sentences, and all
+	 *            sub-ngrams of up to order <code>maxOrder</code> are added. If
+	 *            false, input n-grams are assumed to be atomic.
+	 */
+	public KneserNeyLmReaderCallback(final WordIndexer<W> wordIndexer, final int maxOrder, final boolean inputIsSentences) {
+		this(wordIndexer, maxOrder, inputIsSentences, new ConfigOptions());
 	}
 
-	public KneserNeyLmReaderCallback(final WordIndexer<W> wordIndexer, final int maxOrder, final ConfigOptions opts) {
+	public KneserNeyLmReaderCallback(final WordIndexer<W> wordIndexer, final int maxOrder, final boolean inputIsSentences, final ConfigOptions opts) {
 		this.lmOrder = maxOrder;
+		this.inputIsSentences = inputIsSentences;
 
 		if (maxOrder >= MAX_ORDER) throw new IllegalArgumentException("Reguested n-grams of order " + maxOrder + " but we only allow up to " + 10);
 		this.opts = opts;
@@ -104,19 +121,27 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>, L
 	}
 
 	@Override
-	public void call(final int[] ngram, final int startPos, final int endPos, final Object value, final String words) {
-		final long[][] prevOffsets = new long[lmOrder][endPos - startPos];
-		for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
-			for (int i = startPos; i < endPos; ++i) {
-				int j = i + ngramOrder + 1;
-				if (j > endPos) continue;
-				final KneserNeyCounts counts = new KneserNeyCounts();
-				counts.tokenCounts = 1;
-				final long prevOffset = ngramOrder == 0 ? 0 : prevOffsets[ngramOrder - 1][i];
-				prevOffsets[ngramOrder][i - startPos] = ngrams.putWithOffset(ngram, i, j, prevOffset, counts);
+	public void call(final int[] ngram, final int startPos, final int endPos, final LongRef value, final String words) {
+		if (inputIsSentences) {
+			final long[][] prevOffsets = new long[lmOrder][endPos - startPos];
+			for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
+				for (int i = startPos; i < endPos; ++i) {
+					int j = i + ngramOrder + 1;
+					if (j > endPos) continue;
+					final KneserNeyCounts counts = new KneserNeyCounts();
+					counts.tokenCounts = value.value;
+					final long prevOffset = ngramOrder == 0 ? 0 : prevOffsets[ngramOrder - 1][i];
+					prevOffsets[ngramOrder][i - startPos] = ngrams.putWithOffset(ngram, i, j, prevOffset, counts);
+				}
 			}
+			ngrams.rehashIfNecessary();
+		} else {
+			final KneserNeyCounts counts = new KneserNeyCounts();
+			counts.tokenCounts = value.value;
+			final long add = ngrams.put(ngram, startPos, endPos, counts);
+			if (add < 0) { throw new RuntimeException("Failed to add line " + words); }
+
 		}
-		ngrams.rehashIfNecessary();
 	}
 
 	protected float interpolateProb(final int[] ngram, final int startPos, final int endPos) {
@@ -235,4 +260,13 @@ public class KneserNeyLmReaderCallback<W> implements LmReaderCallback<Object>, L
 	public WordIndexer<W> getWordIndexer() {
 		return wordIndexer;
 	}
+
+	@Override
+	public void handleNgramOrderFinished(int order) {
+	}
+
+	@Override
+	public void handleNgramOrderStarted(int order) {
+	}
+
 }

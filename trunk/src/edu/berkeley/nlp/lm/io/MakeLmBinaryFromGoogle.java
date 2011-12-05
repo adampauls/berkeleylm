@@ -33,7 +33,7 @@ public class MakeLmBinaryFromGoogle
 		Logger.setGlobalLogger(new Logger.SystemLogger(System.out, System.err));
 		Logger.startTrack("Reading Lm File " + argv[0] + " . . . ");
 		final String googleDir = argv[0];
-		final NgramLanguageModel<String> lm = LmReaders.readLmFromGoogleNgramDir(googleDir, true);
+		final NgramLanguageModel<String> lm = LmReaders.readLmFromGoogleNgramDir(googleDir, true, false);
 		Logger.endTrack();
 		final String outFile = argv[1];
 		Logger.startTrack("Writing to file " + outFile + " . . . ");

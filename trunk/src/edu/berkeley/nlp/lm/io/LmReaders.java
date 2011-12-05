@@ -174,7 +174,7 @@ public class LmReaders
 	}
 
 	public static <W> NgramMapWrapper<W, LongRef> readNgramMapFromGoogleNgramDir(final String dir, final boolean compress, final WordIndexer<W> wordIndexer) {
-		final StupidBackoffLm<W> lm = readLmFromGoogleNgramDir(dir, compress, wordIndexer, new ConfigOptions());
+		final StupidBackoffLm<W> lm = (StupidBackoffLm<W>) readLmFromGoogleNgramDir(dir, compress, false, wordIndexer, new ConfigOptions());
 		return new NgramMapWrapper<W, LongRef>(lm.getNgramMap(), lm.getWordIndexer());
 	}
 
@@ -196,8 +196,8 @@ public class LmReaders
 		return new NgramMapWrapper<W, LongRef>(map, wordIndexer);
 	}
 
-	public static StupidBackoffLm<String> readLmFromGoogleNgramDir(final String dir, final boolean compress) {
-		return readLmFromGoogleNgramDir(dir, compress, new StringWordIndexer(), new ConfigOptions());
+	public static ArrayEncodedNgramLanguageModel<String> readLmFromGoogleNgramDir(final String dir, final boolean compress, final boolean kneserNey) {
+		return readLmFromGoogleNgramDir(dir, compress, kneserNey, new StringWordIndexer(), new ConfigOptions());
 	}
 
 	/**
@@ -211,11 +211,18 @@ public class LmReaders
 	 * @param opts
 	 * @return
 	 */
-	public static <W> StupidBackoffLm<W> readLmFromGoogleNgramDir(final String dir, final boolean compress, final WordIndexer<W> wordIndexer,
-		final ConfigOptions opts) {
-		final FirstPassCallback<LongRef> valueAddingCallback = firstPassGoogle(dir, wordIndexer, opts);
-		final LongArray[] numNgramsForEachWord = valueAddingCallback.getNumNgramsForEachWord();
-		return secondPassGoogle(opts, dir, wordIndexer, valueAddingCallback, numNgramsForEachWord, compress);
+	public static <W> ArrayEncodedNgramLanguageModel<W> readLmFromGoogleNgramDir(final String dir, final boolean compress, final boolean kneserNey,
+		final WordIndexer<W> wordIndexer, final ConfigOptions opts) {
+		if (kneserNey) {
+			final int lmOrder = 5;// TODO make this not hard-coded
+			KneserNeyLmReaderCallback<W> kneserNeyReader = new KneserNeyLmReaderCallback<W>(wordIndexer, lmOrder, true, opts);
+			new GoogleLmReader<W>(dir, wordIndexer, opts).parse(kneserNeyReader);
+			return readArrayEncodedLmFromArpa(kneserNeyReader, compress, wordIndexer, opts);
+		} else {
+			final FirstPassCallback<LongRef> valueAddingCallback = firstPassGoogle(dir, wordIndexer, opts);
+			final LongArray[] numNgramsForEachWord = valueAddingCallback.getNumNgramsForEachWord();
+			return secondPassGoogle(opts, new GoogleLmReader<W>(dir, wordIndexer, opts), wordIndexer, valueAddingCallback, numNgramsForEachWord, compress);
+		}
 	}
 
 	/**
@@ -285,8 +292,8 @@ public class LmReaders
 	 */
 	public static <W> void createKneserNeyLmFromTextFiles(final List<String> files, final WordIndexer<W> wordIndexer, final int lmOrder,
 		final File arpaOutputFile, final ConfigOptions opts) {
-		final TextReader<W, Object> reader = new TextReader<W, Object>(files, wordIndexer);
-		KneserNeyLmReaderCallback<W> kneserNeyReader = new KneserNeyLmReaderCallback<W>(wordIndexer, lmOrder, opts);
+		final TextReader<W> reader = new TextReader<W>(files, wordIndexer);
+		KneserNeyLmReaderCallback<W> kneserNeyReader = new KneserNeyLmReaderCallback<W>(wordIndexer, lmOrder, true, opts);
 		reader.parse(kneserNeyReader);
 		kneserNeyReader.parse(new KneserNeyFileWritingLmReaderCallback<W>(arpaOutputFile, wordIndexer));
 	}
@@ -381,7 +388,7 @@ public class LmReaders
 	 * 
 	 * @param <W>
 	 * @param opts
-	 * @param lmFile
+	 * @param lmReader
 	 * @param lmOrder
 	 * @param wordIndexer
 	 * @param valueAddingCallback
@@ -389,21 +396,20 @@ public class LmReaders
 	 * @return
 	 */
 	private static <W> ArrayEncodedProbBackoffLm<W> secondPassArrayEncoded(final ConfigOptions opts,
-		final LmReader<ProbBackoffPair, ArpaLmReaderCallback<ProbBackoffPair>> lmFile, final WordIndexer<W> wordIndexer,
+		final LmReader<ProbBackoffPair, ArpaLmReaderCallback<ProbBackoffPair>> lmReader, final WordIndexer<W> wordIndexer,
 		final FirstPassCallback<ProbBackoffPair> valueAddingCallback, final LongArray[] numNgramsForEachWord, final boolean reversed, final boolean compress) {
 		final boolean contextEncoded = false;
-		final NgramMap<ProbBackoffPair> map = buildMapArpa(opts, lmFile, wordIndexer, valueAddingCallback, numNgramsForEachWord, contextEncoded, reversed,
+		final NgramMap<ProbBackoffPair> map = buildMapArpa(opts, lmReader, wordIndexer, valueAddingCallback, numNgramsForEachWord, contextEncoded, reversed,
 			compress);
 		return new ArrayEncodedProbBackoffLm<W>(map.getMaxNgramOrder(), wordIndexer, map, opts);
 	}
 
-	private static <W> StupidBackoffLm<W> secondPassGoogle(final ConfigOptions opts, final String dir, final WordIndexer<W> wordIndexer,
-		final FirstPassCallback<LongRef> valueAddingCallback, final LongArray[] numNgramsForEachWord, final boolean compress) {
+	private static <W> StupidBackoffLm<W> secondPassGoogle(final ConfigOptions opts, final LmReader<LongRef, NgramOrderedLmReaderCallback<LongRef>> lmReader,
+		final WordIndexer<W> wordIndexer, final FirstPassCallback<LongRef> valueAddingCallback, final LongArray[] numNgramsForEachWord, final boolean compress) {
 		final boolean contextEncoded = false;
 		final boolean reversed = true;
 		final CountValueContainer values = new CountValueContainer(valueAddingCallback.getIndexer(), opts.valueRadix, contextEncoded,
 			numNgramsForEachWord.length);
-		final GoogleLmReader<W> lmReader = new GoogleLmReader<W>(dir, wordIndexer, opts);
 		final NgramMap<LongRef> map = buildMapCommon(opts, wordIndexer, numNgramsForEachWord, valueAddingCallback.getNumNgramsForEachOrder(), reversed,
 			lmReader, values, compress);
 		return new StupidBackoffLm<W>(numNgramsForEachWord.length, wordIndexer, map, opts);
