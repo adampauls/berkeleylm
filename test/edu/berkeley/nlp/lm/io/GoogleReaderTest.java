@@ -13,19 +13,19 @@ public class GoogleReaderTest
 {
 	@Test
 	public void testHash() {
-		final StupidBackoffLm<String> lm = LmReaders.readLmFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), false);
+		final ArrayEncodedNgramLanguageModel<String> lm = LmReaders.readLmFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), false, false);
 		checkScores(lm);
 	}
 
 	@Test
 	public void testHashCached() {
-		final StupidBackoffLm<String> lm = LmReaders.readLmFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), false);
+		final ArrayEncodedNgramLanguageModel<String> lm = LmReaders.readLmFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), false, false);
 		checkScores(ArrayEncodedCachingLmWrapper.wrapWithCacheNotThreadSafe(lm));
 	}
 
 	@Test
 	public void testCompressed() {
-		final StupidBackoffLm<String> lm = LmReaders.readLmFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), true);
+		final ArrayEncodedNgramLanguageModel<String> lm = LmReaders.readLmFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), true, false);
 		checkScores(lm);
 	}
 

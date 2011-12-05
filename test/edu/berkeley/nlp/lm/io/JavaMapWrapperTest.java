@@ -22,8 +22,8 @@ public class JavaMapWrapperTest
 
 	@Test
 	public void testBothMapWrapper() {
-		final StupidBackoffLm<String> lm = LmReaders.readLmFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), false);
-		final StupidBackoffLm<String> lm2 = LmReaders.readLmFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), true);
+		final StupidBackoffLm<String> lm = (StupidBackoffLm<String>) LmReaders.readLmFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), false, false);
+		final StupidBackoffLm<String> lm2 = (StupidBackoffLm<String>) LmReaders.readLmFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), true, false);
 		final Map<List<String>, LongRef> m = LmReaders.readNgramMapFromGoogleNgramDir(FileUtils.getFile("googledir").getPath(), true);
 
 		final List<String> ngram1 = Arrays.asList(",", "the", "(");
