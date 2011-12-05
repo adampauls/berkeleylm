@@ -17,7 +17,7 @@ import edu.berkeley.nlp.lm.util.LongRef;
  * 
  * @param <W>
  */
-public class TextReader<W, V> implements LmReader<V, LmReaderCallback<V>>
+public class TextReader<W> implements LmReader<LongRef, LmReaderCallback<LongRef>>
 {
 	private final WordIndexer<W> wordIndexer;
 
@@ -43,11 +43,11 @@ public class TextReader<W, V> implements LmReader<V, LmReaderCallback<V>>
 	 * @param outputFile
 	 */
 	@Override
-	public void parse(final LmReaderCallback<V> callback) {
+	public void parse(final LmReaderCallback<LongRef> callback) {
 		readFromFiles(callback);
 	}
 
-	private void readFromFiles(final LmReaderCallback<V> callback) {
+	private void readFromFiles(final LmReaderCallback<LongRef> callback) {
 		Logger.startTrack("Reading in ngrams from raw text");
 
 		countNgrams(lineIterator, callback);
@@ -64,7 +64,7 @@ public class TextReader<W, V> implements LmReader<V, LmReaderCallback<V>>
 	 * @param ngrams
 	 * @return
 	 */
-	private void countNgrams(final Iterable<String> allLinesIterator, final LmReaderCallback<V> callback) {
+	private void countNgrams(final Iterable<String> allLinesIterator, final LmReaderCallback<LongRef> callback) {
 		long numLines = 0;
 
 		for (final String line : allLinesIterator) {
@@ -77,7 +77,7 @@ public class TextReader<W, V> implements LmReader<V, LmReaderCallback<V>>
 			for (int i = 0; i < words.length; ++i) {
 				sent[i + 1] = wordIndexer.getOrAddIndexFromString(words[i]);
 			}
-			callback.call(sent, 0, sent.length, null, line);
+			callback.call(sent, 0, sent.length, new LongRef(1L), line);
 
 			//			for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
 			//				for (int i = 0; i < sent.length; ++i) {

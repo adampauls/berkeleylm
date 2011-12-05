@@ -33,7 +33,7 @@ public class MakeNgramMapBinaryFromGoogle
 		Logger.setGlobalLogger(new Logger.SystemLogger(System.out, System.err));
 		Logger.startTrack("Reading Lm File " + argv[0] + " . . . ");
 		final String lmFile = argv[1];
-		final StupidBackoffLm<String> lm = LmReaders.readLmFromGoogleNgramDir(lmFile, true);
+		final StupidBackoffLm<String> lm = (StupidBackoffLm<String>) LmReaders.readLmFromGoogleNgramDir(lmFile, true, false);
 		Logger.endTrack();
 		final String outFile = argv[1];
 		Logger.startTrack("Writing to file " + outFile + " . . . ");
