@@ -41,9 +41,9 @@ public class IOUtils
 	}
 
 	public static BufferedReader openIn(final File path) throws IOException {
-		InputStream is = new BufferedInputStream(new FileInputStream(path), 2 << 20);
-		if (path.getName().endsWith(".gz")) is = new GZIPInputStream(is, 2 << 20);
-		return new BufferedReader(getReader(is), 2 << 20);
+		InputStream is = new BufferedInputStream(new FileInputStream(path), 2 << 14);
+		if (path.getName().endsWith(".gz")) is = new GZIPInputStream(is, 2 << 14);
+		return new BufferedReader(getReader(is), 2 << 14);
 	}
 
 	public static BufferedReader openInHard(final String path) {
