@@ -522,7 +522,7 @@ public class TIntMap<T extends Comparable> extends AbstractTMap<T> implements It
 	@SuppressWarnings({ "unchecked" })
 	private int binarySearch(final T targetKey) {
 //		final int targetHash = hash(targetKey);
-		int l = 0, u = num;
+		int l = 0, u = num - 1;
 		while (l < u) {
 			//System.out.println(l);
 			final int m = (l + u) >>> 1;
