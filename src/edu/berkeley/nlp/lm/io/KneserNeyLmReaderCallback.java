@@ -117,7 +117,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 		final int[] ints = new int[ngram.length];
 		for (int i = 0; i < ngram.length; ++i)
 			ints[i] = wordIndexer.getOrAddIndex(ngram[i]);
-		call(ints, 0, ints.length, null, "");
+		call(ints, 0, ints.length, new LongRef(1), "");
 	}
 
 	@Override
