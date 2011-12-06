@@ -98,7 +98,7 @@ public class Indexer<E extends Comparable<E>> implements Serializable
 	 */
 	public void trim() {
 		objects.trimToSize();
-		indexes.switchToSortedList();
+		//		indexes.switchToSortedList();
 	}
 
 	public Iterable<E> getObjects() {
