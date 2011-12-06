@@ -1,12 +1,16 @@
 package edu.berkeley.nlp.lm.io;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.collections.Counter;
 import edu.berkeley.nlp.lm.collections.Indexer;
+import edu.berkeley.nlp.lm.collections.IntLongHashMap;
+import edu.berkeley.nlp.lm.collections.LongRepresentable;
 import edu.berkeley.nlp.lm.util.Logger;
 
 /**
@@ -17,12 +21,12 @@ import edu.berkeley.nlp.lm.util.Logger;
  * @param <V>
  *            Value type
  */
-public final class FirstPassCallback<V extends Comparable<V>> implements ArpaLmReaderCallback<V>
+public final class FirstPassCallback<V extends LongRepresentable<V>> implements ArpaLmReaderCallback<V>
 {
 
-	private Counter<V> valueCounter;
+	private IntLongHashMap valueCounter;
 
-	private Indexer<V> valueIndexer;
+	private IntLongHashMap valueIndexer;
 
 	private LongArray[] numNgramsForEachWord;
 
@@ -34,7 +38,7 @@ public final class FirstPassCallback<V extends Comparable<V>> implements ArpaLmR
 
 	public FirstPassCallback(final boolean reverse) {
 		this.reverse = reverse;
-		this.valueCounter = new Counter<V>();
+		this.valueCounter = new IntLongHashMap();
 	}
 
 	@Override
@@ -43,7 +47,7 @@ public final class FirstPassCallback<V extends Comparable<V>> implements ArpaLmR
 		final int ngramOrder = endPos - startPos - 1;
 		allocatedNumNgramArrayIfNecessary(ngramOrder);
 		allocatedNumNgramForOrderArrayIfNecessary(ngramOrder);
-		valueCounter.incrementCount(v, 1);
+		valueCounter.incrementCount(v.asLong(), 1);
 		final LongArray ngramOrderCounts = numNgramsForEachWord[ngramOrder];
 		final int word = reverse ? ngram[startPos] : ngram[ngramOrder];
 		ngramOrderCounts.incrementCount(word, 1);
@@ -64,9 +68,11 @@ public final class FirstPassCallback<V extends Comparable<V>> implements ArpaLmR
 	@Override
 	public void cleanup() {
 		Logger.startTrack("Cleaning up values");
-		valueIndexer = new Indexer<V>();
-		for (final Entry<V, Double> entry : valueCounter.getEntriesSortedByDecreasingCount()) {
-			valueIndexer.add(entry.getKey());
+		valueIndexer = new IntLongHashMap();
+		List<edu.berkeley.nlp.lm.collections.IntLongHashMap.Entry> l = valueCounter.getObjectsSortedByValue(true);
+		for (int i = 0; i < l.size(); ++i) {
+			edu.berkeley.nlp.lm.collections.IntLongHashMap.Entry entry = l.get(i);
+			valueIndexer.put(entry.key, i);
 		}
 		Logger.logss("Found " + valueIndexer.size() + " unique counts");
 
@@ -75,7 +81,7 @@ public final class FirstPassCallback<V extends Comparable<V>> implements ArpaLmR
 
 	}
 
-	public Indexer<V> getIndexer() {
+	public IntLongHashMap getIndexer() {
 		return valueIndexer;
 
 	}

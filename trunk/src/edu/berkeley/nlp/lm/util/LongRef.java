@@ -2,7 +2,9 @@ package edu.berkeley.nlp.lm.util;
 
 import java.io.Serializable;
 
-public class LongRef implements Comparable<LongRef>, Serializable
+import edu.berkeley.nlp.lm.collections.LongRepresentable;
+
+public class LongRef implements Comparable<LongRef>, Serializable, LongRepresentable<LongRef>
 {
 
 	/**
@@ -42,6 +44,11 @@ public class LongRef implements Comparable<LongRef>, Serializable
 	@Override
 	public String toString() {
 		return "" + value;
+	}
+
+	@Override
+	public long asLong() {
+		return value;
 	}
 
 }

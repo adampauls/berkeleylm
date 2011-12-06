@@ -3,6 +3,8 @@ package edu.berkeley.nlp.lm.values;
 import edu.berkeley.nlp.lm.array.CustomWidthArray;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.collections.Indexer;
+import edu.berkeley.nlp.lm.collections.IntLongHashMap;
+import edu.berkeley.nlp.lm.collections.IntLongHashMap.Entry;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
@@ -15,15 +17,14 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 	@PrintMemoryCount
 	final float[] probsAndBackoffsForRank; // ugly, but we but probs and backoffs consecutively in this area to improve cache locality
 
-	public ProbBackoffValueContainer(final Indexer<ProbBackoffPair> countIndexer, final int valueRadix, final boolean storePrefixes, int maxNgramOrder) {
+	public ProbBackoffValueContainer(final IntLongHashMap countIndexer, final int valueRadix, final boolean storePrefixes, int maxNgramOrder) {
 		super(countIndexer, valueRadix, storePrefixes, maxNgramOrder);
 		Logger.startTrack("Storing count indices using " + wordWidth + " bits.");
 		probsAndBackoffsForRank = new float[2 * this.countIndexer.size()];
 		int k = 0;
-		for (final ProbBackoffPair pair : this.countIndexer.getObjects()) {
-
-			probsAndBackoffsForRank[k++] = pair.prob;
-			probsAndBackoffsForRank[k++] = pair.backoff;
+		for (final Entry pair : this.countIndexer.getObjectsSortedByValue(false)) {
+			probsAndBackoffsForRank[k++] = ProbBackoffPair.probOf(pair.key);
+			probsAndBackoffsForRank[k++] = ProbBackoffPair.backoffOf(pair.key);
 		}
 		Logger.endTrack();
 	}
@@ -95,7 +96,5 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 	public ProbBackoffPair getScratchValue() {
 		return new ProbBackoffPair(Float.NaN, Float.NaN);
 	}
-
-
 
 }

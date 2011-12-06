@@ -2,6 +2,7 @@ package edu.berkeley.nlp.lm.values;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.List;
 
 import edu.berkeley.nlp.lm.array.CustomWidthArray;
 import edu.berkeley.nlp.lm.array.LongArray;
@@ -10,12 +11,15 @@ import edu.berkeley.nlp.lm.bits.BitList;
 import edu.berkeley.nlp.lm.bits.BitStream;
 import edu.berkeley.nlp.lm.bits.VariableLengthBitCompressor;
 import edu.berkeley.nlp.lm.collections.Indexer;
+import edu.berkeley.nlp.lm.collections.IntLongHashMap;
+import edu.berkeley.nlp.lm.collections.IntLongHashMap.Entry;
+import edu.berkeley.nlp.lm.collections.LongRepresentable;
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
 
-abstract class RankedValueContainer<V extends Comparable<V>> implements CompressibleValueContainer<V>, Serializable
+abstract class RankedValueContainer<V extends LongRepresentable<V>> implements CompressibleValueContainer<V>, Serializable
 {
 
 	/**
@@ -29,7 +33,7 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 	//@PrintMemoryCount
 	//private LongArray[] contextOffsets;
 
-	protected transient Indexer<V> countIndexer;
+	protected transient IntLongHashMap countIndexer;
 
 	protected final boolean storeSuffixIndexes;
 
@@ -41,23 +45,23 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 
 	final int rankShift;
 
-	public RankedValueContainer(final Indexer<V> countIndexer_, final int valueRadix, final boolean storePrefixIndexes, int maxNgramOrder) {
+	private final int defaultValRank = 10;
+
+	public RankedValueContainer(final IntLongHashMap countIndexer_, final int valueRadix, final boolean storePrefixIndexes, int maxNgramOrder) {
 		this.valueRadix = valueRadix;
 		valueCoder = new VariableLengthBitCompressor(valueRadix);
-		this.countIndexer = new Indexer<V>();
+		this.countIndexer = new IntLongHashMap();
 		this.storeSuffixIndexes = storePrefixIndexes;
 		rankShift = this.storeSuffixIndexes ? 32 : 0;
 		//	if (storePrefixIndexes) contextOffsets = new LongArray[6];
 		valueRanks = new CustomWidthArray[maxNgramOrder];
 		// add default value near the beginning so it has a small rank
-		final int defaultValRank = 10;
-		for (int i = 0; i < Math.min(countIndexer_.size(), defaultValRank); ++i)
-			countIndexer.getIndex(countIndexer_.getObject(i));
-		countIndexer.getIndex(getDefaultVal());
-		for (int i = defaultValRank; i < countIndexer_.size(); ++i)
-			countIndexer.getIndex(countIndexer_.getObject(i));
-		countIndexer.trim();
-		countIndexer.lock();
+		List<Entry> oldObjects = countIndexer_.getObjectsSortedByValue(false);
+		for (int i = 0; i < Math.min(oldObjects.size(), defaultValRank); ++i)
+			countIndexer.put(oldObjects.get(i).key, countIndexer.size());
+		countIndexer.put(getDefaultVal().asLong(), countIndexer.size());
+		for (int i = defaultValRank; i < oldObjects.size(); ++i)
+			countIndexer.put(oldObjects.get(i).key, countIndexer.size());
 		wordWidth = CustomWidthArray.numBitsNeeded(countIndexer.size());
 	}
 
@@ -88,7 +92,8 @@ abstract class RankedValueContainer<V extends Comparable<V>> implements Compress
 
 		setSizeAtLeast(10, ngramOrder);
 
-		final int indexOfCounts = countIndexer.getIndex(val);
+		final int indexOfCounts = countIndexer.get(val.asLong(), defaultValRank);
+
 		if (storeSuffixIndexes) {
 			assert suffixOffset >= 0;
 			assert suffixOffset <= Integer.MAX_VALUE;
