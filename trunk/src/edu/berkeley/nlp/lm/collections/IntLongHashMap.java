@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import edu.berkeley.nlp.lm.util.MurmurHash;
+
 /**
  * Open address hash map with linear probing. Assumes keys are non-negative
  * (uses -1 internally for empty key). Returns 0.0 for keys not in the map.
@@ -181,9 +183,9 @@ public final class IntLongHashMap
 	 */
 	private static int getInitialPos(final long k, final int length) {
 		if (length < 0) return (int) k;
-		int hash = (int) k;
+		long hash = MurmurHash.hashOneLong(k, 31);
 		if (hash < 0) hash = -hash;
-		int pos = hash % length;
+		int pos = (int) (hash % length);
 		return pos;
 	}
 
