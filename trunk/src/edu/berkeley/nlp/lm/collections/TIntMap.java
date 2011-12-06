@@ -240,10 +240,10 @@ public class TIntMap<T extends Comparable> extends AbstractTMap<T> implements It
 		@Override
 		@SuppressWarnings({ "unchecked" })
 		public int compareTo(final FullEntry e) {
-			final int h1 = hash(key);
-			final int h2 = hash(e.key);
-			if (h1 != h2) return h1 - h2;
-			return ((Comparable) key).compareTo(e.key);
+			//			final int h1 = hash(key);
+			//			final int h2 = hash(e.key);
+			//			if (h1 != h2) return h1 - h2;
+			return key.compareTo(e.key);
 		}
 
 		@Override
