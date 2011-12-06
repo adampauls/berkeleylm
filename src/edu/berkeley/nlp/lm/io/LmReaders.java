@@ -16,6 +16,7 @@ import edu.berkeley.nlp.lm.WordIndexer;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.cache.ArrayEncodedCachingLmWrapper;
 import edu.berkeley.nlp.lm.cache.ContextEncodedCachingLmWrapper;
+import edu.berkeley.nlp.lm.collections.LongRepresentable;
 import edu.berkeley.nlp.lm.map.AbstractNgramMap;
 import edu.berkeley.nlp.lm.map.CompressedNgramMap;
 import edu.berkeley.nlp.lm.map.ContextEncodedNgramMap;
@@ -514,7 +515,7 @@ public class LmReaders
 	 * @param arpaLmReader
 	 * @return
 	 */
-	private static <V extends Comparable<V>> FirstPassCallback<V> firstPassCommon(final LmReader<V, ? super FirstPassCallback<V>> arpaLmReader,
+	private static <V extends LongRepresentable<V>> FirstPassCallback<V> firstPassCommon(final LmReader<V, ? super FirstPassCallback<V>> arpaLmReader,
 		final boolean reverse) {
 		Logger.startTrack("Counting values");
 		final FirstPassCallback<V> valueAddingCallback = new FirstPassCallback<V>(reverse);
