@@ -11,8 +11,8 @@ import edu.berkeley.nlp.lm.bits.BitList;
 import edu.berkeley.nlp.lm.bits.BitStream;
 import edu.berkeley.nlp.lm.bits.VariableLengthBitCompressor;
 import edu.berkeley.nlp.lm.collections.Indexer;
-import edu.berkeley.nlp.lm.collections.IntLongHashMap;
-import edu.berkeley.nlp.lm.collections.IntLongHashMap.Entry;
+import edu.berkeley.nlp.lm.collections.LongToIntHashMap;
+import edu.berkeley.nlp.lm.collections.LongToIntHashMap.Entry;
 import edu.berkeley.nlp.lm.collections.LongRepresentable;
 import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
@@ -33,7 +33,7 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 	//@PrintMemoryCount
 	//private LongArray[] contextOffsets;
 
-	protected transient IntLongHashMap countIndexer;
+	protected transient LongToIntHashMap countIndexer;
 
 	protected final boolean storeSuffixIndexes;
 
@@ -47,10 +47,10 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 
 	private final int defaultValRank = 10;
 
-	public RankedValueContainer(final IntLongHashMap countIndexer_, final int valueRadix, final boolean storePrefixIndexes, int maxNgramOrder) {
+	public RankedValueContainer(final LongToIntHashMap countIndexer_, final int valueRadix, final boolean storePrefixIndexes, int maxNgramOrder) {
 		this.valueRadix = valueRadix;
 		valueCoder = new VariableLengthBitCompressor(valueRadix);
-		this.countIndexer = new IntLongHashMap();
+		this.countIndexer = new LongToIntHashMap();
 		this.storeSuffixIndexes = storePrefixIndexes;
 		rankShift = this.storeSuffixIndexes ? 32 : 0;
 		//	if (storePrefixIndexes) contextOffsets = new LongArray[6];

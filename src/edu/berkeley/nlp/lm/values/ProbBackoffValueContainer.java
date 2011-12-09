@@ -3,8 +3,8 @@ package edu.berkeley.nlp.lm.values;
 import edu.berkeley.nlp.lm.array.CustomWidthArray;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.collections.Indexer;
-import edu.berkeley.nlp.lm.collections.IntLongHashMap;
-import edu.berkeley.nlp.lm.collections.IntLongHashMap.Entry;
+import edu.berkeley.nlp.lm.collections.LongToIntHashMap;
+import edu.berkeley.nlp.lm.collections.LongToIntHashMap.Entry;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
@@ -17,7 +17,7 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 	@PrintMemoryCount
 	final float[] probsAndBackoffsForRank; // ugly, but we but probs and backoffs consecutively in this area to improve cache locality
 
-	public ProbBackoffValueContainer(final IntLongHashMap countIndexer, final int valueRadix, final boolean storePrefixes, int maxNgramOrder) {
+	public ProbBackoffValueContainer(final LongToIntHashMap countIndexer, final int valueRadix, final boolean storePrefixes, int maxNgramOrder) {
 		super(countIndexer, valueRadix, storePrefixes, maxNgramOrder);
 		Logger.startTrack("Storing count indices using " + wordWidth + " bits.");
 		probsAndBackoffsForRank = new float[2 * this.countIndexer.size()];

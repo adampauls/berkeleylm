@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.collections.Counter;
 import edu.berkeley.nlp.lm.collections.Indexer;
-import edu.berkeley.nlp.lm.collections.IntLongHashMap;
+import edu.berkeley.nlp.lm.collections.LongToIntHashMap;
 import edu.berkeley.nlp.lm.collections.LongRepresentable;
 import edu.berkeley.nlp.lm.util.Logger;
 
@@ -24,9 +24,9 @@ import edu.berkeley.nlp.lm.util.Logger;
 public final class FirstPassCallback<V extends LongRepresentable<V>> implements ArpaLmReaderCallback<V>
 {
 
-	private IntLongHashMap valueCounter;
+	private LongToIntHashMap valueCounter;
 
-	private IntLongHashMap valueIndexer;
+	private LongToIntHashMap valueIndexer;
 
 	private LongArray[] numNgramsForEachWord;
 
@@ -38,7 +38,7 @@ public final class FirstPassCallback<V extends LongRepresentable<V>> implements 
 
 	public FirstPassCallback(final boolean reverse) {
 		this.reverse = reverse;
-		this.valueCounter = new IntLongHashMap();
+		this.valueCounter = new LongToIntHashMap();
 	}
 
 	@Override
@@ -68,10 +68,10 @@ public final class FirstPassCallback<V extends LongRepresentable<V>> implements 
 	@Override
 	public void cleanup() {
 		Logger.startTrack("Cleaning up values");
-		valueIndexer = new IntLongHashMap();
-		List<edu.berkeley.nlp.lm.collections.IntLongHashMap.Entry> l = valueCounter.getObjectsSortedByValue(true);
+		valueIndexer = new LongToIntHashMap();
+		List<edu.berkeley.nlp.lm.collections.LongToIntHashMap.Entry> l = valueCounter.getObjectsSortedByValue(true);
 		for (int i = 0; i < l.size(); ++i) {
-			edu.berkeley.nlp.lm.collections.IntLongHashMap.Entry entry = l.get(i);
+			edu.berkeley.nlp.lm.collections.LongToIntHashMap.Entry entry = l.get(i);
 			valueIndexer.put(entry.key, i);
 		}
 		Logger.logss("Found " + valueIndexer.size() + " unique counts");
@@ -81,7 +81,7 @@ public final class FirstPassCallback<V extends LongRepresentable<V>> implements 
 
 	}
 
-	public IntLongHashMap getIndexer() {
+	public LongToIntHashMap getIndexer() {
 		return valueIndexer;
 
 	}
