@@ -59,7 +59,7 @@ public class KneserNeyFromTextReaderTest
 		final ConfigOptions opts = new ConfigOptions();
 		opts.kneserNeyDiscounts = discounts;
 		opts.kneserNeyMinCounts = new double[] { 1, 1, 1, 1, 1, 1, 1 };
-		final KneserNeyLmReaderCallback<String> kneserNeyReader = new KneserNeyLmReaderCallback<String>(wordIndexer, order, true, opts);
+		final KneserNeyLmReaderCallback<String> kneserNeyReader = new KneserNeyLmReaderCallback<String>(wordIndexer, order, true, false, opts);
 		reader.parse(kneserNeyReader);
 		KneserNeyFileWritingLmReaderCallback<String> kneserNeyFileWriter = new KneserNeyFileWritingLmReaderCallback<String>(new PrintWriter(stringWriter),
 			wordIndexer);
