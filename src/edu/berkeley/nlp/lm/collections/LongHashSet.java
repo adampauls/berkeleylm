@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import edu.berkeley.nlp.lm.util.MurmurHash;
+
 /**
  * Open address hash map with linear probing. Assumes keys are non-negative
  * (uses -1 internally for empty key). Returns 0.0 for keys not in the map.
@@ -128,8 +130,7 @@ public final class LongHashSet implements Serializable
 	 * @return
 	 */
 	private static int getInitialPos(final long k, final long[] keyArray) {
-		if (keyArray == null) return (int) k;
-		long hash = k;
+		long hash = MurmurHash.hashOneLong(k, 47);
 		if (hash < 0) hash = -hash;
 		int pos = (int) (hash % keyArray.length);
 		return pos;

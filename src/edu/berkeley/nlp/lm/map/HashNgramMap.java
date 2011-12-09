@@ -326,6 +326,10 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		assert isExplicit;
 		final ValueContainer<T> newValues = values.createFreshValues();
 		final long[] newCapacities = new long[explicitMaps.length];
+		if (newCapacity == 29071) {
+			@SuppressWarnings("unused")
+			int x = 5;
+		}
 		Arrays.fill(newCapacities, -1L);
 
 		//		boolean growing = false;
