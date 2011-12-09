@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import edu.berkeley.nlp.lm.ArrayEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 import edu.berkeley.nlp.lm.WordIndexer;
@@ -30,7 +31,8 @@ import edu.berkeley.nlp.lm.values.ProbBackoffPair;
  * 
  * @param <W>
  */
-public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallback<LongRef>, LmReader<ProbBackoffPair, ArpaLmReaderCallback<ProbBackoffPair>>
+public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallback<LongRef>, LmReader<ProbBackoffPair, ArpaLmReaderCallback<ProbBackoffPair>>,
+	ArrayEncodedNgramLanguageModel<W>
 {
 
 	//	from http://www-speech.sri.com/projects/srilm/manpages/ngram-discount.7.html
@@ -60,6 +62,10 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 
 	/**
 	 * 
+	 */
+
+	/**
+	 * 
 	 * This array represents the discount used for each ngram order.
 	 * 
 	 * The original Kneser-Ney discounting (-ukndiscount) uses one discounting
@@ -82,6 +88,10 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 
 	private boolean inputIsSentences;
 
+	private final boolean justLastWord;
+
+	private final int startIndex;
+
 	/**
 	 * 
 	 * @param wordIndexer
@@ -92,12 +102,19 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	 *            false, input n-grams are assumed to be atomic.
 	 */
 	public KneserNeyLmReaderCallback(final WordIndexer<W> wordIndexer, final int maxOrder, final boolean inputIsSentences) {
-		this(wordIndexer, maxOrder, inputIsSentences, new ConfigOptions());
+		this(wordIndexer, maxOrder, inputIsSentences, false, new ConfigOptions());
 	}
 
-	public KneserNeyLmReaderCallback(final WordIndexer<W> wordIndexer, final int maxOrder, final boolean inputIsSentences, final ConfigOptions opts) {
+	public KneserNeyLmReaderCallback(final WordIndexer<W> wordIndexer, final int maxOrder, final boolean inputIsSentences, final boolean justLastWord) {
+		this(wordIndexer, maxOrder, inputIsSentences, justLastWord, new ConfigOptions());
+	}
+
+	public KneserNeyLmReaderCallback(final WordIndexer<W> wordIndexer, final int maxOrder, final boolean inputIsSentences, final boolean justLastWord,
+		final ConfigOptions opts) {
 		this.lmOrder = maxOrder;
 		this.inputIsSentences = inputIsSentences;
+		this.justLastWord = justLastWord;
+		this.startIndex = wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
 
 		if (maxOrder >= MAX_ORDER) throw new IllegalArgumentException("Reguested n-grams of order " + maxOrder + " but we only allow up to " + 10);
 		this.opts = opts;
@@ -108,7 +125,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 					+ Arrays.toString(opts.kneserNeyMinCounts) + ")");
 		}
 		this.wordIndexer = wordIndexer;
-		final KneserNeyCountValueContainer values = new KneserNeyCountValueContainer(lmOrder);
+		final KneserNeyCountValueContainer values = new KneserNeyCountValueContainer(lmOrder, justLastWord);
 		ngrams = HashNgramMap.createExplicitWordHashNgramMap(values, new ConfigOptions(), lmOrder, false);
 
 	}
@@ -122,6 +139,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 
 	@Override
 	public void call(final int[] ngram, final int startPos, final int endPos, final LongRef value, final String words) {
+
 		if (inputIsSentences) {
 			final long[][] prevOffsets = new long[lmOrder][endPos - startPos];
 			for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
@@ -131,7 +149,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 					final KneserNeyCounts counts = new KneserNeyCounts();
 					counts.tokenCounts = value.value;
 					final long prevOffset = ngramOrder == 0 ? 0 : prevOffsets[ngramOrder - 1][i];
-					prevOffsets[ngramOrder][i - startPos] = ngrams.putWithOffset(ngram, i, j, prevOffset, counts);
+					prevOffsets[ngramOrder][i - startPos] = ngrams.putWithOffset(ngram, i, j, prevOffset, !justLastWord || j == endPos ? counts : null);
 				}
 			}
 			ngrams.rehashIfNecessary();
@@ -152,9 +170,10 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	}
 
 	protected ProbBackoffPair getHighestOrderProb(final int[] key, final KneserNeyCounts value) {
+		if (value == null) return new ProbBackoffPair(0.0f, 1.0f);
 		final KneserNeyCounts rightDotCounts = getCounts(key, 0, key.length - 1);
-		final float D = (float) opts.kneserNeyDiscounts[key.length - 1];
-		final float prob = Math.max(0.0f, value.tokenCounts - D) / rightDotCounts.tokenCounts;
+		final float D = getDiscountForOrder(key.length - 1);
+		final float prob = rightDotCounts.tokenCounts == 0 ? 0.0f : Math.max(0.0f, value.tokenCounts - D) / rightDotCounts.tokenCounts;
 		return new ProbBackoffPair(prob, 1.0f);
 	}
 
@@ -163,13 +182,20 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 		final KneserNeyCounts counts = getCounts(ngram, startPos, endPos);
 		final KneserNeyCounts prefixCounts = getCounts(ngram, startPos, endPos - 1);
 
-		final float probDiscount = ((endPos - startPos == 1) ? 0.0f : (float) opts.kneserNeyDiscounts[endPos - startPos - 1]);
-		final float prob = Math.max(0.0f, counts.leftDotTypeCounts - probDiscount) / prefixCounts.dotdotTypeCounts;
+		final float probDiscount = (endPos - startPos == 1) ? 0.0f : getDiscountForOrder(endPos - startPos - 1);
+		final float prob = prefixCounts.dotdotTypeCounts == 0 ? 0.0f : Math.max(0.0f, counts.leftDotTypeCounts - probDiscount) / prefixCounts.dotdotTypeCounts;
 
 		final long backoffDenom = endPos - startPos == lmOrder - 1 ? counts.tokenCounts : counts.dotdotTypeCounts;
-		final float backoffDiscount = (float) opts.kneserNeyDiscounts[endPos - startPos];
+		final float backoffDiscount = getDiscountForOrder(endPos - startPos);
 		final float backoff = backoffDenom == 0.0f ? 1.0f : backoffDiscount * counts.rightDotTypeCounts / backoffDenom;
 		return new ProbBackoffPair((prob), (backoff));
+	}
+
+	private float getDiscountForOrder(int ngramOrder) {
+		if (opts.kneserNeyDiscounts != null) return (float) opts.kneserNeyDiscounts[ngramOrder];
+		final int numOneCounters = ((KneserNeyCountValueContainer) ngrams.getValues()).getNumOneCountNgrams(ngramOrder);
+		final int numTwoCounters = ((KneserNeyCountValueContainer) ngrams.getValues()).getNumTwoCountNgrams(ngramOrder);
+		return numOneCounters / (numOneCounters + 2 * (float) numTwoCounters);
 	}
 
 	@Override
@@ -187,11 +213,12 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 		final KneserNeyCounts value = new KneserNeyCounts();
 		if (startPos == endPos) {
 			//only happens when requesting number of bigrams
-			value.dotdotTypeCounts = (int) ngrams.getNumNgrams(1);
+			value.dotdotTypeCounts = ((KneserNeyCountValueContainer) ngrams.getValues()).getBigramTypeCounts();
 			return value;
 		}
-		final LmContextInfo middleWords = ngrams.getOffsetForNgram(key, startPos, endPos);
-		ngrams.getValues().getFromOffset(middleWords.offset, middleWords.order, value);
+		final long offset = ngrams.getOffsetForNgramInModel(key, startPos, endPos);
+		if (offset < 0) return value;
+		ngrams.getValues().getFromOffset(offset, endPos - startPos - 1, value);
 		final boolean startsWithStartSym = key[startPos] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
 		final boolean endsWithEndSym = key[endPos - 1] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getEndSymbol());
 		if (startsWithStartSym) {
@@ -223,7 +250,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	@Override
 	public void parse(ArpaLmReaderCallback<ProbBackoffPair> callback) {
 		Logger.startTrack("Writing Kneser-Ney probabilities");
-		final int startIndex = wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
+
 		List<Long> lengths = new ArrayList<Long>();
 		for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
 			final long numNgrams = ngrams.getNumNgrams(ngramOrder);
@@ -239,14 +266,11 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 				if (linenum++ % 10000 == 0) Logger.logs("Writing line " + linenum);
 				if (ngramOrder >= lmOrder - 2 && entry.value.tokenCounts < opts.kneserNeyMinCounts[ngramOrder]) continue;
 
-				final ProbBackoffPair val = ngramOrder == lmOrder - 1 ? getHighestOrderProb(entry.key, entry.value) : getLowerOrderProb(entry.key, 0,
-					entry.key.length);
-				final float prob = val.prob + getLowerOrderProb(entry.key, 0, entry.key.length - 1).backoff * interpolateProb(entry.key, 1, entry.key.length);
-				final boolean isStartEndSym = entry.key.length == 1 && entry.key[0] == startIndex;
-				final float logProb = isStartEndSym ? -99 : ((float) (Math.log10(prob)));
-				final float backoff = (float) Math.log10(val.backoff);
 				final int[] ngram = entry.key;
-				callback.call(ngram, 0, ngram.length, new ProbBackoffPair(logProb, backoff), "");
+				final int endPos = ngram.length;
+				final int startPos = 0;
+				ProbBackoffPair value = getProbBackoff(ngram, startPos, endPos, entry.value);
+				callback.call(ngram, startPos, endPos, value, "");
 
 			}
 			callback.handleNgramOrderFinished(ngramOrder + 1);
@@ -255,6 +279,26 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 		callback.cleanup();
 
 		Logger.endTrack();
+	}
+
+	/**
+	 * @param startIndex
+	 * @param ngramOrder
+	 * @param entry
+	 * @param ngram
+	 * @param endPos
+	 * @param startPos
+	 * @return
+	 */
+	private ProbBackoffPair getProbBackoff(final int[] ngram, final int startPos, final int endPos, final KneserNeyCounts value) {
+		final int ngramOrder = endPos - startPos - 1;
+		final ProbBackoffPair val = ngramOrder == lmOrder - 1 ? getHighestOrderProb(ngram, value) : getLowerOrderProb(ngram, startPos, endPos);
+		final float prob = val.prob + getLowerOrderProb(ngram, startPos, endPos - 1).backoff * interpolateProb(ngram, 1, endPos);
+		final boolean isStartEndSym = endPos == 1 && ngram[0] == startIndex;
+		final float logProb = isStartEndSym ? -99 : ((float) (Math.log10(prob)));
+		final float backoff = (float) Math.log10(val.backoff);
+		final ProbBackoffPair ret = new ProbBackoffPair(logProb, backoff);
+		return ret;
 	}
 
 	public WordIndexer<W> getWordIndexer() {
@@ -267,6 +311,33 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 
 	@Override
 	public void handleNgramOrderStarted(int order) {
+	}
+
+	@Override
+	public int getLmOrder() {
+		return lmOrder;
+	}
+
+	@Override
+	public float scoreSentence(List<W> sentence) {
+		return ArrayEncodedNgramLanguageModel.DefaultImplementations.scoreSentence(sentence, this);
+	}
+
+	@Override
+	public float getLogProb(List<W> ngram) {
+		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
+	}
+
+	@Override
+	public float getLogProb(int[] ngram, int startPos, int endPos) {
+		final int ngramOrder = endPos - startPos - 1;
+		ProbBackoffPair probBackoff = getProbBackoff(ngram, startPos, endPos, (ngramOrder == lmOrder - 1) ? ngrams.get(ngram, startPos, endPos) : null);
+		return probBackoff.prob;
+	}
+
+	@Override
+	public float getLogProb(int[] ngram) {
+		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
 	}
 
 }

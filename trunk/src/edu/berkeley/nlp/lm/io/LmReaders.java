@@ -216,7 +216,7 @@ public class LmReaders
 		final WordIndexer<W> wordIndexer, final ConfigOptions opts) {
 		if (kneserNey) {
 			final int lmOrder = 5;// TODO make this not hard-coded
-			KneserNeyLmReaderCallback<W> kneserNeyReader = new KneserNeyLmReaderCallback<W>(wordIndexer, lmOrder, true, opts);
+			KneserNeyLmReaderCallback<W> kneserNeyReader = new KneserNeyLmReaderCallback<W>(wordIndexer, lmOrder, true, false, opts);
 			new GoogleLmReader<W>(dir, wordIndexer, opts).parse(kneserNeyReader);
 			return readArrayEncodedLmFromArpa(kneserNeyReader, compress, wordIndexer, opts);
 		} else {
@@ -294,7 +294,7 @@ public class LmReaders
 	public static <W> void createKneserNeyLmFromTextFiles(final List<String> files, final WordIndexer<W> wordIndexer, final int lmOrder,
 		final File arpaOutputFile, final ConfigOptions opts) {
 		final TextReader<W> reader = new TextReader<W>(files, wordIndexer);
-		KneserNeyLmReaderCallback<W> kneserNeyReader = new KneserNeyLmReaderCallback<W>(wordIndexer, lmOrder, true, opts);
+		KneserNeyLmReaderCallback<W> kneserNeyReader = new KneserNeyLmReaderCallback<W>(wordIndexer, lmOrder, true, false, opts);
 		reader.parse(kneserNeyReader);
 		kneserNeyReader.parse(new KneserNeyFileWritingLmReaderCallback<W>(arpaOutputFile, wordIndexer));
 	}

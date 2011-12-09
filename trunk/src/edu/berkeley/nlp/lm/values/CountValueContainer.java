@@ -1,8 +1,8 @@
 package edu.berkeley.nlp.lm.values;
 
 import edu.berkeley.nlp.lm.collections.Indexer;
-import edu.berkeley.nlp.lm.collections.IntLongHashMap;
-import edu.berkeley.nlp.lm.collections.IntLongHashMap.Entry;
+import edu.berkeley.nlp.lm.collections.LongToIntHashMap;
+import edu.berkeley.nlp.lm.collections.LongToIntHashMap.Entry;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.LongRef;
@@ -17,7 +17,7 @@ public final class CountValueContainer extends RankedValueContainer<LongRef>
 
 	private long unigramSum = 0L;
 
-	public CountValueContainer(final IntLongHashMap countIndexer, final int valueRadix, final boolean storePrefixes, final int maxNgramOrder) {
+	public CountValueContainer(final LongToIntHashMap countIndexer, final int valueRadix, final boolean storePrefixes, final int maxNgramOrder) {
 		super(countIndexer, valueRadix, storePrefixes, maxNgramOrder);
 		countsForRank = new long[this.countIndexer.size()];
 		int k = 0;

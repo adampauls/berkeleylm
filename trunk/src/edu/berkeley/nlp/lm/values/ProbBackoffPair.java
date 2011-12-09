@@ -36,6 +36,7 @@ public class ProbBackoffPair implements Comparable<ProbBackoffPair>, LongReprese
 	}
 
 	private float round(final float f, final int mantissaBits) {
+		if (Float.isInfinite(f)) return f;
 		final int bits = Float.floatToIntBits(f);
 
 		final int mantissa = bits & MANTISSA_MASK;
@@ -48,7 +49,7 @@ public class ProbBackoffPair implements Comparable<ProbBackoffPair>, LongReprese
 		}
 		final int maskedMantissa = mantissa & mask;
 		final float newFloat = Float.intBitsToFloat(rest | maskedMantissa);
-		assert Float.isNaN(f) || (Math.abs(f - newFloat) <= 1e-3f);
+		assert Float.isNaN(f) || (Math.abs(f - newFloat) <= 1e-3f) : "Rounding went bad for float " + f + " and rounded " + newFloat;
 		return newFloat;
 	}
 

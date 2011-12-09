@@ -18,7 +18,7 @@ import edu.berkeley.nlp.lm.util.MurmurHash;
  * @author adampauls
  * 
  */
-public final class IntLongHashMap
+public final class LongToIntHashMap
 {
 
 	private long[] keys;
@@ -35,7 +35,7 @@ public final class IntLongHashMap
 
 	//	private int deflt = -1;
 
-	public IntLongHashMap() {
+	public LongToIntHashMap() {
 		this(5);
 	}
 
@@ -44,7 +44,7 @@ public final class IntLongHashMap
 		ensureCapacity(values.length);
 	}
 
-	public IntLongHashMap(int initCapacity_) {
+	public LongToIntHashMap(int initCapacity_) {
 		int initCapacity = toSize(initCapacity_);
 		keys = new long[initCapacity];
 		values = new int[initCapacity];
@@ -361,8 +361,8 @@ public final class IntLongHashMap
 	}
 
 	public List<Entry> getObjectsSortedByValue(boolean descending) {
-		List<edu.berkeley.nlp.lm.collections.IntLongHashMap.Entry> l = new ArrayList<edu.berkeley.nlp.lm.collections.IntLongHashMap.Entry>();
-		for (final edu.berkeley.nlp.lm.collections.IntLongHashMap.Entry entry : primitiveEntries()) {
+		List<edu.berkeley.nlp.lm.collections.LongToIntHashMap.Entry> l = new ArrayList<edu.berkeley.nlp.lm.collections.LongToIntHashMap.Entry>();
+		for (final edu.berkeley.nlp.lm.collections.LongToIntHashMap.Entry entry : primitiveEntries()) {
 			l.add(entry);
 		}
 		Collections.sort(l);
@@ -370,8 +370,8 @@ public final class IntLongHashMap
 		return l;
 	}
 
-	public IntLongHashMap copy() {
-		IntLongHashMap ret = new IntLongHashMap();
+	public LongToIntHashMap copy() {
+		LongToIntHashMap ret = new LongToIntHashMap();
 		//		ret.deflt = deflt;
 		ret.keys = Arrays.copyOf(keys, keys.length);
 		ret.values = Arrays.copyOf(values, values.length);

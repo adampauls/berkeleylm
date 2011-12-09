@@ -37,8 +37,8 @@ public class ConfigOptions implements Serializable
 	@Option(gloss = "Backoff constant used for stupid backoff")
 	public double stupidBackoffAlpha = 0.4;
 
-	@Option(gloss = "Discounts used in estimating Kneser-Ney language models (one for each order)")
-	public double[] kneserNeyDiscounts = KneserNeyLmReaderCallback.defaultDiscounts();
+	@Option(gloss = "Discounts used in estimating Kneser-Ney language models (one for each order). If null, they are calculated automatically using c1/(c1+2*c2), where cn is the number of ngrams with count n.")
+	public double[] kneserNeyDiscounts = null;//KneserNeyLmReaderCallback.defaultDiscounts();
 
 	@Option(gloss = "Minimum token counts used in estimating Kneser-Ney language models (one for each order). Note that for some internal reasons, these counts are *only* applied to the highest- and second-highest order n-grams (for example, if you estimate a 5-gram language model, only 4- and 5-grams will be thresholded.")
 	public double[] kneserNeyMinCounts = KneserNeyLmReaderCallback.defaultMinCounts();
