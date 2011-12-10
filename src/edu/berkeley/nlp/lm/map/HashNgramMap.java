@@ -45,6 +45,8 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	private final boolean isExplicit;
 
 	private final boolean reversed;
+	
+	private final boolean storeSuffixOffsets;
 
 	public static <T> HashNgramMap<T> createImplicitWordHashNgramMap(final ValueContainer<T> values, final ConfigOptions opts,
 		final LongArray[] numNgramsForEachWord, final boolean reversed) {
@@ -55,6 +57,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		super(values, opts);
 		this.reversed = reversed;
 		this.maxLoadFactor = opts.hashTableLoadFactor;
+		this.storeSuffixOffsets = values.storeSuffixoffsets();
 		final int maxNgramOrder = numNgramsForEachWord.length;
 		explicitMaps = null;
 		isExplicit = false;
@@ -90,6 +93,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	private HashNgramMap(final ValueContainer<T> values, final ConfigOptions opts, final int maxNgramOrder, final boolean reversed) {
 		super(values, opts);
 		this.reversed = reversed;
+		this.storeSuffixOffsets = values.storeSuffixoffsets();
 		this.maxLoadFactor = opts.hashTableLoadFactor;
 		implicitMaps = null;
 		implicitUnigramMap = null;
@@ -104,6 +108,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final ExplicitWordHashMap[] partialMaps) {
 		super(values, opts);
 		this.reversed = reversed;
+		this.storeSuffixOffsets = values.storeSuffixoffsets();
 		this.maxLoadFactor = opts.hashTableLoadFactor;
 		implicitMaps = null;
 		implicitUnigramMap = null;
@@ -203,7 +208,8 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final long oldSize = map.size();
 		final long index = map.put(key);
 
-		final long suffixIndex = values.storeSuffixoffsets() ? getSuffixOffset(ngram, startPos, endPos) : -1L;
+		
+		final long suffixIndex = storeSuffixOffsets ? getSuffixOffset(ngram, startPos, endPos) : -1L;
 		final boolean addWorked = values.add(ngram, startPos, endPos, ngramOrder, index, contextOffsetOf(key), wordOf(key), val, suffixIndex,
 			map.size() > oldSize || forcedNew);
 		if (!addWorked) return -1;
