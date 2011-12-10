@@ -131,7 +131,8 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 
 	@Override
 	public void call(final int[] ngram, final int startPos, final int endPos, final LongRef value, final String words) {
-		addNgram(ngram, startPos, endPos, value, words, false);
+		final long[][] prevOffsets = new long[lmOrder][endPos - startPos];
+		addNgram(ngram, startPos, endPos, value, words, false, prevOffsets);
 	}
 
 	/**
@@ -141,17 +142,17 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	 * @param value
 	 * @param words
 	 */
-	public void addNgram(final int[] ngram, final int startPos, final int endPos, final LongRef value, final String words, final boolean justLastWord) {
+	public void addNgram(final int[] ngram, final int startPos, final int endPos, final LongRef value, final String words, final boolean justLastWord,
+		final long[][] scratch) {
 		if (inputIsSentences) {
-			final long[][] prevOffsets = new long[lmOrder][endPos - startPos];
+			final KneserNeyCounts scratchCounts = new KneserNeyCounts();
 			for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
 				for (int i = startPos; i < endPos; ++i) {
 					int j = i + ngramOrder + 1;
 					if (j > endPos) continue;
-					final KneserNeyCounts counts = new KneserNeyCounts();
-					counts.tokenCounts = value.value;
-					final long prevOffset = ngramOrder == 0 ? 0 : prevOffsets[ngramOrder - 1][i];
-					prevOffsets[ngramOrder][i - startPos] = ngrams.putWithOffset(ngram, i, j, prevOffset, !justLastWord || j == endPos ? counts : null);
+					scratchCounts.tokenCounts = value.value;
+					final long prevOffset = ngramOrder == 0 ? 0 : scratch[ngramOrder - 1][i];
+					scratch[ngramOrder][i - startPos] = ngrams.putWithOffset(ngram, i, j, prevOffset, !justLastWord || j == endPos ? scratchCounts : null);
 				}
 			}
 			ngrams.rehashIfNecessary();
