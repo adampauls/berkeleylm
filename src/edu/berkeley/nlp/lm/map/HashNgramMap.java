@@ -378,7 +378,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final HashNgramMap<T> newMap = new HashNgramMap<T>(newValues, opts, newCapacities, reversed, Arrays.copyOf(explicitMaps, changedNgramOrder));
 
 		for (int ngramOrder = 0; ngramOrder < explicitMaps.length; ++ngramOrder) {
-			final HashMap currMap = explicitMaps[ngramOrder];
+			final ExplicitWordHashMap currMap = explicitMaps[ngramOrder];
 			if (currMap == null) continue;
 			final T val = values.getScratchValue();
 			final int[] scratchArray = new int[ngramOrder + 1];

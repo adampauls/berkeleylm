@@ -25,6 +25,8 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 
 	@PrintMemoryCount
 	private final LongArray keys;
+	
+	private final long keysSize;
 
 	private long numFilled = 0;
 
@@ -33,6 +35,7 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 	public ExplicitWordHashMap(final long capacity) {
 		keys = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, capacity, capacity);
 		keys.fill(EMPTY_KEY, capacity);
+		this.keysSize = keys.size();
 		numFilled = 0;
 	}
 
@@ -46,7 +49,7 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 		final long hash = hash(key);
 		if (hash < 0) return -1L;
 		final long rangeStart = 0;
-		final long rangeEnd = keys.size();
+		final long rangeEnd = keysSize;
 		final long i = keys.linearSearch(key, rangeStart, rangeEnd, hash, EMPTY_KEY, true);
 		if (keys.get(i) == EMPTY_KEY) {
 			numFilled++;
@@ -66,7 +69,7 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 		final long hash = hash(key);
 		if (hash < 0) return -1L;
 		final long rangeStart = 0;
-		final long rangeEnd = keys.size();
+		final long rangeEnd = keysSize;
 		final long startIndex = hash;
 		assert startIndex >= rangeStart;
 		assert startIndex < rangeEnd;
@@ -75,7 +78,7 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 
 	@Override
 	public long getCapacity() {
-		return keys.size();
+		return keysSize;
 	}
 
 	@Override
@@ -89,7 +92,7 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 		if (hash1 < 0) hash1 = -hash1;
 
 		final long startOfRange = 0;
-		final long numHashPositions = keys.size() - startOfRange;
+		final long numHashPositions = keysSize - startOfRange;
 		if (numHashPositions == 0) return -1;
 		hash1 = (hash1 % numHashPositions);
 		return hash1 + startOfRange;
