@@ -133,8 +133,6 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 
 		if (val.tokenCounts > 0) {
 			if (ngramIsNew) {
-				assert !oneCountOffsets[ngramOrder].containsKey(offset);
-				assert !twoCountOffsets[ngramOrder].containsKey(offset);
 				oneCountOffsets[ngramOrder].put(offset);
 			} else if (oneCountOffsets[ngramOrder].containsKey(offset)) {
 				oneCountOffsets[ngramOrder].remove(offset);
