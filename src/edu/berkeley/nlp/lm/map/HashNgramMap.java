@@ -346,24 +346,11 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		assert isExplicit;
 		final ValueContainer<T> newValues = values.createFreshValues();
 		final long[] newCapacities = new long[explicitMaps.length];
-		if (newCapacity == 29071) {
-			@SuppressWarnings("unused")
-			int x = 5;
-		}
 		Arrays.fill(newCapacities, -1L);
 
-		//		boolean growing = false;
 		assert changedNgramOrder >= 0;
 		for (int ngramOrder = 0; ngramOrder < explicitMaps.length; ++ngramOrder) {
 			if (explicitMaps[ngramOrder] == null) break;
-			//			if (changedNgramOrder < 0) {
-			//				if ((growing && explicitMaps[ngramOrder].getLoadFactor() >= maxLoadFactor / 2) || explicitMaps[ngramOrder].getLoadFactor() >= maxLoadFactor) {
-			//					growing = true;
-			//					newCapacities[ngramOrder] = explicitMaps[ngramOrder].getCapacity() * 3 / 2;
-			//				} else {
-			//					newCapacities[ngramOrder] = explicitMaps[ngramOrder].getCapacity();
-			//				}
-			//			} else {
 			if (ngramOrder < changedNgramOrder) {
 				newCapacities[ngramOrder] = explicitMaps[ngramOrder].getCapacity();
 			} else if (ngramOrder == changedNgramOrder) {
@@ -378,19 +365,25 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final HashNgramMap<T> newMap = new HashNgramMap<T>(newValues, opts, newCapacities, reversed, Arrays.copyOf(explicitMaps, changedNgramOrder));
 
 		for (int ngramOrder = 0; ngramOrder < explicitMaps.length; ++ngramOrder) {
-			final ExplicitWordHashMap currMap = explicitMaps[ngramOrder];
-			if (currMap == null) continue;
+			final ExplicitWordHashMap currHashMap = explicitMaps[ngramOrder];
+			if (currHashMap == null) continue;
+			final ExplicitWordHashMap newHashMap = (ExplicitWordHashMap) newMap.getHashMapForOrder(ngramOrder);
 			final T val = values.getScratchValue();
 			final int[] scratchArray = new int[ngramOrder + 1];
-			for (long actualIndex = 0; actualIndex < currMap.getCapacity(); ++actualIndex) {
+			for (long actualIndex = 0; actualIndex < currHashMap.getCapacity(); ++actualIndex) {
 
-				final long key = currMap.getKey(actualIndex);
-				if (currMap.isEmptyKey(key)) continue;
+				final long key = currHashMap.getKey(actualIndex);
+				if (currHashMap.isEmptyKey(key)) continue;
 				getNgramFromContextEncodingHelp(contextOffsetOf(key), ngramOrder - 1, wordOf(key), scratchArray);
+				final long newKey = newMap.getKey(scratchArray, 0, scratchArray.length);
+				assert newKey >= 0;
+				final long index = newHashMap.put(newKey);
 
+				final long suffixIndex = storeSuffixOffsets ? newMap.getSuffixOffset(scratchArray, 0, scratchArray.length) : -1L;
 				values.getFromOffset(actualIndex, ngramOrder, val);
-
-				newMap.putHelp(scratchArray, 0, scratchArray.length, val, ngramOrder < changedNgramOrder);
+				final boolean addWorked = newMap.values.add(scratchArray, 0, scratchArray.length, ngramOrder, index, contextOffsetOf(newKey), wordOf(newKey),
+					val, suffixIndex, true);
+				assert addWorked;
 
 			}
 			values.clearStorageForOrder(ngramOrder);
