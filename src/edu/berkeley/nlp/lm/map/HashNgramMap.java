@@ -392,8 +392,11 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 				}
 				assert newKey >= 0 : "Failure for old n-gram " + Arrays.toString(scratchArray);
 				final long index = newHashMap.put(newKey);
+				assert index >= 0;
 
 				final long suffixIndex = storeSuffixOffsets ? newMap.getSuffixOffset(scratchArray, 0, scratchArray.length) : -1L;
+				assert suffixIndex >= 0 : "Could not find suffix offset for " + Arrays.toString(scratchArray);
+
 				values.getFromOffset(actualIndex, ngramOrder, val);
 				final boolean addWorked = newMap.values.add(scratchArray, 0, scratchArray.length, ngramOrder, index, contextOffsetOf(newKey), wordOf(newKey),
 					val, suffixIndex, true);
@@ -477,7 +480,8 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	 */
 	private long getSuffixOffset(final int[] ngram, final int startPos, final int endPos) {
 		if (endPos - startPos == 1) return 0;
-		return getOffsetFromRawNgram(ngram, reversed ? startPos : (startPos + 1), reversed ? (endPos - 1) : endPos);
+		final long offset = getOffsetFromRawNgram(ngram, reversed ? startPos : (startPos + 1), reversed ? (endPos - 1) : endPos);
+		return offset;
 	}
 
 	/**
