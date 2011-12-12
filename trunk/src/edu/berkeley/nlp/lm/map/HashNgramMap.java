@@ -191,6 +191,26 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		return putHelp(map, ngram, startPos, endPos, key, val, false);
 	}
 
+	/**
+	 * Warning: does not rehash if load factor is exceeded, must call
+	 * rehashIfNecessary explicitly. This is so that the offsets returned remain
+	 * valid. Basically, you should not use this function unless you really know
+	 * what you're doing.
+	 * 
+	 * @param ngram
+	 * @param startPos
+	 * @param endPos
+	 * @param contextOffset
+	 * @param val
+	 * @return
+	 */
+	public long putWithOffsetAndSuffix(final int[] ngram, final int startPos, final int endPos, final long contextOffset, final long suffixOffset, final T val) {
+		final int ngramOrder = endPos - startPos - 1;
+		final long key = combineToKey(ngram[endPos - 1], contextOffset);
+		final HashMap map = getHashMapForOrder(ngramOrder);
+		return putHelpWithSuffixIndex(map, ngram, startPos, endPos, key, val, false, suffixOffset);
+	}
+
 	public void rehashIfNecessary() {
 		if (explicitMaps == null) return;
 		for (int ngramOrder = 0; ngramOrder < explicitMaps.length; ++ngramOrder) {
@@ -204,17 +224,34 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	}
 
 	private long putHelp(final HashMap map, final int[] ngram, final int startPos, final int endPos, final long key, final T val, final boolean forcedNew) {
+		final long suffixIndex = storeSuffixOffsets ? getSuffixOffset(ngram, startPos, endPos) : -1L;
+		return putHelpWithSuffixIndex(map, ngram, startPos, endPos, key, val, forcedNew, suffixIndex);
+
+	}
+
+	/**
+	 * @param map
+	 * @param ngram
+	 * @param startPos
+	 * @param endPos
+	 * @param key
+	 * @param val
+	 * @param forcedNew
+	 * @param suffixIndex
+	 * @return
+	 */
+	private long putHelpWithSuffixIndex(final HashMap map, final int[] ngram, final int startPos, final int endPos, final long key, final T val,
+		final boolean forcedNew, final long suffixIndex) {
 		final int ngramOrder = endPos - startPos - 1;
 		final long oldSize = map.size();
 		final long index = map.put(key);
 
-		final long suffixIndex = storeSuffixOffsets ? getSuffixOffset(ngram, startPos, endPos) : -1L;
+		assert !storeSuffixOffsets || suffixIndex >= 0 : "Suffix problem for ngram " + Arrays.toString(ngram) + "(" + startPos + "," + endPos + ")";
 		final boolean addWorked = values.add(ngram, startPos, endPos, ngramOrder, index, contextOffsetOf(key), wordOf(key), val, suffixIndex,
 			map.size() > oldSize || forcedNew);
 		if (!addWorked) return -1;
 
 		return index;
-
 	}
 
 	@Override
