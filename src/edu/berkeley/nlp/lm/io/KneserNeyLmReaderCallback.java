@@ -152,6 +152,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 					if (j > endPos) continue;
 					scratchCounts.tokenCounts = value.value;
 					final long prevOffset = ngramOrder == 0 ? 0 : scratch[ngramOrder - 1][i];
+					assert prevOffset >= 0;
 					scratch[ngramOrder][i - startPos] = ngrams.putWithOffset(ngram, i, j, prevOffset, !justLastWord || j == endPos ? scratchCounts : null);
 				}
 			}
