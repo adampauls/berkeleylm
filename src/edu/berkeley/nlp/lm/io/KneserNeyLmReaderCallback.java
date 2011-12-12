@@ -2,6 +2,7 @@ package edu.berkeley.nlp.lm.io;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,7 +33,7 @@ import edu.berkeley.nlp.lm.values.ProbBackoffPair;
  * @param <W>
  */
 public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallback<LongRef>, LmReader<ProbBackoffPair, ArpaLmReaderCallback<ProbBackoffPair>>,
-	ArrayEncodedNgramLanguageModel<W>
+	ArrayEncodedNgramLanguageModel<W>, Serializable
 {
 
 	//	from http://www-speech.sri.com/projects/srilm/manpages/ngram-discount.7.html
@@ -53,6 +54,11 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	//		       = 1 - Sum_Z2 n(*_z) / n(*_*) + Sum_Z2 D / n(*_*)
 	//		       = D n(_*) / n(*_*)
 	//
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private static final int MAX_ORDER = 10;
 
