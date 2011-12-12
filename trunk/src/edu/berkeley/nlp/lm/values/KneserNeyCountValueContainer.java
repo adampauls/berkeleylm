@@ -166,8 +166,10 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 						dotdotTypeCounts[ngramOrder - 2].incrementCount(dotDotOffset, 1);
 					}
 					final long leftDotOffset = suffixOffset; //map.getOffsetForNgramInModel(ngram, startPos + 1, endPos);
+					assert suffixOffset >= 0;
 					leftDotTypeCounts[ngramOrder - 1].incrementCount(leftDotOffset, 1);
 					final long rightDotOffset = contextOffset;//map.getOffsetForNgramInModel(ngram, startPos, endPos - 1);
+					assert contextOffset >= 0;
 					rightDotTypeCounts[ngramOrder - 1].incrementCount(rightDotOffset, 1);
 				}
 			}
