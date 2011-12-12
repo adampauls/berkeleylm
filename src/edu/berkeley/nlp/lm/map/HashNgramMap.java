@@ -395,7 +395,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 				assert index >= 0;
 
 				final long suffixIndex = storeSuffixOffsets ? newMap.getSuffixOffset(scratchArray, 0, scratchArray.length) : -1L;
-				assert suffixIndex >= 0 : "Could not find suffix offset for " + Arrays.toString(scratchArray);
+				assert !storeSuffixOffsets || suffixIndex >= 0 : "Could not find suffix offset for " + Arrays.toString(scratchArray);
 
 				values.getFromOffset(actualIndex, ngramOrder, val);
 				final boolean addWorked = newMap.values.add(scratchArray, 0, scratchArray.length, ngramOrder, index, contextOffsetOf(newKey), wordOf(newKey),
