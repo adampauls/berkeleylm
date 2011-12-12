@@ -345,7 +345,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 	private long getOffsetHelpFromMap(int ngramOrder, long key, boolean logFailure) {
 		if (isExplicit) {
-			if (logFailure && ngramOrder >= explicitMaps.length || explicitMaps[ngramOrder] == null) {
+			if (logFailure && (ngramOrder >= explicitMaps.length || explicitMaps[ngramOrder] == null)) {
 				Logger.err(ngramOrder + " too big?");
 			}
 			return (ngramOrder >= explicitMaps.length || explicitMaps[ngramOrder] == null) ? -1 : explicitMaps[ngramOrder].getOffset(key);
