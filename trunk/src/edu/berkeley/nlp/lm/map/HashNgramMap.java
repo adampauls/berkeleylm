@@ -500,7 +500,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		for (int ngramOrder = 0; ngramOrder < endPos - startPos - 1; ++ngramOrder) {
 			final int currNgramPos = reversed ? (endPos - ngramOrder - 1) : (startPos + ngramOrder);
 			contextOffset = getOffsetForContextEncoding(contextOffset, ngramOrder - 1, ngram[currNgramPos], null, logFailure);
-			if (contextOffset == -1L) {
+			if (logFailure && contextOffset == -1L) {
 				Logger.err("getKey %s %d %d %d", Arrays.toString(ngram), startPos, endPos, currNgramPos);
 				return -1;
 			}
