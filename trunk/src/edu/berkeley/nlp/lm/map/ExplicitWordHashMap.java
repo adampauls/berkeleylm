@@ -53,6 +53,7 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 		final long i = keys.linearSearch(key, rangeStart, rangeEnd, hash, EMPTY_KEY, true);
 		if (keys.get(i) == EMPTY_KEY) {
 			numFilled++;
+			assert numFilled < keysSize;
 		}
 		setKey(i, key);
 
