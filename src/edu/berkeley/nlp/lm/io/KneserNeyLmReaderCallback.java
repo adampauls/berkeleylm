@@ -124,7 +124,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 		}
 		this.wordIndexer = wordIndexer;
 		final KneserNeyCountValueContainer values = new KneserNeyCountValueContainer(lmOrder);//, justLastWord);
-		ngrams = HashNgramMap.createExplicitWordHashNgramMap(values, new ConfigOptions(), lmOrder, false);
+		ngrams = HashNgramMap.createExplicitWordHashNgramMap(values, opts, lmOrder, false);
 
 	}
 
