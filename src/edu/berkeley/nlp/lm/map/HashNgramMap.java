@@ -151,7 +151,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 			rehash(ngramOrder, map.getCapacity() * 3 / 2);
 			map = getHashMapForOrder(ngramOrder);
 		}
-		final long key = getKey(ngram, startPos, endPos, false);
+		final long key = getKey(ngram, startPos, endPos);
 		if (key < 0) return -1L;
 		return putHelp(map, ngram, startPos, endPos, key, val, forcedNew);
 	}
@@ -246,7 +246,6 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final long oldSize = map.size();
 		final long index = map.put(key);
 
-		assert !storeSuffixOffsets || suffixIndex >= 0 : "Suffix problem for ngram " + Arrays.toString(ngram) + "(" + startPos + "," + endPos + ")";
 		final boolean addWorked = values.add(ngram, startPos, endPos, ngramOrder, index, contextOffsetOf(key), wordOf(key), val, suffixIndex,
 			map.size() > oldSize || forcedNew);
 		if (!addWorked) return -1;
@@ -256,12 +255,12 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 	@Override
 	public long getValueAndOffset(final long contextOffset, final int contextOrder, final int word, @OutputParameter final T outputVal) {
-		return getOffsetForContextEncoding(contextOffset, contextOrder, word, outputVal, false);
+		return getOffsetForContextEncoding(contextOffset, contextOrder, word, outputVal);
 	}
 
 	@Override
 	public long getOffset(final long contextOffset, final int contextOrder, final int word) {
-		return getOffsetForContextEncoding(contextOffset, contextOrder, word, null, false);
+		return getOffsetForContextEncoding(contextOffset, contextOrder, word, null);
 	}
 
 	@Override
@@ -352,13 +351,9 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	 * @param logFailure
 	 * @return
 	 */
-	private long getOffsetForContextEncoding(final long contextOffset_, final int contextOrder, final int word, @OutputParameter final T outputVal,
-		boolean logFailure) {
+	private long getOffsetForContextEncoding(final long contextOffset_, final int contextOrder, final int word, @OutputParameter final T outputVal) {
 		final int ngramOrder = contextOrder + 1;
-		final long offset = getOffsetHelp(contextOffset_, word, ngramOrder, logFailure);
-		if (offset < 0 && logFailure) {
-			Logger.err("getOffsetForContextEncoding %d %d %d", contextOffset_, contextOrder, word);
-		}
+		final long offset = getOffsetHelp(contextOffset_, word, ngramOrder);
 		if (offset >= 0 && outputVal != null) {
 			values.getFromOffset(offset, ngramOrder, outputVal);
 		}
@@ -372,21 +367,16 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	 * @param logFailure
 	 * @return
 	 */
-	private long getOffsetHelp(final long contextOffset_, final int word, final int ngramOrder, boolean logFailure) {
+	private long getOffsetHelp(final long contextOffset_, final int word, final int ngramOrder) {
 		final long contextOffset = Math.max(contextOffset_, 0);
 
 		final long key = combineToKey(word, contextOffset);
-		final long offset = getOffsetHelpFromMap(ngramOrder, key, logFailure);
+		final long offset = getOffsetHelpFromMap(ngramOrder, key);
 		return offset;
 	}
 
-	private long getOffsetHelpFromMap(int ngramOrder, long key, boolean logFailure) {
-		if (isExplicit) {
-			if (logFailure && (ngramOrder >= explicitMaps.length || explicitMaps[ngramOrder] == null)) {
-				Logger.err(ngramOrder + " too big?");
-			}
-			return (ngramOrder >= explicitMaps.length || explicitMaps[ngramOrder] == null) ? -1 : explicitMaps[ngramOrder].getOffset(key);
-		}
+	private long getOffsetHelpFromMap(int ngramOrder, long key) {
+		if (isExplicit) { return (ngramOrder >= explicitMaps.length || explicitMaps[ngramOrder] == null) ? -1 : explicitMaps[ngramOrder].getOffset(key); }
 		return ngramOrder == 0 ? implicitUnigramMap.getOffset(key) : implicitMaps[ngramOrder - 1].getOffset(key);
 	}
 
@@ -423,10 +413,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 				final long key = currHashMap.getKey(actualIndex);
 				if (currHashMap.isEmptyKey(key)) continue;
 				getNgramFromContextEncodingHelp(contextOffsetOf(key), ngramOrder - 1, wordOf(key), scratchArray);
-				final long newKey = newMap.getKey(scratchArray, 0, scratchArray.length, false);
-				if (newKey < 0) {
-					newMap.getKey(scratchArray, 0, scratchArray.length, true);
-				}
+				final long newKey = newMap.getKey(scratchArray, 0, scratchArray.length);
 				assert newKey >= 0 : "Failure for old n-gram " + Arrays.toString(scratchArray);
 				final long index = newHashMap.put(newKey);
 				assert index >= 0;
@@ -458,7 +445,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		if (containsOutOfVocab(ngram, startPos, endPos)) return -1;
 		final int ngramOrder = endPos - startPos - 1;
 		if (ngramOrder >= getMaxNgramOrder()) return -1;
-		final long key = getKey(ngram, startPos, endPos, false);
+		final long key = getKey(ngram, startPos, endPos);
 		if (key < 0) return -1;
 		final HashMap currMap = getMap(ngramOrder);
 		final long index = currMap.getOffset(key);
@@ -532,15 +519,12 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		return contextOffsetOf(getKey(offset, ngramOrder));
 	}
 
-	private long getKey(final int[] ngram, final int startPos, final int endPos, final boolean logFailure) {
+	private long getKey(final int[] ngram, final int startPos, final int endPos) {
 		long contextOffset = 0;
 		for (int ngramOrder = 0; ngramOrder < endPos - startPos - 1; ++ngramOrder) {
 			final int currNgramPos = reversed ? (endPos - ngramOrder - 1) : (startPos + ngramOrder);
-			contextOffset = getOffsetForContextEncoding(contextOffset, ngramOrder - 1, ngram[currNgramPos], null, logFailure);
-			if (logFailure && contextOffset == -1L) {
-				Logger.err("getKey %s %d %d %d", Arrays.toString(ngram), startPos, endPos, currNgramPos);
-				return -1;
-			}
+			contextOffset = getOffsetForContextEncoding(contextOffset, ngramOrder - 1, ngram[currNgramPos], null);
+			if (contextOffset == -1L) { return -1; }
 
 		}
 		return combineToKey(headWord(ngram, startPos, endPos), contextOffset);
