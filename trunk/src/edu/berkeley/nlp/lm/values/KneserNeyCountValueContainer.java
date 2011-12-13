@@ -77,14 +77,14 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 		this.twoCountOffsets = new LongHashSet[maxNgramOrder];
 		rightDotTypeCounts = new LongArray[maxNgramOrder - 1];
 		leftDotTypeCounts = new LongArray[maxNgramOrder - 1];
-		dotdotTypeCounts = new LongArray[maxNgramOrder - 1];
+		dotdotTypeCounts = new LongArray[maxNgramOrder - 2];
 		for (int i = 0; i < maxNgramOrder; ++i) {
 			oneCountOffsets[i] = new LongHashSet();
 			twoCountOffsets[i] = new LongHashSet();
 			if (i < maxNgramOrder - 1) {
 				rightDotTypeCounts[i] = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, Integer.MAX_VALUE);
 				leftDotTypeCounts[i] = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, Integer.MAX_VALUE);
-				dotdotTypeCounts[i] = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, Integer.MAX_VALUE);
+				if (i < maxNgramOrder - 2) dotdotTypeCounts[i] = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, Integer.MAX_VALUE);
 			}
 		}
 	}
@@ -106,7 +106,8 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 			.get(offset));
 		outputVal.leftDotTypeCounts = (int) ((isHighestOrder || (offset >= leftDotTypeCounts[ngramOrder].size())) ? -1 : leftDotTypeCounts[ngramOrder]
 			.get(offset));
-		outputVal.dotdotTypeCounts = (int) ((isHighestOrder || (offset >= dotdotTypeCounts[ngramOrder].size())) ? -1 : dotdotTypeCounts[ngramOrder].get(offset));
+		outputVal.dotdotTypeCounts = (int) ((isHighestOrder || isSecondHighestOrder || (offset >= dotdotTypeCounts[ngramOrder].size())) ? -1
+			: dotdotTypeCounts[ngramOrder].get(offset));
 		outputVal.isOneCount = oneCountOffsets[ngramOrder].containsKey(offset);
 		outputVal.isTwoCount = twoCountOffsets[ngramOrder].containsKey(offset);
 		outputVal.isInternal = true;
@@ -185,7 +186,7 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 			if (isSecondHighestOrder(ngramOrder)) prefixTokenCounts.setAndGrowIfNeeded(size - 1, 0);
 			leftDotTypeCounts[ngramOrder].setAndGrowIfNeeded(size - 1, 0);
 			rightDotTypeCounts[ngramOrder].setAndGrowIfNeeded(size - 1, 0);
-			dotdotTypeCounts[ngramOrder].setAndGrowIfNeeded(size - 1, 0);
+			if (!isSecondHighestOrder(ngramOrder)) dotdotTypeCounts[ngramOrder].setAndGrowIfNeeded(size - 1, 0);
 
 		}
 
@@ -196,7 +197,7 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 	 * @return
 	 */
 	private boolean isHighestOrder(final int ngramOrder) {
-		return ngramOrder == dotdotTypeCounts.length;
+		return ngramOrder == rightDotTypeCounts.length;
 	}
 
 	/**
@@ -204,7 +205,7 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 	 * @return
 	 */
 	private boolean isSecondHighestOrder(final int ngramOrder) {
-		return ngramOrder == dotdotTypeCounts.length - 1;
+		return ngramOrder == rightDotTypeCounts.length - 1;
 	}
 
 	@Override
@@ -227,7 +228,7 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 		for (int i = 0; i < rightDotTypeCounts.length; ++i) {
 			rightDotTypeCounts[i].trim();
 			leftDotTypeCounts[i].trim();
-			dotdotTypeCounts[i].trim();
+			if (i < dotdotTypeCounts.length) dotdotTypeCounts[i].trim();
 		}
 	}
 
@@ -248,7 +249,7 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 		if (ngramOrder < rightDotTypeCounts.length) {
 			rightDotTypeCounts[ngramOrder] = null;
 			leftDotTypeCounts[ngramOrder] = null;
-			dotdotTypeCounts[ngramOrder] = null;
+			if (ngramOrder < dotdotTypeCounts.length) dotdotTypeCounts[ngramOrder] = null;
 		}
 	}
 
