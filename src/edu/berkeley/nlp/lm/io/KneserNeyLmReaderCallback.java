@@ -207,7 +207,8 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 		if (opts.kneserNeyDiscounts != null) return (float) opts.kneserNeyDiscounts[ngramOrder];
 		final int numOneCounters = ((KneserNeyCountValueContainer) ngrams.getValues()).getNumOneCountNgrams(ngramOrder);
 		final int numTwoCounters = ((KneserNeyCountValueContainer) ngrams.getValues()).getNumTwoCountNgrams(ngramOrder);
-		return numOneCounters / (numOneCounters + 2 * (float) numTwoCounters);
+		final float denom =  (numOneCounters + 2 * (float) numTwoCounters);
+		return denom == 0.0f ? 0.0f : numOneCounters / denom;
 	}
 
 	@Override
