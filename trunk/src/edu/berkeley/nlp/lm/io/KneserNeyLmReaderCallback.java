@@ -196,7 +196,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 
 		final float probDiscount = (endPos - startPos == 1) ? 0.0f : getDiscountForOrder(endPos - startPos - 1);
 		final float prob = prefixCounts.dotdotTypeCounts == 0 ? 0.0f : Math.max(0.0f, counts.leftDotTypeCounts - probDiscount) / prefixCounts.dotdotTypeCounts;
-
+		
 		return prob;
 	}
 
@@ -347,7 +347,6 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	public float getLogProb(List<W> ngram) {
 		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
 	}
-
 
 	@Override
 	public float getLogProb(int[] ngram, int startPos, int endPos) {
