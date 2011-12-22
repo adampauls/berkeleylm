@@ -176,31 +176,37 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 
 	protected float interpolateProb(final int[] ngram, final int startPos, final int endPos) {
 		if (startPos == endPos) return 0.0f;
-		final ProbBackoffPair backoff = getLowerOrderProb(ngram, startPos, endPos - 1);
-		final ProbBackoffPair prob = getLowerOrderProb(ngram, startPos, endPos);
-		return prob.prob + backoff.backoff * interpolateProb(ngram, startPos + 1, endPos);
+		final float backoff = getLowerOrderBackoff(ngram, startPos, endPos - 1);
+		final float prob = getLowerOrderProb(ngram, startPos, endPos);
+		return prob + backoff * interpolateProb(ngram, startPos + 1, endPos);
 	}
 
-	protected ProbBackoffPair getHighestOrderProb(final int[] key, final KneserNeyCounts value) {
-		if (value == null) return new ProbBackoffPair(0.0f, 1.0f);
+	protected float getHighestOrderProb(final int[] key, final KneserNeyCounts value) {
+		if (value == null) return 0.0f;
 		final KneserNeyCounts rightDotCounts = getCounts(key, 0, key.length - 1);
 		final float D = getDiscountForOrder(key.length - 1);
 		final float prob = rightDotCounts.tokenCounts == 0 ? 0.0f : Math.max(0.0f, value.tokenCounts - D) / rightDotCounts.tokenCounts;
-		return new ProbBackoffPair(prob, 1.0f);
+		return prob;
 	}
 
-	protected ProbBackoffPair getLowerOrderProb(final int[] ngram, final int startPos, final int endPos) {
-		if (startPos == endPos) return new ProbBackoffPair(1.0f, 1.0f);
+	protected float getLowerOrderProb(final int[] ngram, final int startPos, final int endPos) {
+		if (startPos == endPos) return 1.0f;
 		final KneserNeyCounts counts = getCounts(ngram, startPos, endPos);
 		final KneserNeyCounts prefixCounts = getCounts(ngram, startPos, endPos - 1);
 
 		final float probDiscount = (endPos - startPos == 1) ? 0.0f : getDiscountForOrder(endPos - startPos - 1);
 		final float prob = prefixCounts.dotdotTypeCounts == 0 ? 0.0f : Math.max(0.0f, counts.leftDotTypeCounts - probDiscount) / prefixCounts.dotdotTypeCounts;
 
+		return prob;
+	}
+
+	protected float getLowerOrderBackoff(final int[] ngram, final int startPos, final int endPos) {
+		if (startPos == endPos) return 1.0f;
+		final KneserNeyCounts counts = getCounts(ngram, startPos, endPos);
 		final long backoffDenom = endPos - startPos == lmOrder - 1 ? counts.tokenCounts : counts.dotdotTypeCounts;
 		final float backoffDiscount = getDiscountForOrder(endPos - startPos);
 		final float backoff = backoffDenom == 0.0f ? 1.0f : backoffDiscount * counts.rightDotTypeCounts / backoffDenom;
-		return new ProbBackoffPair((prob), (backoff));
+		return backoff;
 	}
 
 	protected float getDiscountForOrder(int ngramOrder) {
@@ -305,11 +311,12 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	 */
 	private ProbBackoffPair getProbBackoff(final int[] ngram, final int startPos, final int endPos, final KneserNeyCounts value) {
 		final int ngramOrder = endPos - startPos - 1;
-		final ProbBackoffPair val = ngramOrder == lmOrder - 1 ? getHighestOrderProb(ngram, value) : getLowerOrderProb(ngram, startPos, endPos);
-		final float prob = val.prob + getLowerOrderProb(ngram, startPos, endPos - 1).backoff * interpolateProb(ngram, 1, endPos);
+		final boolean isHighestOrder = ngramOrder == lmOrder - 1;
+		final float val = isHighestOrder ? getHighestOrderProb(ngram, value) : getLowerOrderProb(ngram, startPos, endPos);
+		final float prob = val + getLowerOrderBackoff(ngram, startPos, endPos - 1) * interpolateProb(ngram, 1, endPos);
 		final boolean isStartEndSym = endPos == 1 && ngram[0] == startIndex;
 		final float logProb = isStartEndSym ? -99 : ((float) (Math.log10(prob)));
-		final float backoff = (float) Math.log10(val.backoff);
+		final float backoff = isHighestOrder ? 0.0f : (float) Math.log10(getLowerOrderBackoff(ngram, startPos, endPos));
 		final ProbBackoffPair ret = new ProbBackoffPair(logProb, backoff);
 		return ret;
 	}
@@ -341,9 +348,6 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
 	}
 
-	//	public float getLogProb(int[] ngram, int startPos, int endPos) {
-	//		return getLogProb(ngram, startPos, endPos, false);
-	//	}
 
 	@Override
 	public float getLogProb(int[] ngram, int startPos, int endPos) {
