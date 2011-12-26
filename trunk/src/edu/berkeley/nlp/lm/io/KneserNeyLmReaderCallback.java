@@ -163,7 +163,8 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 					final long suffixOffset = ngramOrder == 0 ? 0 : scratch[ngramOrder - 1][i + 1];
 					assert prevOffset >= 0;
 					scratch[ngramOrder][i - startPos] = ngrams.putWithOffsetAndSuffix(ngram, i, j, prevOffset, suffixOffset, !justLastWord || j == endPos
-						|| ngram[startPos] == startIndex ? scratchCounts : null);
+					/* || ngram[startPos] == startIndex */
+					? scratchCounts : null);
 				}
 			}
 			ngrams.rehashIfNecessary();
@@ -184,8 +185,8 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	}
 
 	protected float getHighestOrderProb(final int[] ngram, final int startPos, final int endPos) {
-		final KneserNeyCounts counts = getCounts(ngram, startPos, endPos);
-		final KneserNeyCounts rightDotCounts = getCounts(ngram, startPos, endPos - 1);
+		final KneserNeyCounts counts = getCounts(ngram, startPos, endPos, false);
+		final KneserNeyCounts rightDotCounts = getCounts(ngram, startPos, endPos - 1, true);
 		final int ngramOrder = endPos - startPos - 1;
 		final float D = getDiscountForOrder(ngramOrder);
 		final float prob = rightDotCounts.tokenCounts == 0 ? 0.0f : Math.max(0.0f, (counts.tokenCounts - D) / rightDotCounts.tokenCounts);
@@ -194,8 +195,8 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 
 	protected float getLowerOrderProb(final int[] ngram, final int startPos, final int endPos) {
 		if (startPos == endPos) return 1.0f;
-		final KneserNeyCounts counts = getCounts(ngram, startPos, endPos);
-		final KneserNeyCounts prefixCounts = getCounts(ngram, startPos, endPos - 1);
+		final KneserNeyCounts counts = getCounts(ngram, startPos, endPos, false);
+		final KneserNeyCounts prefixCounts = getCounts(ngram, startPos, endPos - 1, true);
 
 		final float probDiscount = (endPos - startPos == 1) ? 0.0f : getDiscountForOrder(endPos - startPos - 1);
 		final float prob = prefixCounts.dotdotTypeCounts == 0 ? 0.0f : Math.max(0.0f, counts.leftDotTypeCounts - probDiscount) / prefixCounts.dotdotTypeCounts;
@@ -205,7 +206,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 
 	protected float getLowerOrderBackoff(final int[] ngram, final int startPos, final int endPos) {
 		if (startPos == endPos) return 1.0f;
-		final KneserNeyCounts counts = getCounts(ngram, startPos, endPos);
+		final KneserNeyCounts counts = getCounts(ngram, startPos, endPos, true);
 		final long backoffDenom = (endPos - startPos == lmOrder - 1 || ngram[startPos] == startIndex) ? counts.tokenCounts : counts.dotdotTypeCounts;
 
 		assert backoffDenom >= 0;
@@ -234,7 +235,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	 * @param startPos
 	 * @param endPos
 	 */
-	private KneserNeyCounts getCounts(final int[] key, final int startPos, final int endPos) {
+	private KneserNeyCounts getCounts(final int[] key, final int startPos, final int endPos, final boolean isBackoff) {
 		final KneserNeyCounts value = new KneserNeyCounts();
 		if (startPos == endPos) {
 			//only happens when requesting number of bigrams
@@ -248,7 +249,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 		final boolean endsWithEndSym = key[endPos - 1] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getEndSymbol());
 		if (startsWithStartSym) {
 			value.dotdotTypeCounts = value.rightDotTypeCounts;
-			if (endPos - startPos < lmOrder) value.tokenCounts = value.leftDotTypeCounts;
+			if (endPos - startPos < lmOrder - 1 || (endPos - startPos == lmOrder - 1 && !isBackoff)) value.tokenCounts = value.leftDotTypeCounts;
 		}
 		if (endsWithEndSym) {
 			value.rightDotTypeCounts = 1;
@@ -323,9 +324,9 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 		final float prob = val + getLowerOrderBackoff(ngram, startPos, endPos - 1) * interpolateProb(ngram, 1, endPos);
 		final boolean isStartEndSym = endPos - startPos == 1 && ngram[startPos] == startIndex;
 		final float logProb = isStartEndSym ? -99 : ((float) (Math.log10(prob)));
-		if (logProb == Float.NEGATIVE_INFINITY) {
-			System.out.println("here");
-		}
+		//		if (logProb == Float.NEGATIVE_INFINITY) {
+		//			System.out.println("here");
+		//		}
 		final float backoff = isHighestOrder ? 0.0f : (float) Math.log10(getLowerOrderBackoff(ngram, startPos, endPos));
 		final ProbBackoffPair ret = new ProbBackoffPair(logProb, backoff);
 		return ret;
