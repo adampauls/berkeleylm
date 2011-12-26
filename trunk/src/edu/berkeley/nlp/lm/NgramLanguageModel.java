@@ -2,6 +2,9 @@ package edu.berkeley.nlp.lm;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+
+import edu.berkeley.nlp.lm.collections.Counter;
 
 /**
  * 
@@ -70,6 +73,37 @@ public interface NgramLanguageModel<W>
 				ret.add(wordIndexer.getWord(ngram[i]));
 			}
 			return ret;
+		}
+
+		/**
+		 * Samples from this language model. This is not meant to be
+		 * particularly efficient
+		 * 
+		 * @param random
+		 * @return
+		 */
+		public static <W> List<W> sample(Random random, final NgramLanguageModel<W> lm) {
+			List<W> ret = new ArrayList<W>();
+			ret.add(lm.getWordIndexer().getStartSymbol());
+			while (true) {
+				final int contextEnd = ret.size();
+				final int contextStart = Math.max(0, contextEnd - lm.getLmOrder() + 1);
+				Counter<W> c = new Counter<W>();
+				List<W> ngram = new ArrayList<W>(ret.subList(contextStart, contextEnd));
+				ngram.add(null);
+				for (int index = 0; index < lm.getWordIndexer().numWords(); ++index) {
+					W word = lm.getWordIndexer().getWord(index);
+					if (word.equals(lm.getWordIndexer().getStartSymbol())) continue;
+
+					ngram.set(ngram.size() - 1, word);
+					c.setCount(word, Math.exp(lm.getLogProb(ngram) * Math.log(10)));
+				}
+				W sample = c.sample(random);
+				ret.add(sample);
+				if (sample.equals(lm.getWordIndexer().getEndSymbol())) break;
+
+			}
+			return ret.subList(1, ret.size() - 1);
 		}
 
 	}
