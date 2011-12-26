@@ -20,6 +20,8 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 	/**
 	 * Warning: type counts are stored internally as 32-bit ints.
 	 * 
+	 * 
+	 * 
 	 * @author adampauls
 	 * 
 	 */
@@ -55,7 +57,7 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 	private final LongArray[] dotdotTypeCounts;
 
 	@PrintMemoryCount
-	private final LongArray[] leftDotTypeCounts;
+	private final LongArray[] leftDotTypeCounts;// secretly, only token counts are stored for n-grams starting with the start symbol
 
 	//	@PrintMemoryCount
 	//	private final LongArray[] lowestOrderTokenCounts;
@@ -70,7 +72,10 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 
 	private HashNgramMap<KneserNeyCounts> map;
 
-	public KneserNeyCountValueContainer(final int maxNgramOrder) {
+	private final int startIndex;
+
+	public KneserNeyCountValueContainer(final int maxNgramOrder, final int startIndex) {
+		this.startIndex = startIndex;
 		this.tokenCounts = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, Integer.MAX_VALUE);
 		this.prefixTokenCounts = LongArray.StaticMethods.newLongArray(Long.MAX_VALUE, Integer.MAX_VALUE);
 		this.oneCountOffsets = new LongHashSet[maxNgramOrder];
@@ -91,7 +96,7 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 
 	@Override
 	public KneserNeyCountValueContainer createFreshValues() {
-		final KneserNeyCountValueContainer kneseryNeyCountValueContainer = new KneserNeyCountValueContainer(rightDotTypeCounts.length + 1);
+		final KneserNeyCountValueContainer kneseryNeyCountValueContainer = new KneserNeyCountValueContainer(rightDotTypeCounts.length + 1, startIndex);
 		kneseryNeyCountValueContainer.bigramTypeCounts = this.bigramTypeCounts;
 
 		return kneseryNeyCountValueContainer;
@@ -131,8 +136,12 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 	public boolean add(final int[] ngram, final int startPos, final int endPos, final int ngramOrder, final long offset, final long contextOffset,
 		final int word, final KneserNeyCounts val, final long suffixOffset, final boolean ngramIsNew) {
 		if (val == null) return true;
+		final boolean startsWithStart = ngram[startPos] == startIndex;
 
 		if (val.tokenCounts > 0) {
+			if (!val.isInternal && startsWithStart && ngramOrder < leftDotTypeCounts.length) {
+				leftDotTypeCounts[ngramOrder].incrementCount(offset, val.tokenCounts);
+			}
 			if (ngramIsNew) {
 				oneCountOffsets[ngramOrder].put(offset);
 			} else if (oneCountOffsets[ngramOrder].containsKey(offset)) {

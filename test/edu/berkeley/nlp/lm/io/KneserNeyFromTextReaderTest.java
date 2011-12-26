@@ -88,12 +88,9 @@ public class KneserNeyFromTextReaderTest
 				Assert.assertEquals(lines.toString(), testSplit.length, goldSplit.length);
 				Assert.assertTrue(lines.toString(), testSplit.length == 2 || testSplit.length == 3);
 				Assert.assertEquals(lines.toString(), testSplit[1], goldSplit[1]);
-				if (!testSplit[1].startsWith("<s>")) {
-					// SRILM appears to do the wrong thing with the <s> start tag, so we don't test for equality
-					Assert.assertEquals(lines.toString(), Double.parseDouble(testSplit[0]), Double.parseDouble(goldSplit[0]), 1e-3);
-					if (testSplit.length == 3) {
-						Assert.assertEquals(lines.toString(), Double.parseDouble(testSplit[2]), Double.parseDouble(goldSplit[2]), 1e-3);
-					}
+				Assert.assertEquals(lines.toString(), Double.parseDouble(testSplit[0]), Double.parseDouble(goldSplit[0]), 1e-3);
+				if (testSplit.length == 3) {
+					Assert.assertEquals(lines.toString(), Double.parseDouble(testSplit[2]), Double.parseDouble(goldSplit[2]), 1e-3);
 				}
 
 			} else {
