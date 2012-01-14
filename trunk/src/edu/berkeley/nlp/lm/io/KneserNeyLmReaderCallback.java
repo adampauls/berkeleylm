@@ -376,5 +376,9 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	public float getLogProb(int[] ngram) {
 		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
 	}
+	
+	public long getTotalSize() {
+		return ngrams.getTotalSize();
+	}
 
 }

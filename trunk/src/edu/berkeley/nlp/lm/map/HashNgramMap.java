@@ -448,6 +448,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final long key = getKey(ngram, startPos, endPos);
 		if (key < 0) return -1;
 		final HashMap currMap = getMap(ngramOrder);
+		if (currMap == null) return -1;
 		final long index = currMap.getOffset(key);
 		return index;
 	}
@@ -606,6 +607,17 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 			values.getFromOffset(offset, endPos - startPos - 1, val);
 			return val;
 		}
+	}
+
+	public long getTotalSize() {
+		long ret = 0L;
+		for (int ngramOrder = 0; ngramOrder < getMaxNgramOrder(); ++ngramOrder) {
+			final HashMap currMap = getMap(ngramOrder);
+			if (currMap == null) break;
+			ret += currMap.size();
+			
+		}
+		return ret;
 	}
 
 }
