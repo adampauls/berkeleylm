@@ -60,11 +60,11 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
+	protected static final long serialVersionUID = 1L;
 
-	private static final int MAX_ORDER = 10;
+	protected static final int MAX_ORDER = 10;
 
-	private static final float DEFAULT_DISCOUNT = 0.75f;
+	protected static final float DEFAULT_DISCOUNT = 0.75f;
 
 	protected final int lmOrder;
 
@@ -94,9 +94,9 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 
 	protected final ConfigOptions opts;
 
-	private boolean inputIsSentences;
+	
 
-	private final int startIndex;
+	protected final int startIndex;
 
 	/**
 	 * 
@@ -107,13 +107,12 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	 *            sub-ngrams of up to order <code>maxOrder</code> are added. If
 	 *            false, input n-grams are assumed to be atomic.
 	 */
-	public KneserNeyLmReaderCallback(final WordIndexer<W> wordIndexer, final int maxOrder, final boolean inputIsSentences) {
-		this(wordIndexer, maxOrder, inputIsSentences, new ConfigOptions());
+	public KneserNeyLmReaderCallback(final WordIndexer<W> wordIndexer, final int maxOrder) {
+		this(wordIndexer, maxOrder, new ConfigOptions());
 	}
 
-	public KneserNeyLmReaderCallback(final WordIndexer<W> wordIndexer, final int maxOrder, final boolean inputIsSentences, final ConfigOptions opts) {
+	public KneserNeyLmReaderCallback(final WordIndexer<W> wordIndexer, final int maxOrder,  final ConfigOptions opts) {
 		this.lmOrder = maxOrder;
-		this.inputIsSentences = inputIsSentences;
 		this.startIndex = wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
 
 		if (maxOrder >= MAX_ORDER) throw new IllegalArgumentException("Reguested n-grams of order " + maxOrder + " but we only allow up to " + 10);
@@ -136,12 +135,12 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 			ints[i] = wordIndexer.getOrAddIndex(ngram[i]);
 		call(ints, 0, ints.length, value, "");
 	}
-	
-	public void callJustLast(final W[] ngram, final LongRef value,final long[][] scratch) {
+
+	public void callJustLast(final W[] ngram, final LongRef value, final long[][] scratch) {
 		final int[] ints = new int[ngram.length];
 		for (int i = 0; i < ngram.length; ++i)
 			ints[i] = wordIndexer.getOrAddIndex(ngram[i]);
-		addNgram(ints, 0, ints.length, value, "",true,scratch);
+		addNgram(ints, 0, ints.length, value, "", true, scratch);
 	}
 
 	@Override
@@ -159,7 +158,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	 */
 	public void addNgram(final int[] ngram, final int startPos, final int endPos, final LongRef value, final String words, final boolean justLastWord,
 		final long[][] scratch) {
-		if (inputIsSentences) {
+		
 			final KneserNeyCounts scratchCounts = new KneserNeyCounts();
 			for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
 				for (int i = startPos; i < endPos; ++i) {
@@ -175,13 +174,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 				}
 			}
 			ngrams.rehashIfNecessary();
-		} else {
-			final KneserNeyCounts counts = new KneserNeyCounts();
-			counts.tokenCounts = value.value;
-			final long add = ngrams.put(ngram, startPos, endPos, counts);
-			if (add < 0) { throw new RuntimeException("Failed to add line " + words); }
-
-		}
+		
 	}
 
 	protected float interpolateProb(final int[] ngram, final int startPos, final int endPos) {
@@ -376,7 +369,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	public float getLogProb(int[] ngram) {
 		return ArrayEncodedNgramLanguageModel.DefaultImplementations.getLogProb(ngram, this);
 	}
-	
+
 	public long getTotalSize() {
 		return ngrams.getTotalSize();
 	}
