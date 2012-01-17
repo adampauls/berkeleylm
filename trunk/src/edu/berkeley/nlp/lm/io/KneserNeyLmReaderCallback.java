@@ -264,7 +264,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 
 	public static double[] defaultMinCounts() {
 		//same as SRILM
-		return new double[] { 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2 };
+		return new double[] { 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2 };
 	}
 
 	private static double[] constantArray(final int n, final double f) {
