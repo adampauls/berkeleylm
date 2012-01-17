@@ -138,22 +138,43 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 		if (val == null) return true;
 		final boolean startsWithStart = ngram[startPos] == startIndex;
 
+		if (isHighestOrder(ngramOrder) || startsWithStart) {
+			final long relevantCount = val.tokenCounts;
+			if (ngramIsNew) {
+				if (relevantCount == 1)
+					oneCountOffsets[ngramOrder].put(offset);
+				else if (relevantCount == 2) //
+					twoCountOffsets[ngramOrder].put(offset);
+			} else if (oneCountOffsets[ngramOrder].containsKey(offset)) {
+				oneCountOffsets[ngramOrder].remove(offset);
+				if (relevantCount == 1) //
+					twoCountOffsets[ngramOrder].put(offset);
+			} else if (twoCountOffsets[ngramOrder].containsKey(offset)) {
+				twoCountOffsets[ngramOrder].remove(offset);
+			}
+		}
+
 		if (val.tokenCounts > 0) {
 			if (!val.isInternal && startsWithStart && ngramOrder < leftDotTypeCounts.length) {
 				leftDotTypeCounts[ngramOrder].incrementCount(offset, val.tokenCounts);
 			}
-			if (ngramIsNew) {
-				oneCountOffsets[ngramOrder].put(offset);
-			} else if (oneCountOffsets[ngramOrder].containsKey(offset)) {
-				oneCountOffsets[ngramOrder].remove(offset);
-				twoCountOffsets[ngramOrder].put(offset);
-			} else if (twoCountOffsets[ngramOrder].containsKey(offset)) {
-				twoCountOffsets[ngramOrder].remove(offset);
-			}
 
-		} else {
-			if (val.isOneCount) oneCountOffsets[ngramOrder].put(offset);
-			if (val.isTwoCount) twoCountOffsets[ngramOrder].put(offset);
+			//			if (ngramIsNew) {
+			//				if (val.tokenCounts == 1)
+			//					oneCountOffsets[ngramOrder].put(offset);
+			//				else if (val.tokenCounts == 2) //
+			//					twoCountOffsets[ngramOrder].put(offset);
+			//			} else if (oneCountOffsets[ngramOrder].containsKey(offset)) {
+			//				oneCountOffsets[ngramOrder].remove(offset);
+			//				if (val.tokenCounts == 1) //
+			//					twoCountOffsets[ngramOrder].put(offset);
+			//			} else if (twoCountOffsets[ngramOrder].containsKey(offset)) {
+			//				twoCountOffsets[ngramOrder].remove(offset);
+			//			}
+			//
+			//		} else {
+			//			if (val.isOneCount) oneCountOffsets[ngramOrder].put(offset);
+			//			if (val.isTwoCount) twoCountOffsets[ngramOrder].put(offset);
 		}
 		assert !map.isReversed();
 		if (isHighestOrder(ngramOrder)) {
@@ -165,7 +186,10 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 			if (val.isInternal) {
 				if (val.dotdotTypeCounts > 0) dotdotTypeCounts[ngramOrder].incrementCount(offset, val.dotdotTypeCounts);
 				if (val.leftDotTypeCounts > 0) leftDotTypeCounts[ngramOrder].incrementCount(offset, val.leftDotTypeCounts);
+
 				if (val.rightDotTypeCounts > 0) rightDotTypeCounts[ngramOrder].incrementCount(offset, val.rightDotTypeCounts);
+				if (val.isOneCount) oneCountOffsets[ngramOrder].put(offset);
+				if (val.isTwoCount) twoCountOffsets[ngramOrder].put(offset);
 
 			} else {
 				if (ngramOrder > 0) {
@@ -177,10 +201,21 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 					}
 					final long leftDotOffset = suffixOffset; //map.getOffsetForNgramInModel(ngram, startPos + 1, endPos);
 					assert suffixOffset >= 0;
+					final long oldCount = leftDotOffset >= leftDotTypeCounts[ngramOrder - 1].size() ? 0 : leftDotTypeCounts[ngramOrder - 1].get(leftDotOffset);
+					if (oldCount == 0) {
+						oneCountOffsets[ngramOrder - 1].put(leftDotOffset);
+					} else if (oldCount == 1) {
+						oneCountOffsets[ngramOrder - 1].remove(leftDotOffset);
+						twoCountOffsets[ngramOrder - 1].put(leftDotOffset);
+					} else if (oldCount == 2) {
+						twoCountOffsets[ngramOrder - 1].remove(leftDotOffset);
+					}
+
 					leftDotTypeCounts[ngramOrder - 1].incrementCount(leftDotOffset, 1);
 					final long rightDotOffset = contextOffset;//map.getOffsetForNgramInModel(ngram, startPos, endPos - 1);
 					assert contextOffset >= 0;
 					rightDotTypeCounts[ngramOrder - 1].incrementCount(rightDotOffset, 1);
+
 				}
 			}
 		}
