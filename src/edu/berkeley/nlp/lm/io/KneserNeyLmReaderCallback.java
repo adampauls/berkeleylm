@@ -278,6 +278,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 
 		List<Long> lengths = new ArrayList<Long>();
 		for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
+			Logger.startTrack("Counting counts for order " + ngramOrder);
 			long numNgrams = 0; //ngrams.getNumNgrams(ngramOrder);
 			for (final Entry<KneserNeyCounts> entry : ngrams.getNgramsForOrder(ngramOrder)) {
 				final long relevantCount = entry.value.tokenCounts;
@@ -285,6 +286,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 				numNgrams++;
 			}
 			lengths.add(numNgrams);
+			Logger.endTrack();
 		}
 		callback.initWithLengths(lengths);
 		for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
