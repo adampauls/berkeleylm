@@ -280,8 +280,8 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 		for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
 			long numNgrams = 0; //ngrams.getNumNgrams(ngramOrder);
 			for (final Entry<KneserNeyCounts> entry : ngrams.getNgramsForOrder(ngramOrder)) {
-				final long relevantCount = ngramOrder == lmOrder - 1 ? entry.value.tokenCounts : entry.value.leftDotTypeCounts;
-				if (relevantCount < opts.kneserNeyMinCounts[ngramOrder]) continue;
+				final long relevantCount = entry.value.tokenCounts;
+				if (ngramOrder >= lmOrder - 2 && relevantCount < opts.kneserNeyMinCounts[ngramOrder]) continue;
 				numNgrams++;
 			}
 			lengths.add(numNgrams);
@@ -294,8 +294,8 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 			int linenum = 0;
 			for (final Entry<KneserNeyCounts> entry : ngrams.getNgramsForOrder(ngramOrder)) {
 				if (linenum++ % 10000 == 0) Logger.logs("Writing line " + linenum);
-				final long relevantCount = ngramOrder == lmOrder - 1 ? entry.value.tokenCounts : entry.value.leftDotTypeCounts;
-				if (relevantCount < opts.kneserNeyMinCounts[ngramOrder]) continue;
+				final long relevantCount = entry.value.tokenCounts;
+				if (ngramOrder >= lmOrder - 2 && relevantCount < opts.kneserNeyMinCounts[ngramOrder]) continue;
 
 				final int[] ngram = entry.key;
 				final int endPos = ngram.length;
