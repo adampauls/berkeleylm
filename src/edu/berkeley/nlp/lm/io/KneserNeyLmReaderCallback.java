@@ -244,7 +244,8 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 		final long offset = ngrams.getOffsetForNgramInModel(key, startPos, endPos);
 		if (offset < 0) return value;
 		ngrams.getValues().getFromOffset(offset, endPos - startPos - 1, value);
-		final boolean startsWithStartSym = key[startPos] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
+
+		final boolean startsWithStartSym = key[startPos] == startIndex;
 		final boolean endsWithEndSym = key[endPos - 1] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getEndSymbol());
 		if (startsWithStartSym) {
 			value.dotdotTypeCounts = value.rightDotTypeCounts;
@@ -328,7 +329,11 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 		final boolean isHighestOrder = ngramOrder == lmOrder - 1;
 		final float val = isHighestOrder || ngram[startPos] == startIndex ? getHighestOrderProb(ngram, startPos, endPos) : getLowerOrderProb(ngram, startPos,
 			endPos);
-		final float prob = val + getLowerOrderBackoff(ngram, startPos, endPos - 1) * interpolateProb(ngram, 1, endPos);
+		int nextNonStart = startPos + 1;
+		while (nextNonStart < endPos && ngram[nextNonStart] == startIndex) {
+			nextNonStart++;
+		}
+		final float prob = val + getLowerOrderBackoff(ngram, startPos, endPos - 1) * interpolateProb(ngram, nextNonStart, endPos);
 		final boolean isStartEndSym = endPos - startPos == 1 && ngram[startPos] == startIndex;
 		final float logProb = isStartEndSym ? -99 : ((float) (Math.log10(prob)));
 		//		if (logProb == Float.NEGATIVE_INFINITY) {
