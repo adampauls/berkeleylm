@@ -83,6 +83,10 @@ public interface NgramLanguageModel<W>
 		 * @return
 		 */
 		public static <W> List<W> sample(Random random, final NgramLanguageModel<W> lm) {
+			return sample(random, lm, 1.0);
+		}
+
+		public static <W> List<W> sample(Random random, final NgramLanguageModel<W> lm, final double sampleTemperature) {
 			List<W> ret = new ArrayList<W>();
 			ret.add(lm.getWordIndexer().getStartSymbol());
 			while (true) {
@@ -92,11 +96,13 @@ public interface NgramLanguageModel<W>
 				List<W> ngram = new ArrayList<W>(ret.subList(contextStart, contextEnd));
 				ngram.add(null);
 				for (int index = 0; index < lm.getWordIndexer().numWords(); ++index) {
+
 					W word = lm.getWordIndexer().getWord(index);
 					if (word.equals(lm.getWordIndexer().getStartSymbol())) continue;
+					if (ret.size() <= 1 && word.equals(lm.getWordIndexer().getEndSymbol())) continue;
 
 					ngram.set(ngram.size() - 1, word);
-					c.setCount(word, Math.exp(lm.getLogProb(ngram) * Math.log(10)));
+					c.setCount(word, Math.exp(sampleTemperature * lm.getLogProb(ngram) * Math.log(10)));
 				}
 				W sample = c.sample(random);
 				ret.add(sample);
