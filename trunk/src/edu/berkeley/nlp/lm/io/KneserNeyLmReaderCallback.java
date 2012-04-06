@@ -159,6 +159,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 		final long[][] scratch) {
 
 		final KneserNeyCounts scratchCounts = new KneserNeyCounts();
+		ngrams.rehashIfNecessary(endPos - startPos);
 		for (int ngramOrder = 0; ngramOrder < lmOrder; ++ngramOrder) {
 			for (int i = startPos; i < endPos; ++i) {
 				int j = i + ngramOrder + 1;
@@ -172,7 +173,6 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 				? scratchCounts : null);
 			}
 		}
-		ngrams.rehashIfNecessary();
 
 	}
 

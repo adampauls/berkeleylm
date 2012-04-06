@@ -87,6 +87,10 @@ final class ExplicitWordHashMap implements Serializable, HashMap
 		return (double) numFilled / getCapacity();
 	}
 
+	public double getLoadFactor(int numAdditional) {
+		return (double) (numFilled + numAdditional) / getCapacity();
+	}
+
 	private long hash(final long key) {
 		final long hashed = (MurmurHash.hashOneLong(key, 31));
 		long hash1 = hashed;
