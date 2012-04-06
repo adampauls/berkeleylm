@@ -211,12 +211,12 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		return putHelpWithSuffixIndex(map, ngram, startPos, endPos, key, val, false, suffixOffset);
 	}
 
-	public void rehashIfNecessary() {
+	public void rehashIfNecessary(int num) {
 		if (explicitMaps == null) return;
 		for (int ngramOrder = 0; ngramOrder < explicitMaps.length; ++ngramOrder) {
 			if (explicitMaps[ngramOrder] == null) continue;
-			if (explicitMaps[ngramOrder].getLoadFactor() >= maxLoadFactor) {
-				rehash(ngramOrder, explicitMaps[ngramOrder].getCapacity() * 3 / 2);
+			if (explicitMaps[ngramOrder].getLoadFactor(num) >= maxLoadFactor) {
+				rehash(ngramOrder, Math.max(num * 3/2, explicitMaps[ngramOrder].getCapacity() * 3 / 2));
 				return;
 			}
 		}
@@ -619,5 +619,4 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		}
 		return ret;
 	}
-
 }
