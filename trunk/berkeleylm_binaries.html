@@ -1,0 +1,37 @@
+<h2>Berkeley LM Binaries</h2>
+
+These binary files can be loaded by the <a href="http://code.google.com/p/berkeleylm/">Berkeley LM</a> toolkit. They contain all counts for the Web 1T corpora provided by Google for English, Chinese, and 10 EU languages. Due to licensing restrictions, the binaries do not contain vocabularies so that the corpora cannot reproduced unless you have independent access to the corpora. The vocabularies are contained in files called <pre>vocab_cs.gz</pre> for all corpora except Chinese. In that case, you must build the file manullay with the following command:
+<br>
+
+<pre>
+zcat ngrams-00000-of-00394.gz | sort -rgk2 | gzip > vocab_cs.gz
+</pre>
+
+These files can be loaded programmatically by calling the method
+
+<pre>
+edu.berkeley.nlp.lm.io.LmReaders.readGoogleLmBinary
+</pre>
+
+or
+
+<pre>
+edu.berkeley.nlp.lm.io.LmReaders.readNgramMapFromBinary
+</pre>
+
+The former reads an n-gram language model estimated using stupid backoff, and the latter gives access to a data structures that implements Java's Map interface to allow queries of raw counts for n-grams.
+
+The files can be downloaded here:
+<br>
+<br><a href="en.blm.gz">English</a>
+<br><a href="zh.blm.gz">Chinese</a>
+<br><a href="CZECH.blm.gz">Czech</a>
+<br><a href="DUTCH.blm.gz">Dutch</a>
+<br><a href="FRENCH.blm.gz">Frenchh</a>
+<br><a href="GERMAN.blm.gz">German</a>
+<br><a href="ITALIAN.blm.gz">Italian</a>
+<br><a href="POLISH.blm.gz">Polish</a>
+<br><a href="PORTUGUESE.blm.gz">Portuguese</a>
+<br><a href="ROMANIAN.blm.gz">Romanian</a>
+<br><a href="SPANISH.blm.gz">Spanish</a>
+<br><a href="SWEDISH.blm.gz">Swedish</a>
