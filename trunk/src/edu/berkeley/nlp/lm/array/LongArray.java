@@ -102,6 +102,11 @@ public final class LongArray implements Serializable
 		data[o(pos)][i(pos)] = val;
 	}
 
+	
+	private void incrementHelp(final long pos, final long val) {
+		data[o(pos)][i(pos)] += val;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -292,8 +297,7 @@ public final class LongArray implements Serializable
 		if (index >= size) {
 			setAndGrowIfNeeded(index, count);
 		} else {
-			final long l = getHelp(index);
-			setHelp(index, l + count);
+			incrementHelp(index,count);
 		}
 	}
 
