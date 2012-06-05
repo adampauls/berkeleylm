@@ -551,7 +551,22 @@ public class TIntMap<T extends Comparable> extends AbstractTMap<T> implements It
 	 * new entry is created, the value at that position will be Double.NaN.
 	 * Here's where all the magic happens.
 	 */
-	private synchronized int find(final T key, final boolean modify) {
+	private int find(final T key, final boolean modify) {
+		if (modify)
+			synchronized (this) {
+				return findHelper(key, modify);
+			}
+		else
+			return findHelper(key, modify);
+
+	}
+
+	/**
+	 * @param key
+	 * @param modify
+	 * @return
+	 */
+	private int findHelper(final T key, final boolean modify) {
 		//System.out.println("find " + key + " " + modify + " " + mapType + " " + capacity());
 		if (mapType == MapType.SORTED_LIST) {
 			// Binary search
@@ -611,7 +626,6 @@ public class TIntMap<T extends Comparable> extends AbstractTMap<T> implements It
 				return -1;
 		} else
 			throw new RuntimeException("Internal bug: " + mapType);
-
 	}
 
 	private void allocate(final int n) {
