@@ -557,7 +557,7 @@ public class TIntMap<T extends Comparable> extends AbstractTMap<T> implements It
 				return findHelper(key, modify);
 			}
 		else
-			return findHelper(key, modify);
+			return findHelperNoModify(key);
 
 	}
 
@@ -607,25 +607,65 @@ public class TIntMap<T extends Comparable> extends AbstractTMap<T> implements It
 			}
 
 			//System.out.println("!!! " + keyHash + " " + capacity);
-			if (num == capacity) throw new RuntimeException("Hash table is full: " + capacity);
-			while (keys[i] != null && !keys[i].equals(key)) { // Collision
+			
+			T currKey = null;
+			int numCollisionsHere = 0;
+			while ((currKey = keys[i]) != null && !currKey.equals(key)) { // Collision
 				// Warning: infinite loop if the hash table is full
 				// (but this shouldn't happen based on the check above)
 				i++;
-				numCollisions++;
+				numCollisionsHere++;
+				
 				if (i == capacity) i = 0;
 			}
+			numCollisions += numCollisionsHere;
 			if (keys[i] != null) { // Found
 				return i;
 			}
 			if (modify) { // Not found
 				num++;
+				if (num == capacity) throw new RuntimeException("Hash table is full: " + capacity);
 				values[i] = -1;
 				return i;
 			} else
 				return -1;
 		} else
 			throw new RuntimeException("Internal bug: " + mapType);
+	}
+	
+	private int findHelperNoModify(final T key) {
+		//System.out.println("find " + key + " " + modify + " " + mapType + " " + capacity());
+		if (mapType == MapType.SORTED_LIST) {
+			// Binary search
+			final int i = binarySearch(key);
+			if (i < num && keys[i] != null && key.equals(keys[i])) return i;
+			
+				return -1;
+		} else if (mapType == MapType.HASH_TABLE) {
+			final int capacity = capacity();
+			final int keyHash = hash(key);
+			int i = keyHash % capacity;
+			if (i < 0) i = -i; // Arbitrary transformation
+
+			//System.out.println("!!! " + keyHash + " " + capacity);
+			
+			T currKey = null;
+			int numCollisionsHere = 0;
+			while ((currKey = keys[i]) != null && !currKey.equals(key)) { // Collision
+				// Warning: infinite loop if the hash table is full
+				// (but this shouldn't happen based on the check above)
+				i++;
+				numCollisionsHere++;
+				
+				if (i == capacity) i = 0;
+			}
+			numCollisions += numCollisionsHere;
+			if (keys[i] != null) { // Found
+				return i;
+			}
+			
+				return -1;
+		} else return -1;
 	}
 
 	private void allocate(final int n) {
