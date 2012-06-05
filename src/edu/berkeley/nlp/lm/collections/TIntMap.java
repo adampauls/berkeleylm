@@ -601,7 +601,6 @@ public class TIntMap<T extends Comparable> extends AbstractTMap<T> implements It
 				if (i == capacity) i = 0;
 			}
 			if (keys[i] != null) { // Found
-				assert key.equals(keys[i]);
 				return i;
 			}
 			if (modify) { // Not found
