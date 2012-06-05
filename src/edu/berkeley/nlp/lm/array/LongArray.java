@@ -289,11 +289,11 @@ public final class LongArray implements Serializable
 	}
 
 	public void incrementCount(final long index, final long count) {
-		if (index >= size()) {
+		if (index >= size) {
 			setAndGrowIfNeeded(index, count);
 		} else {
-			final long l = get(index);
-			set(index, l + count);
+			final long l = getHelp(index);
+			setHelp(index, l + count);
 		}
 	}
 
