@@ -59,7 +59,7 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 		List<Entry> oldObjects = countIndexer_.getObjectsSortedByValue(false);
 		for (int i = 0; i < Math.min(oldObjects.size(), defaultValRank); ++i)
 			countIndexer.put(oldObjects.get(i).key, countIndexer.size());
-		countIndexer.put(getDefaultVal().asLong(), countIndexer.size());
+		if (countIndexer_.get(getDefaultVal().asLong(), -1) < 0) countIndexer.put(getDefaultVal().asLong(), countIndexer.size());
 		for (int i = defaultValRank; i < oldObjects.size(); ++i)
 			countIndexer.put(oldObjects.get(i).key, countIndexer.size());
 		wordWidth = CustomWidthArray.numBitsNeeded(countIndexer.size());
