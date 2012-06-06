@@ -125,6 +125,7 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 		callback.handleNgramOrderStarted(currentNGramLength);
 		try {
 			String line = null;
+			int[] ngramScratch = new int[currentNGramLength];
 			while ((line = reader.readLine()) != null) {
 				if (currLine % 100000 == 0) Logger.logs("Read " + currLine + " lines");
 				currLine++;
@@ -138,12 +139,13 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 						callback.handleNgramOrderFinished(currentNGramLength);
 						currentNGramLength++;
 						if (currentNGramLength > maxOrder) return;
+						 ngramScratch = new int[currentNGramLength];
 						currentNGramCount = 0;
 						callback.handleNgramOrderStarted(currentNGramLength);
 						Logger.startTrack("Reading " + currentNGramLength + "-grams");
 					}
 				} else {
-					parseLine(callback, line);
+					parseLine(callback, line,ngramScratch);
 				}
 			}
 			reader.close();
@@ -160,7 +162,7 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 	 * @param line
 	 * @throws ARPAParserException
 	 */
-	protected void parseLine(final ArpaLmReaderCallback<ProbBackoffPair> callback, final String line) {
+	private void parseLine(final ArpaLmReaderCallback<ProbBackoffPair> callback, final String line, final int[] ngram) {
 		// this is a 2 or 3 columns n-gram entry
 		final int firstTab = line.indexOf('\t');
 		final int secondTab = line.indexOf('\t', firstTab + 1);
@@ -168,8 +170,7 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 
 		final int length = line.length();
 		final String logProbString = line.substring(0, firstTab);
-		final String firstWord = line.substring(firstTab + 1, secondTab < 0 ? length : secondTab);
-		final int[] ngram = parseNGram(firstWord, currentNGramLength);
+		parseNGram(line, firstTab + 1, secondTab < 0 ? length : secondTab, ngram);
 
 		// the first column contains the log pr
 		final float logProbability = Float.parseFloat(logProbString);
@@ -191,18 +192,16 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 	 * @param string
 	 * @return
 	 */
-	private int[] parseNGram(final String string, final int numWords) {
-		final int[] retVal = new int[numWords];
-		int spaceIndex = 0;
+	private void parseNGram(final String string, int start, int stringLength, final int[] retVal) {
 		int k = 0;
+		int spaceIndex = start;
 		while (true) {
 			final int nextIndex = string.indexOf(' ', spaceIndex);
-			final String currWord = string.substring(spaceIndex, nextIndex < 0 ? string.length() : nextIndex);
+			final String currWord = string.substring(spaceIndex, nextIndex < 0 ? stringLength : nextIndex);
 			retVal[k++] = wordIndexer.getOrAddIndexFromString(currWord);
 			if (nextIndex < 0) break;
 			spaceIndex = nextIndex + 1;
 		}
-		return retVal;
 	}
 
 	
