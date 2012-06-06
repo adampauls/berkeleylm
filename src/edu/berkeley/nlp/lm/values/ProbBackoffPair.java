@@ -6,6 +6,8 @@ import edu.berkeley.nlp.lm.collections.LongRepresentable;
 public class ProbBackoffPair implements Comparable<ProbBackoffPair>, LongRepresentable<ProbBackoffPair>
 {
 
+	private static final long INT_BITS_MASK = ((1L << Integer.SIZE) - 1);
+
 	static final int MANTISSA_MASK = 0x9fffff;
 
 	static final int REST_MASK = ~MANTISSA_MASK;
@@ -71,7 +73,11 @@ public class ProbBackoffPair implements Comparable<ProbBackoffPair>, LongReprese
 
 	@Override
 	public long asLong() {
-		return (((long) Float.floatToIntBits(prob)) << Integer.SIZE) + Float.floatToIntBits(backoff);
+		final int probBits = Float.floatToIntBits(prob);
+		final int backoffBits = Float.floatToIntBits(backoff);
+		final long probBitsShifted = ((long) probBits) << Integer.SIZE;
+		final long backoffBitsShifted = backoffBits & INT_BITS_MASK;
+		return probBitsShifted | backoffBitsShifted;
 	}
 
 	public static float probOf(long key) {
@@ -80,7 +86,7 @@ public class ProbBackoffPair implements Comparable<ProbBackoffPair>, LongReprese
 	}
 
 	public static float backoffOf(long key) {
-		return Float.intBitsToFloat((int) (key & ((1L << Integer.SIZE) - 1)));
+		return Float.intBitsToFloat((int) (key & INT_BITS_MASK));
 
 	}
 }
