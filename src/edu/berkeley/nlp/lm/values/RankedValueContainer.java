@@ -103,11 +103,12 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 	}
 
 	@Override
-	public final void decompress(final BitStream bits, final int ngramOrder, final boolean justConsume, @OutputParameter final V outputVal) {
+	public void decompress(final BitStream bits, final int ngramOrder, final boolean justConsume, @OutputParameter final V outputVal) {
 		final long longIndex = valueCoder.decompress(bits);
 		if (justConsume) return;
-		final int rank = (int) longIndex;
-		if (outputVal != null) getFromRank(rank, outputVal);
+		if (outputVal != null)  {final int rank = (int) longIndex;
+		getFromRank(rank, outputVal);
+		}
 	}
 
 	abstract protected V getDefaultVal();
