@@ -41,6 +41,7 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 
 	private final String file;
 
+
 	/**
 	 * 
 	 * @return
@@ -169,10 +170,10 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 		final boolean hasBackOff = (secondTab >= 0);
 
 		final int length = line.length();
-		final String logProbString = line.substring(0, firstTab);
 		parseNGram(line, firstTab + 1, secondTab < 0 ? length : secondTab, ngram);
 
 		// the first column contains the log pr
+		final String logProbString = line.substring(0, firstTab);
 		final float logProbability = Float.parseFloat(logProbString);
 		float backoff = 0.0f;
 

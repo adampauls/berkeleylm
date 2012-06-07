@@ -1,5 +1,8 @@
 package edu.berkeley.nlp.lm.values;
 
+import edu.berkeley.nlp.lm.array.CustomWidthArray;
+import edu.berkeley.nlp.lm.bits.BitList;
+import edu.berkeley.nlp.lm.bits.BitStream;
 import edu.berkeley.nlp.lm.collections.Indexer;
 import edu.berkeley.nlp.lm.collections.LongToIntHashMap;
 import edu.berkeley.nlp.lm.collections.LongToIntHashMap.Entry;
@@ -15,20 +18,52 @@ public final class CountValueContainer extends RankedValueContainer<LongRef>
 	@PrintMemoryCount
 	private final long[] countsForRank;
 
+	private transient LongToIntHashMap countIndexer;
+
 	private long unigramSum = 0L;
 
-	public CountValueContainer(final LongToIntHashMap countIndexer, final int valueRadix, final boolean storePrefixes, final int maxNgramOrder) {
-		super(countIndexer, valueRadix, storePrefixes, maxNgramOrder);
-		countsForRank = new long[this.countIndexer.size()];
+	public CountValueContainer(final LongToIntHashMap countCounter, final int valueRadix, final boolean storePrefixes, final int maxNgramOrder) {
+		super(valueRadix, storePrefixes, maxNgramOrder);
+		final boolean hasDefaultVal = countCounter.get(getDefaultVal().asLong(), -1) >= 0;
+		countsForRank = new long[countCounter.size() + (hasDefaultVal ? 0 : 1)];
+		countIndexer = new LongToIntHashMap();
 		int k = 0;
-		for (final Entry pair : this.countIndexer.getObjectsSortedByValue(false)) {
+		for (final Entry pair : countCounter.getObjectsSortedByValue(true)) {
+
+			countIndexer.put(pair.key, countIndexer.size());
 			countsForRank[k++] = pair.key;
+			if (countIndexer.size() == defaultValRank && !hasDefaultVal) {
+				countIndexer.put(getDefaultVal().asLong(), countIndexer.size());
+				countsForRank[k++] = getDefaultVal().asLong();
+
+			}
 		}
+		if (countIndexer.size() < defaultValRank && !hasDefaultVal) {
+			countIndexer.put(getDefaultVal().asLong(), countIndexer.size());
+			countsForRank[k++] = getDefaultVal().asLong();
+
+		}
+		wordWidth = CustomWidthArray.numBitsNeeded(countIndexer.size());
+	}
+
+	/**
+	 * @param valueRadix
+	 * @param storePrefixIndexes
+	 * @param maxNgramOrder
+	 * @param countsForRank
+	 * @param countIndexer
+	 */
+	private CountValueContainer(int valueRadix, boolean storePrefixIndexes, int maxNgramOrder, long[] countsForRank, LongToIntHashMap countIndexer,
+		int wordWidth) {
+		super(valueRadix, storePrefixIndexes, maxNgramOrder);
+		this.countsForRank = countsForRank;
+		this.countIndexer = countIndexer;
+		this.wordWidth = wordWidth;
 	}
 
 	@Override
 	public CountValueContainer createFreshValues() {
-		return new CountValueContainer(countIndexer, valueRadix, storeSuffixIndexes, valueRanks.length);
+		return new CountValueContainer(valueRadix, storeSuffixIndexes, valueRanks.length, countsForRank, countIndexer, wordWidth);
 	}
 
 	@Override
@@ -80,6 +115,23 @@ public final class CountValueContainer extends RankedValueContainer<LongRef>
 	@Override
 	public LongRef getScratchValue() {
 		return new LongRef(-1);
+	}
+
+	@Override
+	public void setFromOtherValues(final ValueContainer<LongRef> o) {
+		super.setFromOtherValues(o);
+		this.countIndexer = ((CountValueContainer) o).countIndexer;
+	}
+
+	@Override
+	public void trim() {
+		super.trim();
+		countIndexer = null;
+	}
+
+	@Override
+	protected int getCountRank(long val) {
+		return countIndexer.get(val, -1);
 	}
 
 }

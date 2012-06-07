@@ -26,8 +26,6 @@ public final class FirstPassCallback<V extends LongRepresentable<V>> implements 
 
 	private LongToIntHashMap valueCounter;
 
-	private LongToIntHashMap valueIndexer;
-
 	private LongArray[] numNgramsForEachWord;
 
 	private long[] numNgramsForOrder;
@@ -68,21 +66,15 @@ public final class FirstPassCallback<V extends LongRepresentable<V>> implements 
 	@Override
 	public void cleanup() {
 		Logger.startTrack("Cleaning up values");
-		valueIndexer = new LongToIntHashMap();
-		List<edu.berkeley.nlp.lm.collections.LongToIntHashMap.Entry> l = valueCounter.getObjectsSortedByValue(true);
-		for (int i = 0; i < l.size(); ++i) {
-			edu.berkeley.nlp.lm.collections.LongToIntHashMap.Entry entry = l.get(i);
-			valueIndexer.put(entry.key, i);
-		}
-		Logger.logss("Found " + valueIndexer.size() + " unique counts");
 
-		valueCounter = null;
+		Logger.logss("Found " + valueCounter.size() + " unique counts");
+
 		Logger.endTrack();
 
 	}
 
-	public LongToIntHashMap getIndexer() {
-		return valueIndexer;
+	public LongToIntHashMap getValueCounter() {
+		return valueCounter;
 
 	}
 

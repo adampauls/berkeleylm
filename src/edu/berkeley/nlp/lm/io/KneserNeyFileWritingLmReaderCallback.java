@@ -54,10 +54,6 @@ public class KneserNeyFileWritingLmReaderCallback<W> implements ArpaLmReaderCall
 	@Override
 	public void call(int[] ngram, int startPos, int endPos, ProbBackoffPair value, String words) {
 		final String line = StrUtils.join(WordIndexer.StaticMethods.toList(wordIndexer, ngram, startPos, endPos));
-		if (line.contains("\" ' </s>")) {
-			@SuppressWarnings("unused")
-			int x = 5;
-		}
 		final boolean endsWithEndSym = ngram[ngram.length - 1] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getEndSymbol());
 		if (endsWithEndSym || value.backoff == 0.0f)
 			out.printf("%f\t%s\n", value.prob, line);

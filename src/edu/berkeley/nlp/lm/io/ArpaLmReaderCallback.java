@@ -22,5 +22,4 @@ public interface ArpaLmReaderCallback<V> extends NgramOrderedLmReaderCallback<V>
 	 *            is the number of unigrams)
 	 */
 	public void initWithLengths(List<Long> numNGrams);
-
 }
