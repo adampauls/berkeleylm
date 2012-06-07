@@ -21,52 +21,122 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 
 	private transient LongToIntHashMap hasBackoffValIndexer;
 
-	private transient LongToIntHashMap noBackoffValIndexer;
-
 	private static final int HAS_BACKOFF = 1;
 
 	private static final int NO_BACKOFF = 0;
 
 	@PrintMemoryCount
-	final long[] probsAndBackoffsForRank; // ugly, but we but probs and backoffs consecutively in this area to improve cache locality
+	float[] backoffsForRank;
+
+	@PrintMemoryCount
+	final CustomWidthArray probsAndBackoffsForRank; // ugly, but we but probs and backoffs consecutively in this area to improve cache locality
 
 	@PrintMemoryCount
 	final float[] probsForRank; // ugly, but we but probs and backoffs consecutively in this area to improve cache locality
+
+	private int backoffWidth = -1;
 
 	public ProbBackoffValueContainer(final LongToIntHashMap countCounter, final int valueRadix, final boolean storePrefixes, int maxNgramOrder) {
 		super(valueRadix, storePrefixes, maxNgramOrder);
 		Logger.startTrack("Storing values");
 		final boolean hasDefaultVal = countCounter.get(getDefaultVal().asLong(), -1) >= 0;
-		hasBackoffValIndexer = new LongToIntHashMap();
-		noBackoffValIndexer = new LongToIntHashMap();
+		//		hasBackoffValIndexer = new LongToIntHashMap();
+		//		noBackoffValIndexer = new LongToIntHashMap();
 		List<Entry> objectsSortedByValue = countCounter.getObjectsSortedByValue(true);
+		Indexer<Float> probIndexer = new Indexer<Float>();
+		Indexer<Float> backoffIndexer = new Indexer<Float>();
+		probIndexer.getIndex(ProbBackoffPair.probOf(getDefaultVal().asLong()));
+		backoffIndexer.getIndex(ProbBackoffPair.backoffOf(getDefaultVal().asLong()));
+		hasBackoffValIndexer = new LongToIntHashMap();
 		for (Entry e : objectsSortedByValue) {
-			if (ProbBackoffPair.backoffOf(e.key) == 0.0f) {
-				noBackoffValIndexer.put(e.key, noBackoffValIndexer.size());
-			} else {
-				hasBackoffValIndexer.put(e.key, hasBackoffValIndexer.size());
-				if (hasBackoffValIndexer.size() == defaultValRank && !hasDefaultVal) {
-					hasBackoffValIndexer.put(getDefaultVal().asLong(), hasBackoffValIndexer.size());
+			final float backoff = ProbBackoffPair.backoffOf(e.key);
+			final float prob = ProbBackoffPair.probOf(e.key);
+			probIndexer.getIndex(prob);
+			backoffIndexer.getIndex(backoff);
+		}
+		probsForRank = new float[probIndexer.size()];
+		int a = 0;
+		for (float f : probIndexer.getObjects()) {
+			probsForRank[a++] = f;
+		}
+		backoffsForRank = new float[backoffIndexer.size()];
+		int b = 0;
+		for (float f : backoffIndexer.getObjects()) {
+			backoffsForRank[b++] = f;
+		}
+		backoffWidth = CustomWidthArray.numBitsNeeded(backoffIndexer.size());
+		final int width = CustomWidthArray.numBitsNeeded(probIndexer.size()) + backoffWidth;
+		probsAndBackoffsForRank = new CustomWidthArray(objectsSortedByValue.size() + (hasDefaultVal ? 0 : 1), width);
+		probsAndBackoffsForRank.ensureCapacity(objectsSortedByValue.size() + (hasDefaultVal ? 0 : 1));
+		for (Entry e : objectsSortedByValue) {
 
-				}
+			final float backoff = ProbBackoffPair.backoffOf(e.key);
+			final float prob = ProbBackoffPair.probOf(e.key);
+			int probIndex = probIndexer.getIndex(prob);
+			int backoffIndex = backoffIndexer.getIndex(backoff);
+			long together = combine(probIndex, backoffIndex);
+			hasBackoffValIndexer.put(e.key, (int) probsAndBackoffsForRank.size());
+			probsAndBackoffsForRank.addWithFixedCapacity(together);
+
+			if (probsAndBackoffsForRank.size() == defaultValRank && !hasDefaultVal) {
+				addDefault(probIndexer, backoffIndexer);
+
 			}
+			//			if (backoff == 0.0f) {
+			//				noBackoffValIndexer.put(e.key, noBackoffValIndexer.size());
+			//			} else {
+			//				hasBackoffValIndexer.put(e.key, hasBackoffValIndexer.size());
+			//			}
 		}
-		if (hasBackoffValIndexer.size() < defaultValRank && !hasDefaultVal) {
-			hasBackoffValIndexer.put(getDefaultVal().asLong(), hasBackoffValIndexer.size());
+		if (probsAndBackoffsForRank.size() < defaultValRank && !hasDefaultVal) {
+			addDefault(probIndexer, backoffIndexer);
 
 		}
-		probsAndBackoffsForRank = new long[hasBackoffValIndexer.size()];
-		probsForRank = new float[noBackoffValIndexer.size()];
-		wordWidth = CustomWidthArray.numBitsNeeded(Math.max(probsAndBackoffsForRank.length, probsForRank.length)) + 1;
-		for (java.util.Map.Entry<Long, Integer> entry : hasBackoffValIndexer.entries()) {
-			probsAndBackoffsForRank[entry.getValue()] = entry.getKey();
-		}
-		for (java.util.Map.Entry<Long, Integer> entry : noBackoffValIndexer.entries()) {
-			probsForRank[(entry.getValue())] = ProbBackoffPair.probOf(entry.getKey());
-		}
+
+		wordWidth = CustomWidthArray.numBitsNeeded(probsAndBackoffsForRank.size());
+		//		for (java.util.Map.Entry<Long, Integer> entry : hasBackoffValIndexer.entries()) {
+		//			probsAndBackoffsForRank[entry.getValue()] = entry.getKey();
+		//		}
+		//		for (java.util.Map.Entry<Long, Integer> entry : noBackoffValIndexer.entries()) {
+		//			probsForRank[(entry.getValue())] = ProbBackoffPair.probOf(entry.getKey());
+		//		}
 
 		Logger.logss("Storing count indices using " + wordWidth + " bits.");
 		Logger.endTrack();
+	}
+
+	/**
+	 * @param probIndexer
+	 * @param backoffIndexer
+	 * @param backoffWidth
+	 * @param k
+	 * @return
+	 */
+	private void addDefault(Indexer<Float> probIndexer, Indexer<Float> backoffIndexer) {
+		final float dbackoff = ProbBackoffPair.backoffOf(getDefaultVal().asLong());
+		final float dprob = ProbBackoffPair.probOf(getDefaultVal().asLong());
+		int dprobIndex = probIndexer.getIndex(dprob);
+		int dbackoffIndex = backoffIndexer.getIndex(dbackoff);
+		long dtogether = combine(dprobIndex, dbackoffIndex);
+		hasBackoffValIndexer.put(getDefaultVal().asLong(), (int) probsAndBackoffsForRank.size());
+		probsAndBackoffsForRank.addWithFixedCapacity(dtogether);
+	}
+
+	/**
+	 * @param dprobIndex
+	 * @param dbackoffIndex
+	 * @return
+	 */
+	private long combine(int dprobIndex, int dbackoffIndex) {
+		return (((long) dprobIndex) << backoffWidth) | dbackoffIndex;
+	}
+
+	private int backoffRankOf(long val) {
+		return (int) (val & ((1L << backoffWidth) - 1));
+	}
+
+	private int probRankOf(long val) {
+		return (int) (val >>> backoffWidth);
 	}
 
 	/**
@@ -77,21 +147,23 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 	 * @param noBackoffValIndexer
 	 * @param probsAndBackoffsForRank
 	 * @param probsForRank
+	 * @param hasBackoffValIndexer
 	 */
-	public ProbBackoffValueContainer(int valueRadix, boolean storePrefixIndexes, int maxNgramOrder, LongToIntHashMap hasBackoffValIndexer,
-		LongToIntHashMap noBackoffValIndexer, long[] probsAndBackoffsForRank, float[] probsForRank, int wordWidth) {
+	public ProbBackoffValueContainer(int valueRadix, boolean storePrefixIndexes, int maxNgramOrder, float[] probsForRank, float[] backoffsForRank,
+		CustomWidthArray probsAndBackoffsForRank, int wordWidth, LongToIntHashMap hasBackoffValIndexer, int backoffWidth) {
 		super(valueRadix, storePrefixIndexes, maxNgramOrder);
-		this.hasBackoffValIndexer = hasBackoffValIndexer;
-		this.noBackoffValIndexer = noBackoffValIndexer;
+		this.backoffsForRank = backoffsForRank;
 		this.probsAndBackoffsForRank = probsAndBackoffsForRank;
 		this.probsForRank = probsForRank;
 		super.wordWidth = wordWidth;
+		this.hasBackoffValIndexer = hasBackoffValIndexer;
+		this.backoffWidth = backoffWidth;
 	}
 
 	@Override
 	public ProbBackoffValueContainer createFreshValues() {
-		return new ProbBackoffValueContainer(valueRadix, storeSuffixIndexes, valueRanks.length, hasBackoffValIndexer, noBackoffValIndexer,
-			probsAndBackoffsForRank, probsForRank,wordWidth);
+		return new ProbBackoffValueContainer(valueRadix, storeSuffixIndexes, valueRanks.length, probsForRank, backoffsForRank, probsAndBackoffsForRank,
+			wordWidth, hasBackoffValIndexer,backoffWidth);
 	}
 
 	public final float getProb(final int ngramOrder, final long index) {
@@ -129,10 +201,13 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 	}
 
 	private float getFromRank(final int rank, final boolean backoff) {
-		if (rank % 2 == HAS_BACKOFF)
-			return backoff ? ProbBackoffPair.backoffOf(probsAndBackoffsForRank[rank >> 1]) : ProbBackoffPair.probOf(probsAndBackoffsForRank[rank >> 1]);
-		else
-			return backoff ? 0.0f : probsForRank[rank >> 1];
+		long val = probsAndBackoffsForRank.get(rank);
+		return backoff ? backoffsForRank[backoffRankOf(val)] : probsForRank[probRankOf(val)];
+
+		//		if (rank % 2 == HAS_BACKOFF)
+		//			return backoff ? ProbBackoffPair.backoffOf(probsAndBackoffsForRank[rank >> 1]) : ProbBackoffPair.probOf(probsAndBackoffsForRank[rank >> 1]);
+		//		else
+		//			return backoff ? 0.0f : probsForRank[rank >> 1];
 	}
 
 	public final float getBackoff(final int ngramOrder, final long index) {
@@ -164,31 +239,16 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 	public void setFromOtherValues(final ValueContainer<ProbBackoffPair> o) {
 		super.setFromOtherValues(o);
 		this.hasBackoffValIndexer = ((ProbBackoffValueContainer) o).hasBackoffValIndexer;
-		this.noBackoffValIndexer = ((ProbBackoffValueContainer) o).noBackoffValIndexer;
 	}
 
 	@Override
 	public void trim() {
 		super.trim();
 		hasBackoffValIndexer = null;
-		noBackoffValIndexer = null;
 	}
 
 	@Override
 	protected int getCountRank(long val) {
-		if (ProbBackoffPair.backoffOf(val) == 0.0f) {
-			int rank = noBackoffValIndexer.get(val, -1);
-			assert rank >= 0;
-			return ((rank << 1) | NO_BACKOFF);
-		} else {
-			int rank = hasBackoffValIndexer.get(val, -1);
-			if (rank < 0) {
-				@SuppressWarnings("unused")
-				int x = 5;
-			}
-			assert rank >= 0;
-
-			return ((rank << 1) | HAS_BACKOFF);
-		}
+		return hasBackoffValIndexer.get(val, -1);
 	}
 }
