@@ -409,7 +409,7 @@ public class LmReaders
 		final WordIndexer<W> wordIndexer, final FirstPassCallback<LongRef> valueAddingCallback, final LongArray[] numNgramsForEachWord, final boolean compress) {
 		final boolean contextEncoded = false;
 		final boolean reversed = true;
-		final CountValueContainer values = new CountValueContainer(valueAddingCallback.getIndexer(), opts.valueRadix, contextEncoded,
+		final CountValueContainer values = new CountValueContainer(valueAddingCallback.getValueCounter(), opts.valueRadix, contextEncoded,
 			numNgramsForEachWord.length);
 		final NgramMap<LongRef> map = buildMapCommon(opts, wordIndexer, numNgramsForEachWord, valueAddingCallback.getNumNgramsForEachOrder(), reversed,
 			lmReader, values, compress);
@@ -432,7 +432,7 @@ public class LmReaders
 		final LmReader<ProbBackoffPair, ArpaLmReaderCallback<ProbBackoffPair>> lmReader, final WordIndexer<W> wordIndexer,
 		final FirstPassCallback<ProbBackoffPair> valueAddingCallback, final LongArray[] numNgramsForEachWord, final boolean contextEncoded,
 		final boolean reversed, final boolean compress) {
-		final ProbBackoffValueContainer values = new ProbBackoffValueContainer(valueAddingCallback.getIndexer(), opts.valueRadix, contextEncoded,
+		final ProbBackoffValueContainer values = new ProbBackoffValueContainer(valueAddingCallback.getValueCounter(), opts.valueRadix, contextEncoded,
 			valueAddingCallback.getNumNgramsForEachOrder().length);
 		if (contextEncoded && compress) throw new RuntimeException("Compression is not supported by context-encoded LMs");
 		final NgramMap<ProbBackoffPair> map = buildMapCommon(opts, wordIndexer, numNgramsForEachWord, valueAddingCallback.getNumNgramsForEachOrder(), reversed,

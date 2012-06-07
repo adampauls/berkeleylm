@@ -33,36 +33,25 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 	//@PrintMemoryCount
 	//private LongArray[] contextOffsets;
 
-	protected transient LongToIntHashMap countIndexer;
-
 	protected final boolean storeSuffixIndexes;
 
 	protected final BitCompressor valueCoder;
 
 	protected final int valueRadix;
 
-	protected final int wordWidth;
+	protected int wordWidth;
 
 	final int rankShift;
+	
+	protected final int defaultValRank = 10;
 
-	private final int defaultValRank = 10;
-
-	public RankedValueContainer(final LongToIntHashMap countIndexer_, final int valueRadix, final boolean storePrefixIndexes, int maxNgramOrder) {
+	public RankedValueContainer(final int valueRadix, final boolean storePrefixIndexes, int maxNgramOrder) {
 		this.valueRadix = valueRadix;
 		valueCoder = new VariableLengthBitCompressor(valueRadix);
-		this.countIndexer = new LongToIntHashMap();
 		this.storeSuffixIndexes = storePrefixIndexes;
-		rankShift = this.storeSuffixIndexes ? 32 : 0;
-		//	if (storePrefixIndexes) contextOffsets = new LongArray[6];
+		rankShift = this.storeSuffixIndexes ? Integer.SIZE : 0;
 		valueRanks = new CustomWidthArray[maxNgramOrder];
-		// add default value near the beginning so it has a small rank
-		List<Entry> oldObjects = countIndexer_.getObjectsSortedByValue(false);
-		for (int i = 0; i < Math.min(oldObjects.size(), defaultValRank); ++i)
-			countIndexer.put(oldObjects.get(i).key, countIndexer.size());
-		if (countIndexer_.get(getDefaultVal().asLong(), -1) < 0) countIndexer.put(getDefaultVal().asLong(), countIndexer.size());
-		for (int i = defaultValRank; i < oldObjects.size(); ++i)
-			countIndexer.put(oldObjects.get(i).key, countIndexer.size());
-		wordWidth = CustomWidthArray.numBitsNeeded(countIndexer.size());
+
 	}
 
 	@Override
@@ -92,7 +81,8 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 
 		setSizeAtLeast(10, ngramOrder);
 
-		final int indexOfCounts = countIndexer.get(val.asLong(), defaultValRank);
+		final int indexOfCounts = getCountRank(val.asLong());
+		assert indexOfCounts >= 0;
 
 		if (storeSuffixIndexes) {
 			assert suffixOffset >= 0;
@@ -104,9 +94,23 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 
 	}
 
-	abstract protected V getDefaultVal();
+	abstract protected int getCountRank(long val);
 
-	//	abstract protected void storeCounts();
+	@Override
+	public BitList getCompressed(final long offset, final int ngramOrder) {
+		final int l = getRank(ngramOrder, offset);
+		return valueCoder.compress(l);
+	}
+
+	@Override
+	public final void decompress(final BitStream bits, final int ngramOrder, final boolean justConsume, @OutputParameter final V outputVal) {
+		final long longIndex = valueCoder.decompress(bits);
+		if (justConsume) return;
+		final int rank = (int) longIndex;
+		if (outputVal != null) getFromRank(rank, outputVal);
+	}
+
+	abstract protected V getDefaultVal();
 
 	abstract protected void getFromRank(final int rank, @OutputParameter V outputVal);
 
@@ -146,7 +150,7 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 		for (int i = 0; i < valueRanks.length; ++i) {
 			this.valueRanks[i] = o.valueRanks[i];
 		}
-		this.countIndexer = o.countIndexer;
+
 	}
 
 	protected int getRank(final int ngramOrder, final long offset) {
@@ -167,31 +171,8 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 	}
 
 	@Override
-	public final void decompress(final BitStream bits, final int ngramOrder, final boolean justConsume, @OutputParameter final V outputVal) {
-		final long longIndex = doDecode(bits);
-		if (justConsume) return;
-		final int rank = (int) longIndex;
-		if (outputVal != null) getFromRank(rank, outputVal);
-	}
-
-	/**
-	 * @param bits
-	 * @param huffmanEncoder
-	 * @return
-	 */
-	private long doDecode(final BitStream bits) {
-		return valueCoder.decompress(bits);
-	}
-
-	@Override
 	public void clearStorageAfterCompression(final int ngramOrder) {
 		if (ngramOrder > 0) valueRanks[ngramOrder] = null;
-	}
-
-	@Override
-	public BitList getCompressed(final long offset, final int ngramOrder) {
-		final int l = getRank(ngramOrder, offset);
-		return valueCoder.compress(l);
 	}
 
 	@Override
@@ -201,7 +182,6 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 
 	@Override
 	public void trim() {
-		countIndexer = null;
 
 	}
 
