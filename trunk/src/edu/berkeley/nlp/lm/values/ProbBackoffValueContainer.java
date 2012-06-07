@@ -21,10 +21,6 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 
 	private transient LongToIntHashMap hasBackoffValIndexer;
 
-	private static final int HAS_BACKOFF = 1;
-
-	private static final int NO_BACKOFF = 0;
-
 	@PrintMemoryCount
 	float[] backoffsForRank;
 
@@ -163,7 +159,7 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 	@Override
 	public ProbBackoffValueContainer createFreshValues() {
 		return new ProbBackoffValueContainer(valueRadix, storeSuffixIndexes, valueRanks.length, probsForRank, backoffsForRank, probsAndBackoffsForRank,
-			wordWidth, hasBackoffValIndexer,backoffWidth);
+			wordWidth, hasBackoffValIndexer, backoffWidth);
 	}
 
 	public final float getProb(final int ngramOrder, final long index) {
@@ -251,4 +247,25 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 	protected int getCountRank(long val) {
 		return hasBackoffValIndexer.get(val, -1);
 	}
+
+	@Override
+	public BitList getCompressed(final long offset, final int ngramOrder) {
+		final int rank = getRank(ngramOrder, offset);
+		long val = probsAndBackoffsForRank.get(rank);
+		final BitList probBits = valueCoder.compress(probRankOf(val));
+		probBits.addAll(valueCoder.compress(backoffRankOf(val)));
+		return probBits;
+	}
+
+	@Override
+	public final void decompress(final BitStream bits, final int ngramOrder, final boolean justConsume, @OutputParameter final ProbBackoffPair outputVal) {
+		final long probRank = valueCoder.decompress(bits);
+		final long backoffRank = valueCoder.decompress(bits);
+		if (justConsume) return;
+		if (outputVal != null) {
+			outputVal.prob = probsForRank[(int) probRank];
+			outputVal.backoff = backoffsForRank[(int) backoffRank];
+		}
+	}
+
 }
