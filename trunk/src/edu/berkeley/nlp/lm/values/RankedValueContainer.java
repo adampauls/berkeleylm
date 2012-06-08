@@ -30,6 +30,9 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 	@PrintMemoryCount
 	protected final CustomWidthArray[] valueRanks;
 
+	@PrintMemoryCount
+	protected final CustomWidthArray[] suffixOffsets;
+
 	//@PrintMemoryCount
 	//private LongArray[] contextOffsets;
 
@@ -41,16 +44,22 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 
 	protected int wordWidth;
 
-	final int rankShift;
-	
 	protected final int defaultValRank = 10;
 
-	public RankedValueContainer(final int valueRadix, final boolean storePrefixIndexes, int maxNgramOrder) {
+	protected final long[] numNgramsForEachOrder;
+
+	public RankedValueContainer(final int valueRadix, final boolean storePrefixIndexes, long[] numNgramsForEachOrder) {
 		this.valueRadix = valueRadix;
+		suffixOffsets = storePrefixIndexes ? new CustomWidthArray[numNgramsForEachOrder.length] : null;
+		this.numNgramsForEachOrder = numNgramsForEachOrder;
 		valueCoder = new VariableLengthBitCompressor(valueRadix);
 		this.storeSuffixIndexes = storePrefixIndexes;
-		rankShift = this.storeSuffixIndexes ? Integer.SIZE : 0;
-		valueRanks = new CustomWidthArray[maxNgramOrder];
+		if (storeSuffixIndexes) {
+			for (int i = 1; i < numNgramsForEachOrder.length; ++i) {
+				suffixOffsets[i] = new CustomWidthArray(numNgramsForEachOrder[i - 1], CustomWidthArray.numBitsNeeded(numNgramsForEachOrder[i]));
+			}
+		}
+		valueRanks = new CustomWidthArray[numNgramsForEachOrder.length];
 
 	}
 
@@ -81,24 +90,28 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 
 		setSizeAtLeast(10, ngramOrder);
 
-		final int indexOfCounts = getCountRank(val.asLong());
+		final long indexOfCounts = getCountRank(val.asLong());
+		if (indexOfCounts < 0) {
+			@SuppressWarnings("unused")
+			int x = 5;
+		}
 		assert indexOfCounts >= 0;
 
-		if (storeSuffixIndexes) {
+		if (storeSuffixIndexes && ngramOrder > 0) {
 			assert suffixOffset >= 0;
 			assert suffixOffset <= Integer.MAX_VALUE;
-			valueRanks[ngramOrder].setAndGrowIfNeeded(offset, suffixOffset | (long) indexOfCounts << rankShift);
-		} else
-			valueRanks[ngramOrder].setAndGrowIfNeeded(offset, indexOfCounts);
+			suffixOffsets[ngramOrder].setAndGrowIfNeeded(offset, suffixOffset);
+		}
+		valueRanks[ngramOrder].setAndGrowIfNeeded(offset, indexOfCounts);
 		return true;
 
 	}
 
-	abstract protected int getCountRank(long val);
+	abstract protected long getCountRank(long val);
 
 	@Override
 	public BitList getCompressed(final long offset, final int ngramOrder) {
-		final int l = getRank(ngramOrder, offset);
+		final long l = getRank(ngramOrder, offset);
 		return valueCoder.compress(l);
 	}
 
@@ -106,14 +119,15 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 	public void decompress(final BitStream bits, final int ngramOrder, final boolean justConsume, @OutputParameter final V outputVal) {
 		final long longIndex = valueCoder.decompress(bits);
 		if (justConsume) return;
-		if (outputVal != null)  {final int rank = (int) longIndex;
-		getFromRank(rank, outputVal);
+		if (outputVal != null) {
+			final int rank = (int) longIndex;
+			getFromRank(rank, outputVal);
 		}
 	}
 
 	abstract protected V getDefaultVal();
 
-	abstract protected void getFromRank(final int rank, @OutputParameter V outputVal);
+	abstract protected void getFromRank(final long rank, @OutputParameter V outputVal);
 
 	@Override
 	public void setSizeAtLeast(final long size, final int ngramOrder) {
@@ -122,19 +136,20 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 		//		}
 		if (valueRanks[ngramOrder] == null) {
 			//			valueRanks[ngramOrder] = new LongArray(size);
-			valueRanks[ngramOrder] = new CustomWidthArray(size, rankShift + wordWidth);
+			valueRanks[ngramOrder] = new CustomWidthArray(size, wordWidth);
 		}
 		valueRanks[ngramOrder].ensureCapacity(size + 1);
 
 	}
 
 	public long getSuffixOffset(final long index, final int ngramOrder) {
-		return getSuffixOffset(index, valueRanks[ngramOrder]);
+		return getSuffixOffset(index, suffixOffsets[ngramOrder]);
 	}
 
-	public long getSuffixOffset(final long index, final CustomWidthArray valueRanksForOrder) {
-		final long internalVal = valueRanksForOrder.get(index);
-		return getSuffixOffsetFromInternalVal(internalVal);
+	public long getSuffixOffset(final long index, final CustomWidthArray suffixOffsetsForOrder) {
+		return getRank(suffixOffsetsForOrder, index);
+		//		final long internalVal = valueRanksForOrder.get(index);
+		//		return getSuffixOffsetFromInternalVal(internalVal);
 	}
 
 	/**
@@ -154,22 +169,32 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 
 	}
 
-	protected int getRank(final int ngramOrder, final long offset) {
-		return getRank(valueRanks[ngramOrder], offset);
-	}
-
-	protected int getRank(final CustomWidthArray valueRanksForOrder, final long offset) {
-		final long internalVal = valueRanksForOrder.get(offset);
-		return getRankFromInternalVal(internalVal);
+	protected long getRank(final int ngramOrder, final long offset) {
+		final CustomWidthArray valueRanksHere = valueRanks[ngramOrder];
+		return getRank(valueRanksHere, offset);
 	}
 
 	/**
-	 * @param internalVal
+	 * @param offset
+	 * @param customWidthArray
 	 * @return
 	 */
-	protected int getRankFromInternalVal(final long internalVal) {
-		return (int) (internalVal >>> rankShift);
+	protected long getRank(final CustomWidthArray customWidthArray, final long offset) {
+		return customWidthArray.get(offset);
 	}
+
+	//	protected int getRank(final CustomWidthArray valueRanksForOrder, final long offset) {
+	//		final long internalVal = ;
+	//		return getRankFromInternalVal(internalVal);
+	//	}
+	//
+	//	/**
+	//	 * @param internalVal
+	//	 * @return
+	//	 */
+	//	protected int getRankFromInternalVal(final long internalVal) {
+	//		return (int) (internalVal >>> rankShift);
+	//	}
 
 	@Override
 	public void clearStorageAfterCompression(final int ngramOrder) {

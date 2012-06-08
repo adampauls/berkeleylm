@@ -410,7 +410,7 @@ public class LmReaders
 		final boolean contextEncoded = false;
 		final boolean reversed = true;
 		final CountValueContainer values = new CountValueContainer(valueAddingCallback.getValueCounter(), opts.valueRadix, contextEncoded,
-			numNgramsForEachWord.length);
+			new long[numNgramsForEachWord.length]);
 		final NgramMap<LongRef> map = buildMapCommon(opts, wordIndexer, numNgramsForEachWord, valueAddingCallback.getNumNgramsForEachOrder(), reversed,
 			lmReader, values, compress);
 		return new StupidBackoffLm<W>(numNgramsForEachWord.length, wordIndexer, map, opts);
@@ -433,7 +433,7 @@ public class LmReaders
 		final FirstPassCallback<ProbBackoffPair> valueAddingCallback, final LongArray[] numNgramsForEachWord, final boolean contextEncoded,
 		final boolean reversed, final boolean compress) {
 		final ProbBackoffValueContainer values = new ProbBackoffValueContainer(valueAddingCallback.getValueCounter(), opts.valueRadix, contextEncoded,
-			valueAddingCallback.getNumNgramsForEachOrder().length);
+			valueAddingCallback.getNumNgramsForEachOrder());
 		if (contextEncoded && compress) throw new RuntimeException("Compression is not supported by context-encoded LMs");
 		final NgramMap<ProbBackoffPair> map = buildMapCommon(opts, wordIndexer, numNgramsForEachWord, valueAddingCallback.getNumNgramsForEachOrder(), reversed,
 			lmReader, values, compress);
