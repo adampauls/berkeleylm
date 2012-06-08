@@ -69,13 +69,11 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 	}
 
 	@Override
-	public void swap(final long a_, final long b_, final int ngramOrder) {
+	public void swap(final long a, final long b, final int ngramOrder) {
 
-		final int a = (int) a_;
-		final int b = (int) b_;
 		final long temp = valueRanks[ngramOrder].get(a);
 		assert temp >= 0;
-		final long val = (int) valueRanks[ngramOrder].get(b);
+		final long val = valueRanks[ngramOrder].get(b);
 		assert val >= 0;
 		valueRanks[ngramOrder].set(a, val);
 		valueRanks[ngramOrder].set(b, temp);
