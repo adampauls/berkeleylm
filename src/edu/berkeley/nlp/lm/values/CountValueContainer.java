@@ -22,8 +22,8 @@ public final class CountValueContainer extends RankedValueContainer<LongRef>
 
 	private long unigramSum = 0L;
 
-	public CountValueContainer(final LongToIntHashMap countCounter, final int valueRadix, final boolean storePrefixes, final int maxNgramOrder) {
-		super(valueRadix, storePrefixes, maxNgramOrder);
+	public CountValueContainer(final LongToIntHashMap countCounter, final int valueRadix, final boolean storePrefixes, final long[] numNgramsForEachOrder) {
+		super(valueRadix, storePrefixes, numNgramsForEachOrder);
 		final boolean hasDefaultVal = countCounter.get(getDefaultVal().asLong(), -1) >= 0;
 		countsForRank = new long[countCounter.size() + (hasDefaultVal ? 0 : 1)];
 		countIndexer = new LongToIntHashMap();
@@ -53,9 +53,9 @@ public final class CountValueContainer extends RankedValueContainer<LongRef>
 	 * @param countsForRank
 	 * @param countIndexer
 	 */
-	private CountValueContainer(int valueRadix, boolean storePrefixIndexes, int maxNgramOrder, long[] countsForRank, LongToIntHashMap countIndexer,
+	private CountValueContainer(int valueRadix, boolean storePrefixIndexes, long[] numNgramsForEachOrder, long[] countsForRank, LongToIntHashMap countIndexer,
 		int wordWidth) {
-		super(valueRadix, storePrefixIndexes, maxNgramOrder);
+		super(valueRadix, storePrefixIndexes, numNgramsForEachOrder);
 		this.countsForRank = countsForRank;
 		this.countIndexer = countIndexer;
 		this.wordWidth = wordWidth;
@@ -63,7 +63,7 @@ public final class CountValueContainer extends RankedValueContainer<LongRef>
 
 	@Override
 	public CountValueContainer createFreshValues() {
-		return new CountValueContainer(valueRadix, storeSuffixIndexes, valueRanks.length, countsForRank, countIndexer, wordWidth);
+		return new CountValueContainer(valueRadix, storeSuffixIndexes, numNgramsForEachOrder, countsForRank, countIndexer, wordWidth);
 	}
 
 	@Override
@@ -73,9 +73,9 @@ public final class CountValueContainer extends RankedValueContainer<LongRef>
 	}
 
 	@Override
-	protected void getFromRank(final int rank, @OutputParameter final LongRef outputVal) {
+	protected void getFromRank(final long rank, @OutputParameter final LongRef outputVal) {
 
-		outputVal.value = countsForRank[rank];
+		outputVal.value = countsForRank[(int) rank];
 	}
 
 	public final long getCount(final int ngramOrder, final long index) {
@@ -130,7 +130,7 @@ public final class CountValueContainer extends RankedValueContainer<LongRef>
 	}
 
 	@Override
-	protected int getCountRank(long val) {
+	protected long getCountRank(long val) {
 		return countIndexer.get(val, -1);
 	}
 
