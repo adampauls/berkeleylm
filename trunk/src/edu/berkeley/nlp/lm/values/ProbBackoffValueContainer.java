@@ -262,18 +262,18 @@ public final class ProbBackoffValueContainer extends RankedValueContainer<ProbBa
 		final long rank = getRank(ngramOrder, offset);
 		//		long val = probsAndBackoffsForRank.get(rank);
 		final BitList probBits = valueCoder.compress(probRankOf(rank));
-		probBits.addAll(valueCoder.compress(backoffRankOf(rank)));
+		if (ngramOrder < probsForRank.length -1 ) probBits.addAll(valueCoder.compress(backoffRankOf(rank)));
 		return probBits;
 	}
 
 	@Override
 	public final void decompress(final BitStream bits, final int ngramOrder, final boolean justConsume, @OutputParameter final ProbBackoffPair outputVal) {
 		final long probRank = valueCoder.decompress(bits);
-		final long backoffRank = valueCoder.decompress(bits);
+		final long backoffRank = (ngramOrder < probsForRank.length -1 ) ? valueCoder.decompress(bits) :-1;
 		if (justConsume) return;
 		if (outputVal != null) {
 			outputVal.prob = probsForRank[(int) probRank];
-			outputVal.backoff = backoffsForRank[(int) backoffRank];
+			outputVal.backoff = (ngramOrder < probsForRank.length -1 ) ? backoffsForRank[(int) backoffRank] : 0;
 		}
 	}
 

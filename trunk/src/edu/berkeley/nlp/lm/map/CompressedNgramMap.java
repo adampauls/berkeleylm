@@ -147,9 +147,11 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	}
 
 	private void compress(final int ngramOrder) {
+		if (ngramOrder > 0) {
 			(maps[ngramOrder]).compressedKeys = compress(maps[ngramOrder].getUncompressedKeys(), maps[ngramOrder].size(), ngramOrder);
 			((CompressibleValueContainer<T>) values).clearStorageAfterCompression(ngramOrder);
-		maps[ngramOrder].clearUncompressedKeys();
+			maps[ngramOrder].clearUncompressedKeys();
+		}
 	}
 
 	private LongArray compress(final LongArray uncompressed, final long uncompressedSize, final int ngramOrder) {
@@ -415,13 +417,13 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	private long decompressSearch(final LongArray compressed, final long searchKey, final int ngramOrder, final T outputVal, final long searchOffset) {
 
-//		if (ngramOrder == 0) {
-//			final boolean lookingForOffset = searchKey >= 0;
-//			final int word = lookingForOffset ? wordOf(searchKey) : (int) searchOffset;
-//			if (word < 0 || word >= maps[0].size()) return -1;
-//			if (outputVal != null) values.getFromOffset(word, 0, outputVal);
-//			return lookingForOffset ? word : combineToKey(word, 0);
-//		}
+		if (ngramOrder == 0) {
+			final boolean lookingForOffset = searchKey >= 0;
+			final int word = lookingForOffset ? wordOf(searchKey) : (int) searchOffset;
+			if (word < 0 || word >= maps[0].size()) return -1;
+			if (outputVal != null) values.getFromOffset(word, 0, outputVal);
+			return lookingForOffset ? word : combineToKey(word, 0);
+		}
 		final long fromIndex = 0;
 		final long toIndex = ((compressed.size() / compressedBlockSize) - 1);
 		final long low = binarySearchBlocks(compressed, compressed.size(), searchKey, fromIndex, toIndex, searchOffset);
