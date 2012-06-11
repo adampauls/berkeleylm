@@ -3,6 +3,7 @@ package edu.berkeley.nlp.lm.cache;
 import edu.berkeley.nlp.lm.AbstractContextEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.WordIndexer;
+import edu.berkeley.nlp.lm.util.MurmurHash;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 
 /**
@@ -89,11 +90,7 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 	}
 
 	private static int hash(final long contextOffset, final int contextOrder, final int word) {
-		long hashCode = 1;
-		hashCode = 13 * hashCode + word;
-		hashCode = 13 * hashCode + contextOrder;
-		hashCode = 13 * hashCode + contextOffset;
-		return (int) hashCode;
+		return (int) MurmurHash.hashThreeLongs(contextOffset, contextOrder, word);
 	}
 
 }
