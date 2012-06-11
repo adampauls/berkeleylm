@@ -43,7 +43,7 @@ public interface ValueContainer<V> extends Serializable
 	 * 
 	 * @return
 	 */
-	public ValueContainer<V> createFreshValues();
+	public ValueContainer<V> createFreshValues(long[] numNgramsForEachOrder);
 
 	/**
 	 * Gets the value living at a particular offset.

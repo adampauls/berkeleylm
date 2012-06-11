@@ -6,7 +6,6 @@ import java.util.List;
 
 import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.array.LongArray;
-import edu.berkeley.nlp.lm.bits.BitCompressor;
 import edu.berkeley.nlp.lm.bits.BitList;
 import edu.berkeley.nlp.lm.bits.BitStream;
 import edu.berkeley.nlp.lm.bits.VariableLengthBitCompressor;
@@ -28,11 +27,11 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 
 	private static final int WORD_RADIX = 2;
 
-	private final BitCompressor offsetCoder;
+	private final VariableLengthBitCompressor offsetCoder;
 
-	private final BitCompressor wordCoder;
+	private final VariableLengthBitCompressor wordCoder;
 
-	private final BitCompressor suffixCoder;
+	private final VariableLengthBitCompressor suffixCoder;
 
 	private double totalKeyBitsFinal = 0;
 

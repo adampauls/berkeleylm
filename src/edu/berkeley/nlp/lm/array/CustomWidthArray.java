@@ -50,6 +50,11 @@ public final class CustomWidthArray implements Serializable
 	}
 
 	public CustomWidthArray(final long numWords, final int width) {
+		if (width == 0) {
+			@SuppressWarnings("unused")
+			int x = 5;
+		}
+		assert width > 0;
 		final long numBits = numWords * width;
 		//		assert (numBits <= (Integer.MAX_VALUE + 1L) * Long.SIZE) : ("CustomWidthArray can only be 2^37 bits long");
 		data = new LongArray(numLongs(numBits));// new long[numLongs(numBits)];
@@ -174,6 +179,10 @@ public final class CustomWidthArray implements Serializable
 		if (n == 0) return 1;
 		final int num = Long.SIZE - Long.numberOfLeadingZeros(n - 1);
 		if (n % 2 == 0) return num + 1;
+		if (num == 0) {
+			@SuppressWarnings("unused")
+			int x = 5;
+		}
 		return num;
 	}
 

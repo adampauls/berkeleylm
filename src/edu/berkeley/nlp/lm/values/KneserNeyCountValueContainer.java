@@ -95,7 +95,7 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 	}
 
 	@Override
-	public KneserNeyCountValueContainer createFreshValues() {
+	public KneserNeyCountValueContainer createFreshValues(long[] numNgramsForEachOrder) {
 		final KneserNeyCountValueContainer kneseryNeyCountValueContainer = new KneserNeyCountValueContainer(rightDotTypeCounts.length + 1, startIndex);
 		kneseryNeyCountValueContainer.bigramTypeCounts = this.bigramTypeCounts;
 

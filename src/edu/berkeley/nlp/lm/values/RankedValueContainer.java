@@ -6,7 +6,6 @@ import java.util.List;
 
 import edu.berkeley.nlp.lm.array.CustomWidthArray;
 import edu.berkeley.nlp.lm.array.LongArray;
-import edu.berkeley.nlp.lm.bits.BitCompressor;
 import edu.berkeley.nlp.lm.bits.BitList;
 import edu.berkeley.nlp.lm.bits.BitStream;
 import edu.berkeley.nlp.lm.bits.VariableLengthBitCompressor;
@@ -38,7 +37,7 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 
 	protected final boolean storeSuffixIndexes;
 
-	protected final BitCompressor valueCoder;
+	protected final VariableLengthBitCompressor valueCoder;
 
 	protected final int valueRadix;
 
@@ -56,7 +55,7 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 		this.storeSuffixIndexes = storePrefixIndexes;
 		if (storeSuffixIndexes) {
 			for (int i = 1; i < numNgramsForEachOrder.length; ++i) {
-				suffixOffsets[i] = new CustomWidthArray(numNgramsForEachOrder[i - 1], CustomWidthArray.numBitsNeeded(numNgramsForEachOrder[i]));
+				suffixOffsets[i] = new CustomWidthArray(numNgramsForEachOrder[i], CustomWidthArray.numBitsNeeded(numNgramsForEachOrder[i - 1]));
 			}
 		}
 		valueRanks = new CustomWidthArray[numNgramsForEachOrder.length];
@@ -89,10 +88,7 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 		setSizeAtLeast(10, ngramOrder);
 
 		final long indexOfCounts = getCountRank(val.asLong());
-		if (indexOfCounts < 0) {
-			@SuppressWarnings("unused")
-			int x = 5;
-		}
+
 		assert indexOfCounts >= 0;
 
 		if (storeSuffixIndexes && ngramOrder > 0) {
@@ -163,6 +159,7 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 		final RankedValueContainer<V> o = (RankedValueContainer<V>) other;
 		for (int i = 0; i < valueRanks.length; ++i) {
 			this.valueRanks[i] = o.valueRanks[i];
+			this.suffixOffsets[i] = o.suffixOffsets[i];
 		}
 
 	}
@@ -202,6 +199,7 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 	@Override
 	public void trimAfterNgram(final int ngramOrder, final long size) {
 		valueRanks[ngramOrder].trim();
+		if (suffixOffsets != null && suffixOffsets[ngramOrder] != null) suffixOffsets[ngramOrder].trim();
 	}
 
 	@Override
@@ -212,6 +210,7 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 	@Override
 	public void clearStorageForOrder(final int ngramOrder) {
 		valueRanks[ngramOrder] = null;
+		if (suffixOffsets != null) suffixOffsets[ngramOrder] = null;
 	}
 
 	@Override
