@@ -26,8 +26,9 @@ import edu.berkeley.nlp.lm.map.NgramMapWrapper;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.util.LongRef;
 import edu.berkeley.nlp.lm.values.CompressibleValueContainer;
+import edu.berkeley.nlp.lm.values.CompressibleProbBackoffValueContainer;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
-import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
+import edu.berkeley.nlp.lm.values.UncompressedProbBackoffValueContainer;
 import edu.berkeley.nlp.lm.values.CountValueContainer;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
@@ -432,8 +433,9 @@ public class LmReaders
 		final LmReader<ProbBackoffPair, ArpaLmReaderCallback<ProbBackoffPair>> lmReader, final WordIndexer<W> wordIndexer,
 		final FirstPassCallback<ProbBackoffPair> valueAddingCallback, final LongArray[] numNgramsForEachWord, final boolean contextEncoded,
 		final boolean reversed, final boolean compress) {
-		final ProbBackoffValueContainer values = new ProbBackoffValueContainer(valueAddingCallback.getValueCounter(), opts.valueRadix, contextEncoded,
-			valueAddingCallback.getNumNgramsForEachOrder());
+		final ValueContainer<ProbBackoffPair> values = compress ? new CompressibleProbBackoffValueContainer(valueAddingCallback.getValueCounter(), opts.valueRadix,
+			contextEncoded, valueAddingCallback.getNumNgramsForEachOrder()) : new UncompressedProbBackoffValueContainer(valueAddingCallback.getValueCounter(),
+			opts.valueRadix, contextEncoded, valueAddingCallback.getNumNgramsForEachOrder());
 		if (contextEncoded && compress) throw new RuntimeException("Compression is not supported by context-encoded LMs");
 		final NgramMap<ProbBackoffPair> map = buildMapCommon(opts, wordIndexer, numNgramsForEachWord, valueAddingCallback.getNumNgramsForEachOrder(), reversed,
 			lmReader, values, compress);
@@ -470,7 +472,7 @@ public class LmReaders
 				numNgramsForEachOrder[ngramOrder]++;
 				numNgramsForEachWord[ngramOrder].incrementCount(headWord, 1);
 			}
-			map = createNgramMap(opts, numNgramsForEachWord, numNgramsForEachOrder, reversed, values.createFreshValues(), compress);
+			map = createNgramMap(opts, numNgramsForEachWord, numNgramsForEachOrder, reversed, values.createFreshValues(numNgramsForEachOrder), compress);
 			lmReader.parse(new NgramMapAddingCallback<V>(map, failures));
 			Logger.endTrack();
 		}

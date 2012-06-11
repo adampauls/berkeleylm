@@ -62,8 +62,8 @@ public final class CountValueContainer extends RankedValueContainer<LongRef>
 	}
 
 	@Override
-	public CountValueContainer createFreshValues() {
-		return new CountValueContainer(valueRadix, storeSuffixIndexes, numNgramsForEachOrder, countsForRank, countIndexer, wordWidth);
+	public CountValueContainer createFreshValues(long[] numNgramsForEachOrder_) {
+		return new CountValueContainer(valueRadix, storeSuffixIndexes, numNgramsForEachOrder_, countsForRank, countIndexer, wordWidth);
 	}
 
 	@Override

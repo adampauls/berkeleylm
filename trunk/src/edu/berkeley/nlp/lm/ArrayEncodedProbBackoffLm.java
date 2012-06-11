@@ -8,8 +8,8 @@ import java.util.Random;
 import edu.berkeley.nlp.lm.collections.Counter;
 import edu.berkeley.nlp.lm.map.ContextEncodedNgramMap;
 import edu.berkeley.nlp.lm.map.NgramMap;
-import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
+import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 
 /**
  * Language model implementation which uses Kneser-Ney-style backoff

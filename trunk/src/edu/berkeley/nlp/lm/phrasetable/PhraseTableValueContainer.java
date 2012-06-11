@@ -82,7 +82,7 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 	}
 
 	@Override
-	public PhraseTableValueContainer createFreshValues() {
+	public PhraseTableValueContainer createFreshValues(long[] numNgramsForEachOrder_) {
 		return new PhraseTableValueContainer(separatorWord, numFeatures);
 	}
 

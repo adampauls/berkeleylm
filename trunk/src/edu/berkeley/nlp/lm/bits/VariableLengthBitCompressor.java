@@ -1,6 +1,8 @@
 package edu.berkeley.nlp.lm.bits;
 
-public class VariableLengthBitCompressor implements BitCompressor
+import java.io.Serializable;
+
+public final class VariableLengthBitCompressor implements Serializable
 {
 	/**
 	 * 
@@ -13,12 +15,10 @@ public class VariableLengthBitCompressor implements BitCompressor
 		this.radix = radix;
 	}
 
-	@Override
 	public BitList compress(final long n) {
 		return CompressionUtils.variableCompress(n, radix);
 	}
 
-	@Override
 	public long decompress(final BitStream bits) {
 		return CompressionUtils.variableDecompress(bits, radix);
 	}
