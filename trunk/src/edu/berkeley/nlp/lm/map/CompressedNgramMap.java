@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import edu.berkeley.nlp.lm.ConfigOptions;
+import edu.berkeley.nlp.lm.array.CustomWidthArray;
 import edu.berkeley.nlp.lm.array.LongArray;
 import edu.berkeley.nlp.lm.bits.BitList;
 import edu.berkeley.nlp.lm.bits.BitStream;
@@ -585,6 +586,11 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		if (offset < 0) { return null; }
 		return val;
 
+	}
+
+	@Override
+	public CustomWidthArray getValueStoringArray(final int ngramOrder) {
+		return null;
 	}
 
 }

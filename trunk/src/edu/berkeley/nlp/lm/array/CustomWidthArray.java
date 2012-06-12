@@ -13,6 +13,10 @@ import java.io.Serializable;
 public final class CustomWidthArray implements Serializable
 {
 
+	public int getKeyWidth() {
+		return keyWidth;
+	}
+
 	private static final long serialVersionUID = 1L;
 
 	private final static int LOG2_BITS_PER_WORD = 6;
@@ -210,6 +214,10 @@ public final class CustomWidthArray implements Serializable
 	 */
 	private void setHelp(final long index, final long value, final int offset, final int width) {
 
+		if (numBitsNeeded(value) > width) {
+			@SuppressWarnings("unused")
+			int x = 5;
+		}
 		assert numBitsNeeded(value) <= width : "Value " + value + " bits " + width;
 		final long start = index * fullWidth + offset;
 		final long startWord = word(start);
@@ -301,13 +309,12 @@ public final class CustomWidthArray implements Serializable
 				lastDatum = currArray[(int) word];
 				goneAroundOnce = true;
 			}
-			final long to = from + keyWidth;
 			final long searchKey = (bit <= widthDiff) ? (lastDatum << widthDiff - bit >>> widthDiff)
 				: (lastDatum >>> bit | (currArray[innerIndex + 1]) << Long.SIZE + widthDiff - bit >>> widthDiff);
 			if (searchKey == key) { return i; }
 			if (searchKey == emptyKey) { return returnFirstEmptyIndex ? i : -1L; }
 			i++;
-			from = to;
+			from += fullWidth;
 			final long nextWord = word(from);
 			if (nextWord > word) {
 				word = nextWord;

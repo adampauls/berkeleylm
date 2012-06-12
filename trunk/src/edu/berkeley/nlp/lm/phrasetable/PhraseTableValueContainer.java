@@ -279,4 +279,9 @@ public final class PhraseTableValueContainer implements ValueContainer<PhraseTab
 		return false;
 	}
 
+	@Override
+	public int numValueBits(int ngramOrder) {
+		return 0;
+	}
+
 }

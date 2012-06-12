@@ -619,4 +619,9 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		}
 		return ret;
 	}
+
+	@Override
+	public CustomWidthArray getValueStoringArray(final int ngramOrder) {
+		return (ngramOrder == 0 || isExplicit) ? null : implicitMaps[ngramOrder - 1].keys;
+	}
 }

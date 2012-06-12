@@ -2,6 +2,7 @@ package edu.berkeley.nlp.lm.map;
 
 import java.util.List;
 
+import edu.berkeley.nlp.lm.array.CustomWidthArray;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
@@ -26,6 +27,7 @@ public interface NgramMap<V>
 
 	public Iterable<Entry<V>> getNgramsForOrder(final int ngramOrder);
 
+	public CustomWidthArray getValueStoringArray(final int ngramOrder);
 
 	public static class Entry<T>
 	{

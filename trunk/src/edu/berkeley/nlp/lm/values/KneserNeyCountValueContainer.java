@@ -314,4 +314,9 @@ public final class KneserNeyCountValueContainer implements ValueContainer<Kneser
 		return twoCountOffsets[ngramOrder].size();
 	}
 
+	@Override
+	public int numValueBits(int ngramOrder) {
+		return 0;
+	}
+
 }
