@@ -433,9 +433,9 @@ public class LmReaders
 		final LmReader<ProbBackoffPair, ArpaLmReaderCallback<ProbBackoffPair>> lmReader, final WordIndexer<W> wordIndexer,
 		final FirstPassCallback<ProbBackoffPair> valueAddingCallback, final LongArray[] numNgramsForEachWord, final boolean contextEncoded,
 		final boolean reversed, final boolean compress) {
-		final ValueContainer<ProbBackoffPair> values = compress ? new CompressibleProbBackoffValueContainer(valueAddingCallback.getValueCounter(), opts.valueRadix,
-			contextEncoded, valueAddingCallback.getNumNgramsForEachOrder()) : new UncompressedProbBackoffValueContainer(valueAddingCallback.getValueCounter(),
-			opts.valueRadix, contextEncoded, valueAddingCallback.getNumNgramsForEachOrder());
+		final ValueContainer<ProbBackoffPair> values = compress ? new CompressibleProbBackoffValueContainer(valueAddingCallback.getValueCounter(),
+			opts.valueRadix, contextEncoded, valueAddingCallback.getNumNgramsForEachOrder()) : new UncompressedProbBackoffValueContainer(
+			valueAddingCallback.getValueCounter(), opts.valueRadix, contextEncoded, valueAddingCallback.getNumNgramsForEachOrder());
 		if (contextEncoded && compress) throw new RuntimeException("Compression is not supported by context-encoded LMs");
 		final NgramMap<ProbBackoffPair> map = buildMapCommon(opts, wordIndexer, numNgramsForEachWord, valueAddingCallback.getNumNgramsForEachOrder(), reversed,
 			lmReader, values, compress);
@@ -459,11 +459,8 @@ public class LmReaders
 		Logger.startTrack("Adding n-grams");
 		NgramMap<V> map = createNgramMap(opts, numNgramsForEachWord, numNgramsForEachOrder, reversed, values, compress);
 
-		final NgramMapAddingCallback<V> ngramMapAddingCallback = new NgramMapAddingCallback<V>(map, null);
-		lmReader.parse(ngramMapAddingCallback);
-		if (opts.lockIndexer) wordIndexer.trimAndLock();
+		final List<int[]> failures = tryBuildingNgramMap(opts, wordIndexer, lmReader, map);
 		Logger.endTrack();
-		final List<int[]> failures = ngramMapAddingCallback.getFailures();
 		if (!failures.isEmpty()) {
 			Logger.startTrack(failures.size() + " missing suffixes or prefixes were found, doing another pass to add n-grams");
 			for (final int[] failure : failures) {
@@ -472,11 +469,36 @@ public class LmReaders
 				numNgramsForEachOrder[ngramOrder]++;
 				numNgramsForEachWord[ngramOrder].incrementCount(headWord, 1);
 			}
-			map = createNgramMap(opts, numNgramsForEachWord, numNgramsForEachOrder, reversed, values.createFreshValues(numNgramsForEachOrder), compress);
+
+			// try to clear some memory
+			for (int ngramOrder = 0; ngramOrder < numNgramsForEachOrder.length; ++ngramOrder) {
+				values.clearStorageForOrder(ngramOrder);
+			}
+			final ValueContainer<V> newValues = values.createFreshValues(numNgramsForEachOrder);
+			map = null;
+			map = createNgramMap(opts, numNgramsForEachWord, numNgramsForEachOrder, reversed, newValues, compress);
 			lmReader.parse(new NgramMapAddingCallback<V>(map, failures));
 			Logger.endTrack();
 		}
 		return map;
+	}
+
+	/**
+	 * @param <V>
+	 * @param <W>
+	 * @param opts
+	 * @param wordIndexer
+	 * @param lmReader
+	 * @param map
+	 * @return
+	 */
+	private static <V, W> List<int[]> tryBuildingNgramMap(final ConfigOptions opts, final WordIndexer<W> wordIndexer,
+		final LmReader<V, ? super NgramMapAddingCallback<V>> lmReader, NgramMap<V> map) {
+		final NgramMapAddingCallback<V> ngramMapAddingCallback = new NgramMapAddingCallback<V>(map, null);
+		lmReader.parse(ngramMapAddingCallback);
+		if (opts.lockIndexer) wordIndexer.trimAndLock();
+		final List<int[]> failures = ngramMapAddingCallback.getFailures();
+		return failures;
 	}
 
 	/**
