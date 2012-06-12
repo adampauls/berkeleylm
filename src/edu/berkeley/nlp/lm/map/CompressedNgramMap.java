@@ -593,4 +593,10 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 		return null;
 	}
 
+	@Override
+	public void clearStorage() {
+		for (int i = 0; i < maps.length; ++i)
+			maps[i] = null;
+	}
+
 }

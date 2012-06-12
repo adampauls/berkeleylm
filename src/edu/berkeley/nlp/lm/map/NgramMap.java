@@ -51,4 +51,6 @@ public interface NgramMap<V>
 
 	public V get(int[] ngram, int startPos, int endPos);
 
+	public void clearStorage();
+
 }

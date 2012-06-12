@@ -1,6 +1,7 @@
 package edu.berkeley.nlp.lm.cache;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
