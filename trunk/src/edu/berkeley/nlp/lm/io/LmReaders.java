@@ -476,6 +476,12 @@ public class LmReaders
 			}
 			final ValueContainer<V> newValues = values.createFreshValues(numNgramsForEachOrder);
 			map = null;
+			System.gc();
+			System.gc();
+			System.gc();
+			long totalMem = Runtime.getRuntime().totalMemory();
+			long freeMem = Runtime.getRuntime().freeMemory();
+			Logger.logss("Memory usage after clearing is " + (totalMem - freeMem));
 			map = createNgramMap(opts, numNgramsForEachWord, numNgramsForEachOrder, reversed, newValues, compress);
 			lmReader.parse(new NgramMapAddingCallback<V>(map, failures));
 			Logger.endTrack();
