@@ -214,10 +214,6 @@ public final class CustomWidthArray implements Serializable
 	 */
 	private void setHelp(final long index, final long value, final int offset, final int width) {
 
-		if (numBitsNeeded(value) > width) {
-			@SuppressWarnings("unused")
-			int x = 5;
-		}
 		assert numBitsNeeded(value) <= width : "Value " + value + " bits " + width;
 		final long start = index * fullWidth + offset;
 		final long startWord = word(start);
@@ -226,18 +222,24 @@ public final class CustomWidthArray implements Serializable
 		final long fullMask = width == Long.SIZE ? -1L : ((1L << width) - 1);
 
 		if (startWord == endWord) {
-			data.set(startWord, data.get(startWord) & ~(fullMask << startBit));
-			data.set(startWord, data.get(startWord) | (value << startBit));
+			long startWordLong = data.get(startWord);
+			startWordLong &= ~(fullMask << startBit);
+			startWordLong |= value << startBit;
+			data.set(startWord, startWordLong);
 
-			assert value == (data.get(startWord) >>> startBit & fullMask) : startWord + " " + startBit + " " + value;
+			assert value == (startWordLong >>> startBit & fullMask) : startWord + " " + startBit + " " + value;
 		} else {
 			// Here startBit > 0.
-			data.set(startWord, data.get(startWord) & ((1L << startBit) - 1));
-			data.set(startWord, data.get(startWord) | (value << startBit));
-			data.set(endWord, data.get(endWord) & (-(1L << width - BITS_PER_WORD + startBit)));
-			data.set(endWord, data.get(endWord) | (value >>> BITS_PER_WORD - startBit));
+			long startWordLong = data.get(startWord);
+			startWordLong &= ((1L << startBit) - 1);
+			startWordLong |= (value << startBit);
+			data.set(startWord, startWordLong);
+			long endWordLong = data.get(endWord);
+			endWordLong &= (-(1L << width - BITS_PER_WORD + startBit));
+			endWordLong |= (value >>> BITS_PER_WORD - startBit);
+			data.set(endWord, endWordLong);
 
-			assert value == (data.get(startWord) >>> startBit | data.get(endWord) << (BITS_PER_WORD - startBit) & fullMask);
+			assert value == (startWordLong >>> startBit | endWordLong << (BITS_PER_WORD - startBit) & fullMask);
 		}
 	}
 
