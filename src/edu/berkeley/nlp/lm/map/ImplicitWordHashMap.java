@@ -40,6 +40,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 
 	private final int ngramOrder;
 
+	@SuppressWarnings("unused")
 	private final int totalNumWords;
 
 	private final int maxNgramOrder;
