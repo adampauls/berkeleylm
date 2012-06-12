@@ -167,6 +167,10 @@ public final class CustomWidthArray implements Serializable
 		return getHelp(index, 0, keyWidth);
 	}
 
+	public long get(final long index, int offset, int width) {
+		return getHelp(index, offset, width);
+	}
+
 	/**
 	 * @param index
 	 * @return
@@ -206,11 +210,7 @@ public final class CustomWidthArray implements Serializable
 	 */
 	private void setHelp(final long index, final long value, final int offset, final int width) {
 
-		if (numBitsNeeded(value) > width) {
-			@SuppressWarnings("unused")
-			int x = 5;
-		}
-		assert numBitsNeeded(value) <= width;
+		assert numBitsNeeded(value) <= width : "Value " + value + " bits " + width;
 		final long start = index * fullWidth + offset;
 		final long startWord = word(start);
 		final long endWord = word(start + width - 1);
@@ -242,6 +242,14 @@ public final class CustomWidthArray implements Serializable
 			this.size = pos + 1;
 		}
 		set(pos, value);
+	}
+
+	public void setAndGrowIfNeeded(final long pos, final long value, final int offset, final int width) {
+		if (pos >= size) {
+			ensureCapacity(pos + 2);
+			this.size = pos + 1;
+		}
+		set(pos, value, offset, width);
 	}
 
 	public long size() {
