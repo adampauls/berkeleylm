@@ -220,10 +220,7 @@ public final class CustomWidthArray implements Serializable
 		if (startWord == endWord) {
 			data.set(startWord, data.get(startWord) & ~(fullMask << startBit));
 			data.set(startWord, data.get(startWord) | (value << startBit));
-			if (value != (data.get(startWord) >>> startBit & fullMask)) {
-				@SuppressWarnings("unused")
-				int x = 5;
-			}
+
 			assert value == (data.get(startWord) >>> startBit & fullMask) : startWord + " " + startBit + " " + value;
 		} else {
 			// Here startBit > 0.
