@@ -42,22 +42,20 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 
 	private final int totalNumWords;
 
+	private final int maxNgramOrder;
+
 	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final double loadFactor, final long[] wordRanges, final int ngramOrder,
-		@SuppressWarnings("unused") final int maxNgramOrder, @SuppressWarnings("unused") final long numNgramsForPreviousOrder, final int totalNumWords,
-		final AbstractNgramMap<?> ngramMap) {
+		final int maxNgramOrder, final long numNgramsForPreviousOrder, final int totalNumWords, final AbstractNgramMap<?> ngramMap) {
 		this.ngramOrder = ngramOrder;
 		this.ngramMap = ngramMap;
 		assert ngramOrder >= 1;
+		this.maxNgramOrder = maxNgramOrder;
 		this.totalNumWords = totalNumWords;
 		this.numWords = (int) numNgramsForEachWord.size();
 
 		this.wordRanges = wordRanges;
-		//wordRanges = new long[(int) numWords];
 		final long totalNumNgrams = setWordRanges(numNgramsForEachWord, loadFactor, numWords);
-		//		keys = new LongArray(totalNumNgrams);//(IntLongArray) LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
-		//		keys = new CustomWidthArray(totalNumNgrams);//(IntLongArray) LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
-		keys = new CustomWidthArray(totalNumNgrams, CustomWidthArray.numBitsNeeded(numNgramsForPreviousOrder));//(IntLongArray) LongArray.StaticMethods.newLongArray(totalNumNgrams, totalNumNgrams, totalNumNgrams);
-		Logger.logss("No word key size " + totalNumNgrams);
+		keys = new CustomWidthArray(totalNumNgrams, CustomWidthArray.numBitsNeeded(numNgramsForPreviousOrder));
 		keys.fill(EMPTY_KEY, totalNumNgrams);
 		numFilled = 0;
 	}
@@ -252,8 +250,12 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		return (rangeEnd - rangeStart > 0);
 	}
 
-	private int wordRangeIndex(final int i) {
-		return (ngramOrder - 1) * totalNumWords + i;
+	//	private int wordRangeIndex(final int w) {
+	//		return (ngramOrder - 1) * totalNumWords + w;
+	//	}
+
+	private int wordRangeIndex(final int w) {
+		return w * maxNgramOrder + ngramOrder - 1;
 	}
 
 	private long wordRanges(final int i) {
