@@ -3,6 +3,7 @@ package edu.berkeley.nlp.lm.io;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import edu.berkeley.nlp.lm.ArrayEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ArrayEncodedProbBackoffLm;
@@ -476,12 +477,6 @@ public class LmReaders
 			}
 			final ValueContainer<V> newValues = values.createFreshValues(numNgramsForEachOrder);
 			map.clearStorage();
-			System.gc();
-			System.gc();
-			System.gc();
-			long totalMem = Runtime.getRuntime().totalMemory();
-			long freeMem = Runtime.getRuntime().freeMemory();
-			Logger.logss("Memory usage after clearing is " + (totalMem - freeMem));
 			map = createNgramMap(opts, numNgramsForEachWord, numNgramsForEachOrder, reversed, newValues, compress);
 			lmReader.parse(new NgramMapAddingCallback<V>(map, failures));
 			Logger.endTrack();
