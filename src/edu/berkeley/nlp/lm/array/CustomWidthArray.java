@@ -178,9 +178,10 @@ public final class CustomWidthArray implements Serializable
 
 	public static int numBitsNeeded(final long n) {
 		if (n == 0) return 1;
-		final int num = Long.SIZE - Long.numberOfLeadingZeros(n - 1);
-		if (n % 2 == 0) return num + 1;
-		return num;
+		if (Long.bitCount(n) == 1)
+			return Long.SIZE - Long.numberOfLeadingZeros(n);
+		else
+			return Long.SIZE - Long.numberOfLeadingZeros(n - 1);
 	}
 
 	public void set(final long index, final long value) {
@@ -205,6 +206,11 @@ public final class CustomWidthArray implements Serializable
 	 */
 	private void setHelp(final long index, final long value, final int offset, final int width) {
 
+		if (numBitsNeeded(value) > width) {
+			@SuppressWarnings("unused")
+			int x = 5;
+		}
+		assert numBitsNeeded(value) <= width;
 		final long start = index * fullWidth + offset;
 		final long startWord = word(start);
 		final long endWord = word(start + width - 1);
@@ -214,6 +220,10 @@ public final class CustomWidthArray implements Serializable
 		if (startWord == endWord) {
 			data.set(startWord, data.get(startWord) & ~(fullMask << startBit));
 			data.set(startWord, data.get(startWord) | (value << startBit));
+			if (value != (data.get(startWord) >>> startBit & fullMask)) {
+				@SuppressWarnings("unused")
+				int x = 5;
+			}
 			assert value == (data.get(startWord) >>> startBit & fullMask) : startWord + " " + startBit + " " + value;
 		} else {
 			// Here startBit > 0.
