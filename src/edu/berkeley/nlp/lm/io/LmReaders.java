@@ -475,7 +475,7 @@ public class LmReaders
 				values.clearStorageForOrder(ngramOrder);
 			}
 			final ValueContainer<V> newValues = values.createFreshValues(numNgramsForEachOrder);
-			map = null;
+			map.clearStorage();
 			System.gc();
 			System.gc();
 			System.gc();
