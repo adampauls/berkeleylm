@@ -24,7 +24,8 @@ public final class UncompressedProbBackoffValueContainer extends RankedValueCont
 
 	LongToIntHashMap countIndexer;
 
-	public UncompressedProbBackoffValueContainer(final LongToIntHashMap countCounter, final int valueRadix, final boolean storePrefixes, long[] numNgramsForEachOrder) {
+	public UncompressedProbBackoffValueContainer(final LongToIntHashMap countCounter, final int valueRadix, final boolean storePrefixes,
+		long[] numNgramsForEachOrder) {
 		super(valueRadix, storePrefixes, numNgramsForEachOrder);
 		Logger.startTrack("Storing values");
 		final long defaultVal = getDefaultVal().asLong();
@@ -71,7 +72,8 @@ public final class UncompressedProbBackoffValueContainer extends RankedValueCont
 
 	@Override
 	public UncompressedProbBackoffValueContainer createFreshValues(long[] numNgramsForEachOrder_) {
-		return new UncompressedProbBackoffValueContainer(valueRadix, storeSuffixIndexes, numNgramsForEachOrder_, probsAndBackoffsForRank, countIndexer, wordWidth);
+		return new UncompressedProbBackoffValueContainer(valueRadix, storeSuffixIndexes, numNgramsForEachOrder_, probsAndBackoffsForRank, countIndexer,
+			wordWidth);
 	}
 
 	/*
@@ -169,6 +171,11 @@ public final class UncompressedProbBackoffValueContainer extends RankedValueCont
 	@Override
 	protected long getCountRank(long val) {
 		return countIndexer.get(val, -1);
+	}
+
+	@Override
+	protected boolean useValueStoringArray() {
+		return true;
 	}
 
 }

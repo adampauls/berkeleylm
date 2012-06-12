@@ -43,11 +43,13 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 
 	protected final int[] suffixBitsForOrder;
 
+	protected boolean useMapValueArray = false;
+
 	public RankedValueContainer(final int valueRadix, final boolean storePrefixIndexes, long[] numNgramsForEachOrder) {
 		this.valueRadix = valueRadix;
 		suffixBitsForOrder = new int[numNgramsForEachOrder.length];
 		for (int i = 0; i < suffixBitsForOrder.length; ++i) {
-			suffixBitsForOrder[i] = i == 0 ? -1 : CustomWidthArray.numBitsNeeded(numNgramsForEachOrder[i - 1]);
+			suffixBitsForOrder[i] = (!storePrefixIndexes || i == 0) ? 0 : CustomWidthArray.numBitsNeeded(numNgramsForEachOrder[i - 1]);
 		}
 		this.numNgramsForEachOrder = numNgramsForEachOrder;
 		valueCoder = new VariableLengthBitCompressor(valueRadix);
@@ -60,10 +62,17 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 	public void setMap(final NgramMap<V> map) {
 		for (int i = 0; i < numNgramsForEachOrder.length; ++i) {
 			final int suffixBits = (i == 0 || !storeSuffixIndexes) ? 0 : (suffixBitsForOrder[i]);
-			valueRanks[i] = new CustomWidthArray(numNgramsForEachOrder[i], wordWidth, wordWidth
-				+ suffixBits);
+			final CustomWidthArray valueStoringArray = map.getValueStoringArray(i);
+			final boolean valueStoringArrayHere = valueStoringArray != null && useValueStoringArray();
+			if (valueStoringArrayHere) useMapValueArray = true;
+			valueRanks[i] = valueStoringArrayHere ? valueStoringArray : new CustomWidthArray(numNgramsForEachOrder[i], wordWidth, wordWidth + suffixBits);
+
 		}
 
+	}
+
+	protected boolean useValueStoringArray() {
+		return false;
 	}
 
 	@Override
@@ -90,11 +99,13 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 
 		assert indexOfCounts >= 0;
 
-		valueRanks[ngramOrder].setAndGrowIfNeeded(offset, indexOfCounts);
+		final CustomWidthArray valueRanksHere = valueRanks[ngramOrder];
+		final int widthOffset = ngramOrder == 0 || !useMapValueArray ? 0 : valueRanksHere.getKeyWidth();
+		valueRanksHere.setAndGrowIfNeeded(offset, indexOfCounts, widthOffset, wordWidth);
 		if (storeSuffixIndexes && ngramOrder > 0) {
 			assert suffixOffset >= 0;
 			assert suffixOffset <= Integer.MAX_VALUE;
-			valueRanks[ngramOrder].setAndGrowIfNeeded(offset, suffixOffset, wordWidth, suffixBitsForOrder[ngramOrder]);
+			valueRanksHere.setAndGrowIfNeeded(offset, suffixOffset, widthOffset + wordWidth, suffixBitsForOrder[ngramOrder]);
 		}
 		return true;
 
@@ -124,16 +135,18 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 
 	@Override
 	public void setSizeAtLeast(final long size, final int ngramOrder) {
-		if (valueRanks[ngramOrder] == null) {
-			valueRanks[ngramOrder] = new CustomWidthArray(size, wordWidth);
-		}
-		valueRanks[ngramOrder].ensureCapacity(size + 1);
+		//		if (valueRanks[ngramOrder] == null) {
+		//			valueRanks[ngramOrder] = new CustomWidthArray(size, wordWidth);
+		//		}
+		//		valueRanks[ngramOrder].ensureCapacity(size + 1);
 
 	}
 
 	public long getSuffixOffset(final long index, final int ngramOrder) {
 		assert ngramOrder > 0;
-		return valueRanks[ngramOrder].get(index, wordWidth, suffixBitsForOrder[ngramOrder]);
+		final CustomWidthArray valueRanksHere = valueRanks[ngramOrder];
+		final int widthOffset = ngramOrder == 0 || !useMapValueArray ? 0 : valueRanksHere.getKeyWidth();
+		return valueRanksHere.get(index, widthOffset + wordWidth, suffixBitsForOrder[ngramOrder]);
 	}
 
 	/**
@@ -156,7 +169,8 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 
 	protected long getRank(final int ngramOrder, final long offset) {
 		final CustomWidthArray valueRanksHere = valueRanks[ngramOrder];
-		return valueRanksHere.get(offset);
+		final int widthOffset = ngramOrder == 0 || !useMapValueArray ? 0 : valueRanksHere.getKeyWidth();
+		return valueRanksHere.get(offset, widthOffset, wordWidth);
 	}
 
 	@Override
@@ -184,6 +198,11 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 	@Override
 	public boolean storeSuffixoffsets() {
 		return storeSuffixIndexes;
+	}
+
+	@Override
+	public int numValueBits(int ngramOrder) {
+		return wordWidth + suffixBitsForOrder[ngramOrder];
 	}
 
 }
