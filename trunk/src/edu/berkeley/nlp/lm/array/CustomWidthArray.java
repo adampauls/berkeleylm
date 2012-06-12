@@ -23,11 +23,13 @@ public final class CustomWidthArray implements Serializable
 
 	private long size;
 
-	private final int width;
+	private final int keyWidth;
 
-	private final long widthDiff;
+	private final int fullWidth;
 
-	private final long fullMask;
+	//	private final long widthDiff;
+	//
+	//	private final long fullMask;
 
 	private final LongArray data;
 
@@ -49,14 +51,20 @@ public final class CustomWidthArray implements Serializable
 		return 1L << (index & WORD_MASK);
 	}
 
-	public CustomWidthArray(final long numWords, final int width) {
-		assert width > 0;
-		final long numBits = numWords * width;
+	public CustomWidthArray(final long numWords, final int keyWidth) {
+		this(numWords, keyWidth, keyWidth);
+	}
+
+	public CustomWidthArray(final long numWords, final int keyWidth, final int fullWidth) {
+		assert keyWidth > 0;
+		assert fullWidth > 0;
+		this.keyWidth = keyWidth;
+		this.fullWidth = fullWidth;
+		final long numBits = numWords * fullWidth;
 		data = new LongArray(numLongs(numBits));// new long[numLongs(numBits)];
 		size = 0;
-		this.width = width;
-		widthDiff = Long.SIZE - (width);
-		fullMask = width == Long.SIZE ? -1 : ((1L << width) - 1);
+		//		widthDiff = Long.SIZE - (width);
+		//		fullMask = width == Long.SIZE ? -1L : ((1L << width) - 1);
 	}
 
 	private long length() {
@@ -64,7 +72,7 @@ public final class CustomWidthArray implements Serializable
 	}
 
 	public void ensureCapacity(final long numWords) {
-		final long numBits = numWords * width;
+		final long numBits = numWords * fullWidth;
 		final long numLongs = numLongs(numBits);
 		data.ensureCapacity(numLongs);
 		if (numLongs > data.size()) data.setAndGrowIfNeeded(numLongs - 1, 0);
@@ -78,7 +86,7 @@ public final class CustomWidthArray implements Serializable
 	 * @param sizeHere
 	 */
 	public void trimToSize(final long sizeHere) {
-		final long numBits = sizeHere * width;
+		final long numBits = sizeHere * fullWidth;
 		data.trimToSize(numLongs(numBits));
 	}
 
@@ -93,23 +101,23 @@ public final class CustomWidthArray implements Serializable
 		return (data.get(word(index)) & mask(index)) != 0;
 	}
 
-	public boolean set(final long index, final boolean value) {
-		rangeCheck(index);
-		final long word = word(index);
-		final long mask = mask(index);
-		final long currVal = data.get(word);
-		final boolean oldValue = (currVal & mask) != 0;
-		if (value)
-			data.set(word, currVal | mask);
-		else
-			data.set(word, currVal & ~mask);
-		return oldValue != value;
-	}
+	//	public boolean set(final long index, final boolean value) {
+	//		rangeCheck(index);
+	//		final long word = word(index);
+	//		final long mask = mask(index);
+	//		final long currVal = data.get(word);
+	//		final boolean oldValue = (currVal & mask) != 0;
+	//		if (value)
+	//			data.set(word, currVal | mask);
+	//		else
+	//			data.set(word, currVal & ~mask);
+	//		return oldValue != value;
+	//	}
 
-	public void set(final long index) {
-		rangeCheck(index);
-		data.set(word(index), data.get(word(index)) | mask(index));
-	}
+	//	public void set(final long index) {
+	//		rangeCheck(index);
+	//		data.set(word(index), data.get(word(index)) | mask(index));
+	//	}
 
 	public void clear(final long index) {
 		rangeCheck(index);
@@ -138,14 +146,13 @@ public final class CustomWidthArray implements Serializable
 	 * @return
 	 */
 	private boolean addHelp(final long value, final boolean growCapacity) {
-		assert !(width < Long.SIZE && (value & -1L << width) != 0) : "The specified value (" + value
-			+ ") is larger than the maximum value for the given width (" + width + ")";
-		final long length = this.size * width;
+		assert fullWidth == keyWidth;
+		final long length = this.size * fullWidth;
 		final long startWord = word(length);
 		final long startBit = bit(length);
 		if (growCapacity) ensureCapacity(this.size + 1);
 
-		if (startBit + width <= Long.SIZE)
+		if (startBit + keyWidth <= Long.SIZE)
 			data.set(startWord, data.get(startWord) | (value << startBit));
 		else {
 			data.set(startWord, data.get(startWord) | (value << startBit));
@@ -157,15 +164,15 @@ public final class CustomWidthArray implements Serializable
 	}
 
 	public long get(final long index) {
-		return getHelp(index);
+		return getHelp(index, 0, keyWidth);
 	}
 
 	/**
 	 * @param index
 	 * @return
 	 */
-	private long getHelp(final long index) {
-		final long start = index * width;
+	private long getHelp(final long index, int offset, int width) {
+		final long start = index * fullWidth + offset;
 		return getLong(start, start + width);
 	}
 
@@ -173,23 +180,36 @@ public final class CustomWidthArray implements Serializable
 		if (n == 0) return 1;
 		final int num = Long.SIZE - Long.numberOfLeadingZeros(n - 1);
 		if (n % 2 == 0) return num + 1;
-		if (num == 0) {
-			@SuppressWarnings("unused")
-			int x = 5;
-		}
 		return num;
 	}
 
 	public void set(final long index, final long value) {
 		rangeCheck(index);
-		if (width == 0) return;
-		if (width != Long.SIZE && value > fullMask) { //
-			throw new IllegalArgumentException("Value too large: " + value);
-		}
-		final long start = index * width;
+		//		if (width != Long.SIZE && value > fullMask) { //
+		//			throw new IllegalArgumentException("Value too large: " + value);
+		//		}
+		final int offset = 0;
+		final int width = keyWidth;
+		setHelp(index, value, offset, width);
+	}
+
+	public void set(final long index, final long value, final int offset, final int width) {
+		rangeCheck(index);
+		setHelp(index, value, offset, width);
+	}
+
+	/**
+	 * @param index
+	 * @param value
+	 * @param offset
+	 */
+	private void setHelp(final long index, final long value, final int offset, final int width) {
+
+		final long start = index * fullWidth + offset;
 		final long startWord = word(start);
 		final long endWord = word(start + width - 1);
 		final long startBit = bit(start);
+		final long fullMask = width == Long.SIZE ? -1L : ((1L << width) - 1);
 
 		if (startWord == endWord) {
 			data.set(startWord, data.get(startWord) & ~(fullMask << startBit));
@@ -219,7 +239,7 @@ public final class CustomWidthArray implements Serializable
 	}
 
 	public void fill(final long l, final long n) {
-		final long numBits = n * width;
+		final long numBits = n * fullWidth;
 		final long numLongs = numLongs(numBits);
 		data.fill(l, numLongs);
 		size = Math.max(n, size);
@@ -235,7 +255,7 @@ public final class CustomWidthArray implements Serializable
 				i = rangeStart;
 				goneAroundOnce = true;
 			}
-			final long searchKey = this.getHelp(i);
+			final long searchKey = this.getHelp(i, 0, keyWidth);
 			if (searchKey == key) return i;
 			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
 			++i;
@@ -244,7 +264,7 @@ public final class CustomWidthArray implements Serializable
 
 	public long linearSearch(final long key, final long rangeStart, final long rangeEnd, final long startIndex, final long emptyKey,
 		final boolean returnFirstEmptyIndex) {
-		long from = startIndex * width;
+		long from = startIndex * fullWidth;
 		long i = startIndex;
 		long word = word(from);
 		long bit = bit(from);
@@ -252,11 +272,12 @@ public final class CustomWidthArray implements Serializable
 		int innerIndex = LongArray.i(word);
 		long[] currArray = data.data[LongArray.o(word)];
 		long lastDatum = currArray[innerIndex];
+		final long widthDiff = Long.SIZE - keyWidth;
 		while (true) {
 			if (i == rangeEnd) {
 				if (goneAroundOnce) return -1L;
 				i = rangeStart;
-				from = i * width;
+				from = i * fullWidth;
 				bit = bit(from);
 				word = word(from);
 				innerIndex = LongArray.i(word);
@@ -265,7 +286,7 @@ public final class CustomWidthArray implements Serializable
 				lastDatum = currArray[(int) word];
 				goneAroundOnce = true;
 			}
-			final long to = from + width;
+			final long to = from + keyWidth;
 			final long searchKey = (bit <= widthDiff) ? (lastDatum << widthDiff - bit >>> widthDiff)
 				: (lastDatum >>> bit | (currArray[innerIndex + 1]) << Long.SIZE + widthDiff - bit >>> widthDiff);
 			if (searchKey == key) { return i; }
