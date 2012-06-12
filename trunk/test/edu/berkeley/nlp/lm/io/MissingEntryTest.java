@@ -16,6 +16,7 @@ import edu.berkeley.nlp.lm.StringWordIndexer;
 public class MissingEntryTest
 {
 
+	private static final double TOL = 1e-5;
 	public static final String BIG_TEST_ARPA = "missing_test_fourgram.arpa";
 
 	@Test
@@ -63,10 +64,10 @@ public class MissingEntryTest
 	 */
 	public static void testArrayEncodedLogProb(final ArrayEncodedNgramLanguageModel<String> lm_) {
 
-		Assert.assertEquals(lm_.getLogProb(Arrays.asList("This another test is".split(" "))), -0.67443009, 1e-2);
-		Assert.assertEquals(lm_.getLogProb(Arrays.asList("another test sentence.".split(" "))), -0.07443009, 1e-2);
-		Assert.assertEquals(lm_.getLogProb(Arrays.asList("is another test".split(" "))), -0.1366771, 1e-2);
-		Assert.assertEquals(lm_.getLogProb(Arrays.asList("another test".split(" "))), -0.60206 + -0.2218488, 1e-2);
+		Assert.assertEquals(lm_.getLogProb(Arrays.asList("This another test is".split(" "))), -0.67443009, TOL);
+		Assert.assertEquals(lm_.getLogProb(Arrays.asList("another test sentence.".split(" "))), -0.07443009, TOL);
+		Assert.assertEquals(lm_.getLogProb(Arrays.asList("is another test".split(" "))), -0.1366771, TOL);
+		Assert.assertEquals(lm_.getLogProb(Arrays.asList("another test".split(" "))), -0.60206 + -0.2218488, TOL);
 	}
 
 	/**
@@ -76,9 +77,9 @@ public class MissingEntryTest
 	 */
 	public static void testContextEncodedLogProb(final ContextEncodedNgramLanguageModel<String> lm_) {
 
-		Assert.assertEquals(lm_.getLogProb(Arrays.asList("This another test is".split(" "))), -0.67443009, 1e-2);
-		Assert.assertEquals(lm_.getLogProb(Arrays.asList("another test sentence.".split(" "))), -0.07443009, 1e-2);
-		Assert.assertEquals(lm_.getLogProb(Arrays.asList("is another test".split(" "))), -0.1366771, 1e-2);
-		Assert.assertEquals(lm_.getLogProb(Arrays.asList("another test".split(" "))), -0.60206 + -0.2218488, 1e-2);
+		Assert.assertEquals(lm_.getLogProb(Arrays.asList("This another test is".split(" "))), -0.67443009, TOL);
+		Assert.assertEquals(lm_.getLogProb(Arrays.asList("another test sentence.".split(" "))), -0.07443009, TOL);
+		Assert.assertEquals(lm_.getLogProb(Arrays.asList("is another test".split(" "))), -0.1366771, TOL);
+		Assert.assertEquals(lm_.getLogProb(Arrays.asList("another test".split(" "))), -0.60206 + -0.2218488, TOL);
 	}
 }

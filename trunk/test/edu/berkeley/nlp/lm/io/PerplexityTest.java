@@ -180,7 +180,7 @@ public class PerplexityTest
 					Assert.assertEquals(score, score2, Float.MIN_VALUE);
 					sentScore += score;
 				}
-				Assert.assertEquals(sentScore, lm_.scoreSentence(Arrays.asList(split)), 1e-4);
+				Assert.assertEquals(sentScore, lm_.scoreSentence(Arrays.asList(split)), 1e-5);
 				logScore += sentScore;
 
 			}
@@ -218,7 +218,7 @@ public class PerplexityTest
 					final float score = lm_.getLogProb(sent, i, i + lm_.getLmOrder());
 					sentScore += score;
 				}
-				Assert.assertEquals(sentScore, lm_.scoreSentence(Arrays.asList(split)), 1e-4);
+				Assert.assertEquals(sentScore, lm_.scoreSentence(Arrays.asList(split)), 1e-5);
 				logScore += sentScore;
 
 			}
