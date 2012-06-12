@@ -110,7 +110,7 @@ public final class UncompressedProbBackoffValueContainer extends RankedValueCont
 	}
 
 	private float getCount(final CustomWidthArray valueRanksForOrder, final long index, final boolean backoff) {
-		final long rank = getRank(valueRanksForOrder, index);
+		final long rank = valueRanksForOrder.get(index);
 		return getFromRank(rank, backoff);
 	}
 
