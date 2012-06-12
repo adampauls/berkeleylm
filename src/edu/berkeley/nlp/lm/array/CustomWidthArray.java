@@ -183,7 +183,7 @@ public final class CustomWidthArray implements Serializable
 	public static int numBitsNeeded(final long n) {
 		if (n == 0) return 1;
 		if (Long.bitCount(n) == 1)
-			return Long.SIZE - Long.numberOfLeadingZeros(n);
+			return Long.numberOfTrailingZeros(n) + 1;
 		else
 			return Long.SIZE - Long.numberOfLeadingZeros(n - 1);
 	}
