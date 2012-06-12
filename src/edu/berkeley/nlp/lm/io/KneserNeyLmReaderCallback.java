@@ -155,7 +155,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	 * @param value
 	 * @param words
 	 */
-	public void addNgram(final int[] ngram, final int startPos, final int endPos, final LongRef value, final String words, final boolean justLastWord,
+	public void addNgram(final int[] ngram, final int startPos, final int endPos, final LongRef value, @SuppressWarnings("unused") final String words, final boolean justLastWord,
 		final long[][] scratch) {
 
 		final KneserNeyCounts scratchCounts = new KneserNeyCounts();

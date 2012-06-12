@@ -123,7 +123,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		assert startIndex >= rangeStart;
 		assert startIndex < rangeEnd;
 
-		return keys.linearSearch(contextOffsetOf + 1, rangeStart, rangeEnd, startIndex, EMPTY_KEY, returnFirstEmptyIndex);
+		final long index = keys.linearSearch(contextOffsetOf + 1, rangeStart, rangeEnd, startIndex, EMPTY_KEY, returnFirstEmptyIndex);
+		return index;
 	}
 
 	@Override
