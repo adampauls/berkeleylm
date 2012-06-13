@@ -35,8 +35,11 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 
 	private final int structLength;
 
+	private final boolean threadSafe;
+
 	public ArrayEncodedDirectMappedLmCache(final int cacheBits, final int maxNgramOrder, final boolean threadSafe) {
 		cacheSize = (1 << cacheBits) - 1;
+		this.threadSafe = threadSafe;
 		this.structLength = (maxNgramOrder + 2);
 		if (threadSafe) {
 			threadUnsafeArray = null;
@@ -71,7 +74,7 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 	 */
 	@Override
 	public float getCached(final int[] ngram, final int startPos, final int endPos, final int hash) {
-		final int[] arrayHere = threadUnsafeArray != null ? threadUnsafeArray : threadSafeArray.get();
+		final int[] arrayHere = !threadSafe ? threadUnsafeArray : threadSafeArray.get();
 		final float f = getVal(hash, arrayHere);
 		if (!Float.isNaN(f)) {
 			final int cachedNgramLength = getLength(hash, arrayHere);
@@ -124,7 +127,7 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 	 */
 	@Override
 	public void clear() {
-		Arrays.fill(threadUnsafeArray != null ? threadUnsafeArray : threadSafeArray.get(), Float.floatToIntBits(Float.NaN));
+		Arrays.fill(!threadSafe ? threadUnsafeArray : threadSafeArray.get(), Float.floatToIntBits(Float.NaN));
 	}
 
 	/*
@@ -135,7 +138,7 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 	 */
 	@Override
 	public void putCached(final int[] ngram, final int startPos, final int endPos, final float f, final int hash) {
-		final int[] arrayHere = threadUnsafeArray != null ? threadUnsafeArray : threadSafeArray.get();
+		final int[] arrayHere = !threadSafe ? threadUnsafeArray : threadSafeArray.get();
 		setLength(hash, endPos - startPos, arrayHere);
 		System.arraycopy(ngram, startPos, arrayHere, getKeyStart(hash), endPos - startPos);
 		setVal(hash, f, arrayHere);
