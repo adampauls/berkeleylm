@@ -78,8 +78,8 @@ public class PerplexityTest
 		configOptions.unknownWordLogProb = 0.0f;
 		final ArrayEncodedProbBackoffLm<String> lm = LmReaders.readArrayEncodedLmFromArpa(lmFile.getPath(), true, new StringWordIndexer(), configOptions,
 			Integer.MAX_VALUE);
-		testArrayEncodedLogProb(ArrayEncodedCachingLmWrapper.wrapWithCacheNotThreadSafe(lm, new ArrayEncodedDirectMappedLmCache(16, lm.getLmOrder())), file,
-			goldLogProb);
+		testArrayEncodedLogProb(ArrayEncodedCachingLmWrapper.wrapWithCacheNotThreadSafe(lm, 16), file, goldLogProb);
+		testArrayEncodedLogProb(ArrayEncodedCachingLmWrapper.wrapWithCacheThreadSafe(lm, 16), file, goldLogProb);
 	}
 
 	@Test
@@ -95,18 +95,16 @@ public class PerplexityTest
 		final File file = FileUtils.getFile(TEST_PERPLEX_TINY_TXT);
 		final float goldLogProb = TEST_PERPLEX_TINY_GOLD_PROB;
 		final ArrayEncodedProbBackoffLm<String> lm_ = getLm();
-		final ArrayEncodedNgramLanguageModel<String> lm = ArrayEncodedCachingLmWrapper.wrapWithCacheNotThreadSafe(lm_, new ArrayEncodedDirectMappedLmCache(16,
-			lm_.getLmOrder()));
-		testArrayEncodedLogProb(lm, file, goldLogProb);
+		testArrayEncodedLogProb(ArrayEncodedCachingLmWrapper.wrapWithCacheNotThreadSafe(lm_, 16), file, goldLogProb);
+		testArrayEncodedLogProb(ArrayEncodedCachingLmWrapper.wrapWithCacheThreadSafe(lm_, 16), file, goldLogProb);
 	}
 
 	@Test
 	public void testCachedTinyContextEncoded() {
 		final File file = FileUtils.getFile(TEST_PERPLEX_TINY_TXT);
 		final float goldLogProb = TEST_PERPLEX_TINY_GOLD_PROB;
-		final ContextEncodedCachingLmWrapper<String> lm = ContextEncodedCachingLmWrapper.wrapWithCacheNotThreadSafe(getContextEncodedLm(),
-			new ContextEncodedDirectMappedLmCache(16));
-		testContextEncodedLogProb(lm, file, goldLogProb);
+		testContextEncodedLogProb(ContextEncodedCachingLmWrapper.wrapWithCacheNotThreadSafe(getContextEncodedLm(), 16), file, goldLogProb);
+		testContextEncodedLogProb(ContextEncodedCachingLmWrapper.wrapWithCacheThreadSafe(getContextEncodedLm(), 16), file, goldLogProb);
 	}
 
 	@Test
@@ -114,18 +112,16 @@ public class PerplexityTest
 		final File file = FileUtils.getFile(TEST_PERPLEX_TXT);
 		final float goldLogProb = TEST_PERPLEX_GOLD_PROB;
 		final ArrayEncodedProbBackoffLm<String> lm_ = getLm();
-		final ArrayEncodedNgramLanguageModel<String> lm = ArrayEncodedCachingLmWrapper.wrapWithCacheNotThreadSafe(getLm(), new ArrayEncodedDirectMappedLmCache(
-			16, lm_.getLmOrder()));
-		testArrayEncodedLogProb(lm, file, goldLogProb);
+		testArrayEncodedLogProb(ArrayEncodedCachingLmWrapper.wrapWithCacheNotThreadSafe(lm_, 16), file, goldLogProb);
+		testArrayEncodedLogProb(ArrayEncodedCachingLmWrapper.wrapWithCacheThreadSafe(lm_, 16), file, goldLogProb);
 	}
 
 	@Test
 	public void testCachedContextEncoded() {
 		final File file = FileUtils.getFile(TEST_PERPLEX_TXT);
 		final float goldLogProb = TEST_PERPLEX_GOLD_PROB;
-		final ContextEncodedCachingLmWrapper<String> lm = ContextEncodedCachingLmWrapper.wrapWithCacheNotThreadSafe(getContextEncodedLm(),
-			new ContextEncodedDirectMappedLmCache(16));
-		testContextEncodedLogProb(lm, file, goldLogProb);
+		testContextEncodedLogProb(ContextEncodedCachingLmWrapper.wrapWithCacheNotThreadSafe(getContextEncodedLm(), 16), file, goldLogProb);
+		testContextEncodedLogProb(ContextEncodedCachingLmWrapper.wrapWithCacheThreadSafe(getContextEncodedLm(), 16), file, goldLogProb);
 	}
 
 	/**
