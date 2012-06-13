@@ -40,8 +40,11 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 
 	private final int cacheSize;
 
+	private final boolean threadSafe;
+
 	public ContextEncodedDirectMappedLmCache(final int cacheBits, final boolean threadSafe) {
 		cacheSize = (1 << cacheBits) - 1;
+		this.threadSafe = threadSafe;
 		if (threadSafe) {
 			threadUnsafeArray = null;
 			threadSafeArray = new ThreadLocal<int[]>()
@@ -70,7 +73,7 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 
 	@Override
 	public float getCached(final long contextOffset, final int contextOrder, final int word, final int hash, @OutputParameter final LmContextInfo outputPrefix) {
-		final int[] array = threadUnsafeArray != null ? threadUnsafeArray : threadSafeArray.get();
+		final int[] array =  !threadSafe ? threadUnsafeArray : threadSafeArray.get();
 		final float f = getVal(hash, array);
 
 		if (!Float.isNaN(f)) {
@@ -95,7 +98,7 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	@Override
 	public void putCached(final long contextOffset, final int contextOrder, final int word, final float score, final int hash,
 		@OutputParameter final LmContextInfo outputPrefix) {
-		final int[] array = threadUnsafeArray != null ? threadUnsafeArray : threadSafeArray.get();
+		final int[] array =  !threadSafe  ? threadUnsafeArray : threadSafeArray.get();
 		setVal(hash, score, array);
 		setOutputContextOffset(hash, outputPrefix == null ? -1 : outputPrefix.offset, array);
 		setWord(hash, word, array);
