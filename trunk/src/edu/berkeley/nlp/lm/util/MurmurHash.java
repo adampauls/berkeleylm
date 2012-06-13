@@ -76,7 +76,7 @@ public final class MurmurHash
 		final int r = 47;
 
 		long h = (seed & 0xffffffffl) ^ (1 * m);
-		for (int i = 0; i < 2; ++i) {
+		for (int i = 0; i <= 2; ++i) {
 			long k = -1;
 			switch (i) {
 				case 0:
