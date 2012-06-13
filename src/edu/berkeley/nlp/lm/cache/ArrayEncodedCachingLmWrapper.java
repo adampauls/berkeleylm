@@ -6,9 +6,7 @@ import edu.berkeley.nlp.lm.util.MurmurHash;
 
 /**
  * This class wraps {@link ArrayEncodedNgramLanguageModel} with a cache.
- * <p>
- * This wrapper is <b>not</b> threadsafe. To use a cache in a multithreaded
- * environment, you should create one wrapper per thread.
+ * 
  * 
  * @author adampauls
  * 
@@ -27,7 +25,7 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 	private final ArrayEncodedNgramLanguageModel<W> lm;
 
 	/**
-	 * To use a cache in a multithreaded environment, you should create one
+	 * To use this wrapper in a multithreaded environment, you should create one
 	 * wrapper per thread.
 	 * 
 	 * @param <T>
@@ -35,23 +33,33 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 	 * @return
 	 */
 	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheNotThreadSafe(final ArrayEncodedNgramLanguageModel<W> lm) {
-		return new ArrayEncodedCachingLmWrapper<W>(lm);
+		return wrapWithCacheNotThreadSafe(lm, 24);
+	}
+
+	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheNotThreadSafe(final ArrayEncodedNgramLanguageModel<W> lm, final int cacheBits) {
+		return new ArrayEncodedCachingLmWrapper<W>(lm, false, cacheBits);
 	}
 
 	/**
-	 * To use a cache in a multithreaded environment, you should create one
-	 * wrapper per thread.
 	 * 
-	 * @param <T>
+	 * This type of caching is threadsafe and (internally) maintains a separate
+	 * cache for each thread that calls it. Note each thread has its own cache,
+	 * so if you have lots of threads, memory usage could be substantial.
+	 * 
+	 * @param <W>
 	 * @param lm
 	 * @return
 	 */
-	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheNotThreadSafe(final ArrayEncodedNgramLanguageModel<W> lm, final ArrayEncodedLmCache cache) {
-		return new ArrayEncodedCachingLmWrapper<W>(lm, cache);
+	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheThreadSafe(final ArrayEncodedNgramLanguageModel<W> lm) {
+		return wrapWithCacheThreadSafe(lm, 21);
 	}
 
-	private ArrayEncodedCachingLmWrapper(final ArrayEncodedNgramLanguageModel<W> lm) {
-		this(lm, new ArrayEncodedDirectMappedLmCache(24, lm.getLmOrder()));
+	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheThreadSafe(final ArrayEncodedNgramLanguageModel<W> lm, final int cacheBits) {
+		return new ArrayEncodedCachingLmWrapper<W>(lm, true, cacheBits);
+	}
+
+	private ArrayEncodedCachingLmWrapper(final ArrayEncodedNgramLanguageModel<W> lm, final boolean threadSafe, int cacheBits) {
+		this(lm, new ArrayEncodedDirectMappedLmCache(cacheBits, lm.getLmOrder(), threadSafe));
 	}
 
 	private ArrayEncodedCachingLmWrapper(final ArrayEncodedNgramLanguageModel<W> lm, final ArrayEncodedLmCache cache) {

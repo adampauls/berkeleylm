@@ -27,25 +27,41 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 	// float val;
 	// int length;
 	// int[maxNgramOrder] key; 
-	private final ThreadLocal<int[]> array;
+	private final int[] threadUnsafeArray;
+
+	private final ThreadLocal<int[]> threadSafeArray;
 
 	private final int cacheSize;
 
 	private final int structLength;
 
-	public ArrayEncodedDirectMappedLmCache(final int cacheBits, final int maxNgramOrder) {
+	public ArrayEncodedDirectMappedLmCache(final int cacheBits, final int maxNgramOrder, final boolean threadSafe) {
 		cacheSize = (1 << cacheBits) - 1;
 		this.structLength = (maxNgramOrder + 2);
-		array = new ThreadLocal<int[]>()
-		{
-			@Override
-			protected int[] initialValue() {
-				final int[] ret = new int[cacheSize * structLength];
-				Arrays.fill(ret, Float.floatToIntBits(Float.NaN));
-				return ret;
-			}
-		};
+		if (threadSafe) {
+			threadUnsafeArray = null;
+			threadSafeArray = new ThreadLocal<int[]>()
+			{
+				@Override
+				protected int[] initialValue() {
+					return allocCache();
+				}
 
+			};
+		} else {
+			threadSafeArray = null;
+			threadUnsafeArray = allocCache();
+		}
+
+	}
+
+	/**
+	 * @return
+	 */
+	private int[] allocCache() {
+		final int[] ret = new int[cacheSize * structLength];
+		Arrays.fill(ret, Float.floatToIntBits(Float.NaN));
+		return ret;
 	}
 
 	/*
@@ -55,7 +71,7 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 	 */
 	@Override
 	public float getCached(final int[] ngram, final int startPos, final int endPos, final int hash) {
-		final int[] arrayHere = array.get();
+		final int[] arrayHere = threadUnsafeArray != null ? threadUnsafeArray : threadSafeArray.get();
 		final float f = getVal(hash, arrayHere);
 		if (!Float.isNaN(f)) {
 			final int cachedNgramLength = getLength(hash, arrayHere);
@@ -108,7 +124,7 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 	 */
 	@Override
 	public void clear() {
-		Arrays.fill(array.get(), Float.floatToIntBits(Float.NaN));
+		Arrays.fill(threadUnsafeArray != null ? threadUnsafeArray : threadSafeArray.get(), Float.floatToIntBits(Float.NaN));
 	}
 
 	/*
@@ -119,7 +135,7 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 	 */
 	@Override
 	public void putCached(final int[] ngram, final int startPos, final int endPos, final float f, final int hash) {
-		final int[] arrayHere = array.get();
+		final int[] arrayHere = threadUnsafeArray != null ? threadUnsafeArray : threadSafeArray.get();
 		setLength(hash, endPos - startPos, arrayHere);
 		System.arraycopy(ngram, startPos, arrayHere, getKeyStart(hash), endPos - startPos);
 		setVal(hash, f, arrayHere);
