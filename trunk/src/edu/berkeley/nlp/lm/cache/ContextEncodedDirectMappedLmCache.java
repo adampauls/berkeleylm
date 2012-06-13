@@ -34,38 +34,54 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	// int word;
 	// long contextOffset;
 	// int contextOrder;
-	private final ThreadLocal<int[]> array_;
+	private final int[] threadUnsafeArray;
+
+	private final ThreadLocal<int[]> threadSafeArray;
 
 	private final int cacheSize;
 
-	public ContextEncodedDirectMappedLmCache(final int cacheBits) {
+	public ContextEncodedDirectMappedLmCache(final int cacheBits, final boolean threadSafe) {
 		cacheSize = (1 << cacheBits) - 1;
-		array_ = new ThreadLocal<int[]>()
-		{
-			@Override
-			protected int[] initialValue() {
-				final int[] array = new int[STRUCT_LENGTH * cacheSize];
-				Arrays.fill(array, Float.floatToIntBits(Float.NaN));
-				return array;
-			}
-		};
+		if (threadSafe) {
+			threadUnsafeArray = null;
+			threadSafeArray = new ThreadLocal<int[]>()
+			{
+				@Override
+				protected int[] initialValue() {
+					return allocCache();
+				}
 
+			};
+		} else {
+			threadSafeArray = null;
+			threadUnsafeArray = allocCache();
+		}
+
+	}
+
+	/**
+	 * @return
+	 */
+	private int[] allocCache() {
+		final int[] array = new int[STRUCT_LENGTH * cacheSize];
+		Arrays.fill(array, Float.floatToIntBits(Float.NaN));
+		return array;
 	}
 
 	@Override
 	public float getCached(final long contextOffset, final int contextOrder, final int word, final int hash, @OutputParameter final LmContextInfo outputPrefix) {
-		final int[] array = array_.get();
+		final int[] array = threadUnsafeArray != null ? threadUnsafeArray : threadSafeArray.get();
 		final float f = getVal(hash, array);
 
 		if (!Float.isNaN(f)) {
 			long outputContextOffset = -1;
-			if (outputPrefix == null || (outputContextOffset = getOutputContextOffset(hash,array)) >= 0) {
-				final int cachedWordHere = getWord(hash,array);
+			if (outputPrefix == null || (outputContextOffset = getOutputContextOffset(hash, array)) >= 0) {
+				final int cachedWordHere = getWord(hash, array);
 
 				if (cachedWordHere != -1 && word == cachedWordHere) {
-					if (contextOffset == getContextOffset(hash,array) & contextOrder == getContextOrder(hash,array)) {
+					if (contextOffset == getContextOffset(hash, array) & contextOrder == getContextOrder(hash, array)) {
 						if (outputPrefix != null) {
-							outputPrefix.order = getOutputContextOrder(hash,array);
+							outputPrefix.order = getOutputContextOrder(hash, array);
 							outputPrefix.offset = outputContextOffset;
 						}
 						return f;
@@ -79,7 +95,7 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	@Override
 	public void putCached(final long contextOffset, final int contextOrder, final int word, final float score, final int hash,
 		@OutputParameter final LmContextInfo outputPrefix) {
-		final int[] array = array_.get();
+		final int[] array = threadUnsafeArray != null ? threadUnsafeArray : threadSafeArray.get();
 		setVal(hash, score, array);
 		setOutputContextOffset(hash, outputPrefix == null ? -1 : outputPrefix.offset, array);
 		setWord(hash, word, array);
@@ -102,11 +118,11 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	}
 
 	private long getOutputContextOffset(final int hash, int[] array) {
-		return getLong(hash, OUTPUT_CONTEXT_OFFSET,array);
+		return getLong(hash, OUTPUT_CONTEXT_OFFSET, array);
 	}
 
 	private long getContextOffset(final int hash, int[] array) {
-		return getLong(hash, CONTEXT_OFFSET,array);
+		return getLong(hash, CONTEXT_OFFSET, array);
 	}
 
 	/**
@@ -136,7 +152,7 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 
 	private void setOutputContextOffset(final int hash, final long offset, int[] array) {
 		final int off = OUTPUT_CONTEXT_OFFSET;
-		setLong(hash, offset, off,array);
+		setLong(hash, offset, off, array);
 	}
 
 	/**
@@ -151,7 +167,7 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 
 	private void setContextOffset(final int hash, final long offset, int[] array) {
 		final int off = CONTEXT_OFFSET;
-		setLong(hash, offset, off,array);
+		setLong(hash, offset, off, array);
 	}
 
 	private void setVal(final int hash, final float f, int[] array) {

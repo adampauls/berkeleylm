@@ -8,9 +8,7 @@ import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 
 /**
  * This class wraps {@link ContextEncodedNgramLanguageModel} with a cache.
- * <p>
- * This wrapper is <b>not</b> threadsafe. To use a cache in a multithreaded
- * environment, you should create one wrapper per thread.
+ * 
  * 
  * @author adampauls
  * 
@@ -29,32 +27,40 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 	private final ContextEncodedNgramLanguageModel<T> lm;
 
 	/**
-	 * To use a cache in a multithreaded environment, you should create one
-	 * wrapper per thread.
+	 * This type of caching is only threadsafe if you have one cache wrapper per
+	 * thread.
 	 * 
 	 * @param <T>
 	 * @param lm
 	 * @return
 	 */
 	public static <T> ContextEncodedCachingLmWrapper<T> wrapWithCacheNotThreadSafe(final ContextEncodedNgramLanguageModel<T> lm) {
-		return new ContextEncodedCachingLmWrapper<T>(lm);
+		return wrapWithCacheNotThreadSafe(lm, 24);
+	}
+
+	public static <T> ContextEncodedCachingLmWrapper<T> wrapWithCacheNotThreadSafe(final ContextEncodedNgramLanguageModel<T> lm, final int cacheBits) {
+		return new ContextEncodedCachingLmWrapper<T>(lm, false, cacheBits);
 	}
 
 	/**
-	 * To use a cache in a multithreaded environment, you should create one
-	 * wrapper per thread.
+	 * This type of caching is threadsafe and (internally) maintains a separate
+	 * cache for each thread that calls it. Note each thread has its own cache, so if you have lots of threads,
+	 * memory usage could be substantial. 
 	 * 
 	 * @param <T>
 	 * @param lm
 	 * @return
 	 */
-	public static <T> ContextEncodedCachingLmWrapper<T> wrapWithCacheNotThreadSafe(final ContextEncodedNgramLanguageModel<T> lm,
-		final ContextEncodedLmCache cache) {
-		return new ContextEncodedCachingLmWrapper<T>(lm, cache);
+	public static <T> ContextEncodedCachingLmWrapper<T> wrapWithCacheThreadSafe(final ContextEncodedNgramLanguageModel<T> lm) {
+		return wrapWithCacheThreadSafe(lm, 21);
 	}
 
-	private ContextEncodedCachingLmWrapper(final ContextEncodedNgramLanguageModel<T> lm) {
-		this(lm, new ContextEncodedDirectMappedLmCache(24));
+	public static <T> ContextEncodedCachingLmWrapper<T> wrapWithCacheThreadSafe(final ContextEncodedNgramLanguageModel<T> lm, final int cacheBits) {
+		return new ContextEncodedCachingLmWrapper<T>(lm, true, cacheBits);
+	}
+
+	private ContextEncodedCachingLmWrapper(final ContextEncodedNgramLanguageModel<T> lm, final boolean threadSafe, final int cacheBits) {
+		this(lm, new ContextEncodedDirectMappedLmCache(cacheBits, threadSafe));
 	}
 
 	private ContextEncodedCachingLmWrapper(final ContextEncodedNgramLanguageModel<T> lm, final ContextEncodedLmCache cache) {
