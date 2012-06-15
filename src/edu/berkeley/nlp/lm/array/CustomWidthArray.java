@@ -270,23 +270,6 @@ public final class CustomWidthArray implements Serializable
 		size = Math.max(n, size);
 	}
 
-	public long linearSearch2(final long key, final long rangeStart, final long rangeEnd, final long startIndex, final long emptyKey,
-		final boolean returnFirstEmptyIndex) {
-		long i = startIndex;
-		boolean goneAroundOnce = false;
-		while (true) {
-			if (i == rangeEnd) {
-				if (goneAroundOnce) return -1L;
-				i = rangeStart;
-				goneAroundOnce = true;
-			}
-			final long searchKey = this.getHelp(i, 0, keyWidth);
-			if (searchKey == key) return i;
-			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
-			++i;
-		}
-	}
-
 	public long linearSearch(final long key, final long rangeStart, final long rangeEnd, final long startIndex, final long emptyKey,
 		final boolean returnFirstEmptyIndex) {
 		long from = startIndex * fullWidth;
