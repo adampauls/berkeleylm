@@ -27,7 +27,7 @@ public abstract class AbstractNgramMap<T> implements NgramMap<T>, Serializable
 	 * @param key
 	 * @return
 	 */
-	protected long contextOffsetOf(final long key) {
+	protected final long contextOffsetOf(final long key) {
 		return (key & SUFFIX_BIT_MASK);
 	}
 
@@ -35,7 +35,7 @@ public abstract class AbstractNgramMap<T> implements NgramMap<T>, Serializable
 	 * @param key
 	 * @return
 	 */
-	protected int wordOf(final long key) {
+	protected final int wordOf(final long key) {
 		return (int) ((key & WORD_BIT_MASK) >>> (NUM_SUFFIX_BITS));
 	}
 
@@ -44,7 +44,7 @@ public abstract class AbstractNgramMap<T> implements NgramMap<T>, Serializable
 	 * @param suffixIndex
 	 * @return
 	 */
-	protected long combineToKey(final int word, final long suffixIndex) {
+	protected final long combineToKey(final int word, final long suffixIndex) {
 		return (((long) word) << (NUM_SUFFIX_BITS)) | suffixIndex;
 	}
 
