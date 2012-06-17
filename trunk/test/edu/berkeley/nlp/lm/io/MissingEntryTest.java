@@ -17,12 +17,20 @@ public class MissingEntryTest
 {
 
 	private static final double TOL = 1e-5;
+
 	public static final String BIG_TEST_ARPA = "missing_test_fourgram.arpa";
 
 	@Test
 	public void testArrayEncoded() {
 
-		final ArrayEncodedProbBackoffLm<String> lm = getLm();
+		final ArrayEncodedProbBackoffLm<String> lm = getLm(false);
+		testArrayEncodedLogProb(lm);
+	}
+
+	@Test
+	public void testCompressedEncoded() {
+
+		final ArrayEncodedProbBackoffLm<String> lm = getLm(true);
 		testArrayEncodedLogProb(lm);
 	}
 
@@ -48,11 +56,11 @@ public class MissingEntryTest
 	/**
 	 * @return
 	 */
-	private ArrayEncodedProbBackoffLm<String> getLm() {
+	private ArrayEncodedProbBackoffLm<String> getLm(boolean compress) {
 		final File lmFile = FileUtils.getFile(BIG_TEST_ARPA);
 		final ConfigOptions configOptions = new ConfigOptions();
 		configOptions.unknownWordLogProb = 0.0f;
-		final ArrayEncodedProbBackoffLm<String> lm = LmReaders.readArrayEncodedLmFromArpa(lmFile.getPath(), false, new StringWordIndexer(), configOptions,
+		final ArrayEncodedProbBackoffLm<String> lm = LmReaders.readArrayEncodedLmFromArpa(lmFile.getPath(), compress, new StringWordIndexer(), configOptions,
 			Integer.MAX_VALUE);
 		return lm;
 	}

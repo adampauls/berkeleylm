@@ -40,7 +40,7 @@ public final class CompressibleProbBackoffValueContainer extends RankedValueCont
 		long[] numNgramsForEachOrder) {
 		super(valueRadix, storePrefixes, numNgramsForEachOrder);
 		Logger.startTrack("Storing values");
-		//		final boolean hasDefaultVal = countCounter.get(getDefaultVal().asLong(), -1) >= 0;
+		final boolean hasDefaultVal = countCounter.get(getDefaultVal().asLong(), -1) >= 0;
 		//		hasBackoffValIndexer = new LongToIntHashMap();
 		//		noBackoffValIndexer = new LongToIntHashMap();
 		List<Entry> objectsSortedByValue = countCounter.getObjectsSortedByValue(true);
@@ -53,20 +53,20 @@ public final class CompressibleProbBackoffValueContainer extends RankedValueCont
 		}
 		for (Entry probEntry : probSorter.getObjectsSortedByValue(true)) {
 			probIndexer.getIndex(Float.intBitsToFloat((int) probEntry.key));
-			if (probIndexer.size() == defaultValRank) {
+			if (!hasDefaultVal && probIndexer.size() == defaultValRank) {
 				probIndexer.getIndex(getDefaultVal().prob);
 			}
 		}
-		if (probIndexer.size() < defaultValRank) {
+		if (!hasDefaultVal && probIndexer.size() < defaultValRank) {
 			probIndexer.getIndex(getDefaultVal().prob);
 		}
 		for (Entry backoffEntry : backoffSorter.getObjectsSortedByValue(true)) {
 			backoffIndexer.getIndex(Float.intBitsToFloat((int) backoffEntry.key));
-			if (backoffIndexer.size() == defaultValRank) {
+			if (!hasDefaultVal && backoffIndexer.size() == defaultValRank) {
 				backoffIndexer.getIndex(getDefaultVal().backoff);
 			}
 		}
-		if (backoffIndexer.size() < defaultValRank) {
+		if (!hasDefaultVal && backoffIndexer.size() < defaultValRank) {
 			backoffIndexer.getIndex(getDefaultVal().backoff);
 		}
 		//		//		hasBackoffValIndexer = new LongToIntHashMap();

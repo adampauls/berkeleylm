@@ -112,6 +112,8 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 				final int firstWord = reverseTrie ? ngram[endPos - ngramOrder - 1] : ngram[startPos + ngramOrder];
 				final long key = combineToKey(firstWord, lastSuffix);
 
+				if (maps[ngramOrder] == null) return -1;
+
 				final LongArray compressedKeys = (maps[ngramOrder]).compressedKeys;
 				final long currIndex = decompressSearch(compressedKeys, key, ngramOrder, val);
 				if (currIndex < 0) return -1;
@@ -129,12 +131,15 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 	 */
 	@Override
 	public void handleNgramsFinished(final int justFinishedOrder) {
-		final LongArray currKeys = maps[justFinishedOrder - 1].getUncompressedKeys();
-		final long currSize = currKeys.size();
-		sort(currKeys, 0, currSize - 1, justFinishedOrder - 1);
-		maps[justFinishedOrder - 1].trim();
-		values.trimAfterNgram(justFinishedOrder - 1, currSize);
-		compress(justFinishedOrder - 1);
+		final CompressedMap compressedMap = maps[justFinishedOrder - 1];
+		if (compressedMap != null) {
+			final LongArray currKeys = compressedMap.getUncompressedKeys();
+			final long currSize = currKeys.size();
+			sort(currKeys, 0, currSize - 1, justFinishedOrder - 1);
+			compressedMap.trim();
+			values.trimAfterNgram(justFinishedOrder - 1, currSize);
+			compress(justFinishedOrder - 1);
+		}
 	}
 
 	protected static int compareLongsRaw(final long a, final long b) {
@@ -423,14 +428,16 @@ public class CompressedNgramMap<T> extends AbstractNgramMap<T> implements Serial
 			if (word < 0 || word >= maps[0].size()) return -1;
 			if (outputVal != null) values.getFromOffset(word, 0, outputVal);
 			return lookingForOffset ? word : combineToKey(word, 0);
-		}
-		final long fromIndex = 0;
-		final long toIndex = ((compressed.size() / compressedBlockSize) - 1);
-		final long low = binarySearchBlocks(compressed, compressed.size(), searchKey, fromIndex, toIndex, searchOffset);
-		if (low < 0) return -1;
+		} else {
+			if (compressed == null) return -1;
+			final long fromIndex = 0;
+			final long toIndex = ((compressed.size() / compressedBlockSize) - 1);
+			final long low = binarySearchBlocks(compressed, compressed.size(), searchKey, fromIndex, toIndex, searchOffset);
+			if (low < 0) return -1;
 
-		final long index = decompressLinearSearch(compressed, low, searchKey, ngramOrder, outputVal, searchOffset);
-		return index;
+			final long index = decompressLinearSearch(compressed, low, searchKey, ngramOrder, outputVal, searchOffset);
+			return index;
+		}
 	}
 
 	/**

@@ -42,8 +42,8 @@ public final class NgramMapAddingCallback<V> implements ArpaLmReaderCallback<V>
 						failures.add(Arrays.copyOfRange(ngram, startPos, endPos_));
 					}
 				}
-				for (int startPos_ = startPos; (startPos_ < endPos); startPos_++) {
-					if (!map.contains(ngram, startPos + 1, endPos)) {
+				for (int startPos_ = startPos + 1; (startPos_ < endPos); startPos_++) {
+					if (!map.contains(ngram, startPos_, endPos)) {
 						failures.add(Arrays.copyOfRange(ngram, startPos_, endPos));
 					}
 				}
@@ -57,7 +57,7 @@ public final class NgramMapAddingCallback<V> implements ArpaLmReaderCallback<V>
 	public void handleNgramOrderFinished(final int order) {
 		map.handleNgramsFinished(order);
 		for (final int[] ngram : failures) {
-			if (ngram.length == order + 1) {
+			if (ngram.length == order + 1 && !map.contains(ngram, 0, ngram.length)) {
 				map.put(ngram, 0, ngram.length, null);
 			}
 		}

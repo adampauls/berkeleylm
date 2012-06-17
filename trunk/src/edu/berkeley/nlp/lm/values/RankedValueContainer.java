@@ -111,6 +111,7 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 
 	@Override
 	public BitList getCompressed(final long offset, final int ngramOrder) {
+		
 		final long l = getRank(ngramOrder, offset);
 		return valueCoder.compress(l);
 	}
