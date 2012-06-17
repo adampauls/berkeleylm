@@ -41,7 +41,6 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 
 	private final String file;
 
-
 	/**
 	 * 
 	 * @return
@@ -140,13 +139,13 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 						callback.handleNgramOrderFinished(currentNGramLength);
 						currentNGramLength++;
 						if (currentNGramLength > maxOrder) return;
-						 ngramScratch = new int[currentNGramLength];
+						ngramScratch = new int[currentNGramLength];
 						currentNGramCount = 0;
 						callback.handleNgramOrderStarted(currentNGramLength);
 						Logger.startTrack("Reading " + currentNGramLength + "-grams");
 					}
 				} else {
-					parseLine(callback, line,ngramScratch);
+					parseLine(callback, line, ngramScratch);
 				}
 			}
 			reader.close();
@@ -205,5 +204,4 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 		}
 	}
 
-	
 }
