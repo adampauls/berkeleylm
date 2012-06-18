@@ -27,9 +27,9 @@ public final class CompressibleProbBackoffValueContainer extends RankedValueCont
 
 	private int backoffWidth = -1;
 
-	Indexer<Float> probIndexer = new Indexer<Float>();
+	private transient Indexer<Float> probIndexer = new Indexer<Float>();
 
-	Indexer<Float> backoffIndexer = new Indexer<Float>();
+	private transient Indexer<Float> backoffIndexer = new Indexer<Float>();
 
 	public CompressibleProbBackoffValueContainer(final LongToIntHashMap countCounter, final int valueRadix, final boolean storePrefixes,
 		long[] numNgramsForEachOrder) {

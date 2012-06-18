@@ -22,7 +22,7 @@ public final class UncompressedProbBackoffValueContainer extends RankedValueCont
 	@PrintMemoryCount
 	final long[] probsAndBackoffsForRank; // ugly: we encode probs and backoffs consecutively in this area to improve cache locality
 
-	LongToIntHashMap countIndexer;
+	transient LongToIntHashMap countIndexer;
 
 	public UncompressedProbBackoffValueContainer(final LongToIntHashMap countCounter, final int valueRadix, final boolean storePrefixes,
 		long[] numNgramsForEachOrder) {
