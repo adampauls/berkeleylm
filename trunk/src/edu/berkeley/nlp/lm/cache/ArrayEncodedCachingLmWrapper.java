@@ -33,7 +33,7 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 	 * @return
 	 */
 	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheNotThreadSafe(final ArrayEncodedNgramLanguageModel<W> lm) {
-		return wrapWithCacheNotThreadSafe(lm, 24);
+		return wrapWithCacheNotThreadSafe(lm, 18);
 	}
 
 	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheNotThreadSafe(final ArrayEncodedNgramLanguageModel<W> lm, final int cacheBits) {
@@ -51,7 +51,7 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 	 * @return
 	 */
 	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheThreadSafe(final ArrayEncodedNgramLanguageModel<W> lm) {
-		return wrapWithCacheThreadSafe(lm, 21);
+		return wrapWithCacheThreadSafe(lm, 16);
 	}
 
 	public static <W> ArrayEncodedCachingLmWrapper<W> wrapWithCacheThreadSafe(final ArrayEncodedNgramLanguageModel<W> lm, final int cacheBits) {

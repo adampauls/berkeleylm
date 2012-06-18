@@ -20,7 +20,7 @@ public final class UncompressedProbBackoffValueContainer extends RankedValueCont
 	private static final long serialVersionUID = 964277160049236607L;
 
 	@PrintMemoryCount
-	final long[] probsAndBackoffsForRank; // ugly, but we but probs and backoffs consecutively in this area to improve cache locality
+	final long[] probsAndBackoffsForRank; // ugly: we encode probs and backoffs consecutively in this area to improve cache locality
 
 	LongToIntHashMap countIndexer;
 
@@ -76,11 +76,6 @@ public final class UncompressedProbBackoffValueContainer extends RankedValueCont
 			wordWidth);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see edu.berkeley.nlp.lm.values.IProb#getProb(int, long)
-	 */
 	@Override
 	public final float getProb(final int ngramOrder, final long index) {
 		return getCount(ngramOrder, index, false);

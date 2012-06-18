@@ -133,7 +133,6 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 	@Override
 	public void setSizeAtLeast(final long size, final int ngramOrder) {
 		if (valueRanks[ngramOrder] == null) {
-			//		suffixBitsForOrder[i] = (!storePrefixIndexes || i == 0) ? 0 : CustomWidthArray.numBitsNeeded(numNgramsForEachOrder[i - 1]);
 			final int suffixBits = (ngramOrder == 0 || !storeSuffixIndexes) ? 0 : suffixBitsForOrder[ngramOrder];
 
 			if (ngramOrder < suffixBitsForOrder.length - 1) suffixBitsForOrder[ngramOrder + 1] = CustomWidthArray.numBitsNeeded(size);
@@ -147,11 +146,6 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 				valueRanks[ngramOrder].setAndGrowIfNeeded(size - 1, 0L);
 			}
 		}
-
-		//		if (valueRanks[ngramOrder] == null) {
-		//			valueRanks[ngramOrder] = new CustomWidthArray(size, wordWidth);
-		//		}
-
 	}
 
 	public long getSuffixOffset(final long index, final int ngramOrder) {
@@ -174,7 +168,6 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 		final RankedValueContainer<V> o = (RankedValueContainer<V>) other;
 		for (int i = 0; i < valueRanks.length; ++i) {
 			this.valueRanks[i] = o.valueRanks[i];
-			//			this.suffixOffsets[i] = o.suffixOffsets[i];
 		}
 
 	}
@@ -193,7 +186,6 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 	@Override
 	public void trimAfterNgram(final int ngramOrder, final long size) {
 		valueRanks[ngramOrder].trim();
-		//		if (suffixOffsets != null && suffixOffsets[ngramOrder] != null) suffixOffsets[ngramOrder].trim();
 	}
 
 	@Override
@@ -204,7 +196,6 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 	@Override
 	public void clearStorageForOrder(final int ngramOrder) {
 		valueRanks[ngramOrder] = null;
-		//		if (suffixOffsets != null) suffixOffsets[ngramOrder] = null;
 	}
 
 	@Override

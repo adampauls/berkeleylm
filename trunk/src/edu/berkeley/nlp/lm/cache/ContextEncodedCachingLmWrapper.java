@@ -35,7 +35,7 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 	 * @return
 	 */
 	public static <T> ContextEncodedCachingLmWrapper<T> wrapWithCacheNotThreadSafe(final ContextEncodedNgramLanguageModel<T> lm) {
-		return wrapWithCacheNotThreadSafe(lm, 24);
+		return wrapWithCacheNotThreadSafe(lm, 18);
 	}
 
 	public static <T> ContextEncodedCachingLmWrapper<T> wrapWithCacheNotThreadSafe(final ContextEncodedNgramLanguageModel<T> lm, final int cacheBits) {
@@ -52,7 +52,7 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 	 * @return
 	 */
 	public static <T> ContextEncodedCachingLmWrapper<T> wrapWithCacheThreadSafe(final ContextEncodedNgramLanguageModel<T> lm) {
-		return wrapWithCacheThreadSafe(lm, 21);
+		return wrapWithCacheThreadSafe(lm, 16);
 	}
 
 	public static <T> ContextEncodedCachingLmWrapper<T> wrapWithCacheThreadSafe(final ContextEncodedNgramLanguageModel<T> lm, final int cacheBits) {
