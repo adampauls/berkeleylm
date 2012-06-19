@@ -53,6 +53,14 @@ public interface NgramLanguageModel<W>
 	 * .
 	 */
 	public float getLogProb(List<W> ngram);
+	
+	/**
+	 * Sets the (log) probability for an OOV word. Note that this is in general different
+	 * from the log prob of the <code>unk</code> tag probability. 
+	 * @author adampauls
+	 *
+	 */
+	public void setOovWordLogProb(float logProb);
 
 	public static class StaticMethods
 	{

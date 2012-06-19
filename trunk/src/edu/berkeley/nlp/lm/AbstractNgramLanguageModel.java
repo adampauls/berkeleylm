@@ -8,6 +8,8 @@ public abstract class AbstractNgramLanguageModel<W> implements NgramLanguageMode
 
 {
 
+	
+
 	private static final long serialVersionUID = 1L;
 
 	protected final int lmOrder;
@@ -21,7 +23,7 @@ public abstract class AbstractNgramLanguageModel<W> implements NgramLanguageMode
 	 * from the log prob of the <code>unk</code> tag probability.
 	 * 
 	 */
-	protected final float oovWordLogProb;
+	protected float oovWordLogProb;
 
 	public AbstractNgramLanguageModel(final int lmOrder, final WordIndexer<W> wordIndexer, final float oovWordLogProb) {
 		this.lmOrder = lmOrder;
@@ -37,6 +39,11 @@ public abstract class AbstractNgramLanguageModel<W> implements NgramLanguageMode
 	@Override
 	public WordIndexer<W> getWordIndexer() {
 		return wordIndexer;
+	}
+	
+	@Override
+	public void setOovWordLogProb(float oovWordLogProb) {
+		this.oovWordLogProb = oovWordLogProb;
 	}
 
 }

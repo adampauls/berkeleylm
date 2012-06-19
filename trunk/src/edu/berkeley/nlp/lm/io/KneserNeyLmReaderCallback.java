@@ -386,4 +386,9 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 		return ngrams.getTotalSize();
 	}
 
+	@Override
+	public void setOovWordLogProb(float logProb) {
+		throw new UnsupportedOperationException("Method not yet implemented");
+	}
+
 }
