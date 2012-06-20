@@ -71,6 +71,7 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 
 	@Override
 	public float getLogProb(final int[] ngram, final int startPos, final int endPos) {
+		if (endPos - startPos == 1) return lm.getLogProb(ngram, startPos, endPos);
 		final int hash = Math.abs(hash(ngram, startPos, endPos)) % cache.capacity();
 		float f = cache.getCached(ngram, startPos, endPos, hash);
 		if (!Float.isNaN(f)) return f;

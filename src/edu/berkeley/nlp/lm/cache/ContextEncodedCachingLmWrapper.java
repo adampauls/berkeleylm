@@ -87,6 +87,7 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 
 	@Override
 	public float getLogProb(final long contextOffset, final int contextOrder, final int word, @OutputParameter final LmContextInfo contextOutput) {
+		if (contextOrder < 0) return lm.getLogProb(contextOffset, contextOrder, word, contextOutput);
 		final int hash = Math.abs(hash(contextOffset, contextOrder, word)) % contextCache.capacity();
 		float f = contextCache.getCached(contextOffset, contextOrder, word, hash, contextOutput);
 		if (!Float.isNaN(f)) return f;
