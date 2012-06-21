@@ -45,8 +45,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 
 	private final int maxNgramOrder;
 
-	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final double loadFactor, final CustomWidthArray wordRanges, final int ngramOrder,
-		final int maxNgramOrder, final long numNgramsForPreviousOrder, final int totalNumWords, final HashNgramMap<?> ngramMap) {
+	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final CustomWidthArray wordRanges, final int ngramOrder, final int maxNgramOrder,
+		final long numNgramsForPreviousOrder, final int totalNumWords, final HashNgramMap<?> ngramMap) {
 		this.ngramOrder = ngramOrder;
 		this.ngramMap = ngramMap;
 		assert ngramOrder >= 1;
@@ -55,8 +55,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		this.numWords = (int) numNgramsForEachWord.size();
 
 		this.wordRanges = wordRanges;
-		final long totalNumNgrams = setWordRanges(numNgramsForEachWord, loadFactor, numWords);
-		final int numBitsHere = CustomWidthArray.numBitsNeeded(numNgramsForPreviousOrder+1);
+		final long totalNumNgrams = setWordRanges(numNgramsForEachWord, numWords);
+		final int numBitsHere = CustomWidthArray.numBitsNeeded(numNgramsForPreviousOrder + 1);
 		keys = new CustomWidthArray(totalNumNgrams, numBitsHere, numBitsHere + ngramMap.getValues().numValueBits(ngramOrder));
 		keys.fill(EMPTY_KEY, totalNumNgrams);
 		numFilled = 0;
@@ -82,12 +82,13 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	 * @param numWords
 	 * @return
 	 */
-	private long setWordRanges(final LongArray numNgramsForEachWord, final double maxLoadFactor, final long numWords) {
+	private long setWordRanges(final LongArray numNgramsForEachWord, final long numWords) {
 		long currStart = 0;
 		for (int w = (0); w < numWords; ++w) {
-			wordRanges.setAndGrowIfNeeded(wordRangeIndex(w), currStart);
-			
+			wordRanges.setAndGrowIfNeeded(wordRangeStartIndex(w), currStart);
 			currStart += ngramMap.getRangeSizeForWord(numNgramsForEachWord, w);
+			wordRanges.setAndGrowIfNeeded(wordRangeEndIndex(w), currStart);
+
 
 		}
 		return currStart;
@@ -117,8 +118,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		assert contextOffsetOf >= 0;
 		assert word >= 0;
 		if (word >= numWords) return -1;
-		final long rangeStart = wordRanges(word);
-		final long rangeEnd = ((word == numWords - 1) ? getCapacity() : wordRanges(word + 1));
+		final long rangeStart = wordRangeStart(word);
+		final long rangeEnd = wordRangeEnd(word);
 		final long startIndex = hash(key, rangeStart, rangeEnd);
 		if (startIndex < 0) return -1L;
 		assert startIndex >= rangeStart;
@@ -164,7 +165,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	int getWordForContext(final long contextOffset) {
 		int binarySearch = binarySearch(contextOffset);
 		binarySearch = binarySearch >= 0 ? binarySearch : (-binarySearch - 2);
-		while (binarySearch < numWords - 1 && wordRanges(binarySearch) == wordRanges(binarySearch + 1))
+		while (binarySearch < numWords - 1 && wordRangeStart(binarySearch) == wordRangeEnd(binarySearch))
 			binarySearch++;
 		return binarySearch;
 	}
@@ -175,7 +176,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 
 		while (low <= high) {
 			final int mid = (low + high) >>> 1;
-			final long midVal = wordRanges(mid);
+			final long midVal = wordRangeStart(mid);
 			if (midVal < key)
 				low = mid + 1;
 			else if (midVal > key)
@@ -249,8 +250,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	@Override
 	public boolean hasContexts(final int word) {
 		if (word >= numWords) return false;
-		final long rangeStart = wordRanges(word);
-		final long rangeEnd = ((word == numWords - 1) ? getCapacity() : wordRanges(word + 1));
+		final long rangeStart = wordRangeStart(word);
+		final long rangeEnd = wordRangeEnd(word);
 		return (rangeEnd - rangeStart > 0);
 	}
 
@@ -258,12 +259,20 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	//		return (ngramOrder - 1) * totalNumWords + w;
 	//	}
 
-	private final int wordRangeIndex(final int w) {
-		return w * maxNgramOrder + ngramOrder - 1;
+	private final int wordRangeStartIndex(final int w) {
+		return 2 * w * maxNgramOrder + ngramOrder - 1;
 	}
 
-	private final long wordRanges(final int i) {
-		return wordRanges.get(wordRangeIndex(i));
+	private final int wordRangeEndIndex(final int w) {
+		return (2 * w + 1) * maxNgramOrder + ngramOrder - 1;
+	}
+
+	private final long wordRangeStart(final int i) {
+		return wordRanges.get(wordRangeStartIndex(i));
+	}
+
+	private final long wordRangeEnd(final int i) {
+		return wordRanges.get(wordRangeEndIndex(i));
 	}
 
 }

@@ -68,12 +68,12 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final long maxSize = getMaximumSize(numNgramsForEachWord);
 		
 		// a little ugly: store word ranges for all orders in the same array to increase cache locality
-		final CustomWidthArray wordRanges = new CustomWidthArray((maxNgramOrder - 1) * (int) numWords, maxSize < Integer.MAX_VALUE ? Integer.SIZE : Long.SIZE);
+		final CustomWidthArray wordRanges = new CustomWidthArray(2*(maxNgramOrder - 1) * (int) numWords, maxSize < Integer.MAX_VALUE ? Integer.SIZE : Long.SIZE);
 		values.setMap(this);
 		values.setSizeAtLeast(numWords, 0);
 		for (int ngramOrder = 1; ngramOrder < maxNgramOrder; ++ngramOrder) {
 			final long numNgramsForPreviousOrder = ngramOrder == 1 ? numWords : implicitMaps[ngramOrder - 2].getCapacity();
-			implicitMaps[ngramOrder - 1] = new ImplicitWordHashMap(numNgramsForEachWord[ngramOrder], maxLoadFactor, wordRanges, ngramOrder, maxNgramOrder - 1,
+			implicitMaps[ngramOrder - 1] = new ImplicitWordHashMap(numNgramsForEachWord[ngramOrder], wordRanges, ngramOrder, maxNgramOrder - 1,
 				numNgramsForPreviousOrder, (int) numWords, this);
 			values.setSizeAtLeast(implicitMaps[ngramOrder - 1].getCapacity(), ngramOrder);
 		}
