@@ -37,11 +37,13 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 	private final NgramMap<ProbBackoffPair> map;
 
 	private final ProbBackoffValueContainer values;
+	private final boolean useScratchValues;
 
 	public ArrayEncodedProbBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final NgramMap<ProbBackoffPair> map, final ConfigOptions opts) {
 		super(lmOrder, wordIndexer, (float) opts.unknownWordLogProb);
 		this.map = map;
 		this.values = (ProbBackoffValueContainer) map.getValues();
+		useScratchValues = !(map instanceof ContextEncodedNgramMap);
 
 	}
 
@@ -55,8 +57,6 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 	@Override
 	public float getLogProb(final int[] ngram, final int startPos, final int endPos) {
 		final NgramMap<ProbBackoffPair> localMap = map;
-		final ContextEncodedNgramMap<ProbBackoffPair> contextEncodedLocalMap = map instanceof ContextEncodedNgramMap ? (ContextEncodedNgramMap<ProbBackoffPair>) map
-			: null;
 		float backoff = 0.0f;
 
 		long probContext = 0L;
@@ -64,7 +64,7 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 		long matchedProbContext = -1L;
 		int matchedProbContextOrder = -1;
 
-		final ProbBackoffPair scratch = contextEncodedLocalMap != null ? null : new ProbBackoffPair(Float.NaN, Float.NaN);
+		final ProbBackoffPair scratch = !useScratchValues ? null : new ProbBackoffPair(Float.NaN, Float.NaN);
 		for (int i = endPos - 1; i >= startPos; --i) {
 			probContext = localMap.getValueAndOffset(probContext, probContextOrder, ngram[i], scratch);
 			if (probContext < 0) break;
