@@ -28,9 +28,9 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	final CustomWidthArray keys;
 
 	@PrintMemoryCount
-	private final long[] wordRanges;
+	private final CustomWidthArray wordRanges;
 
-	private final AbstractNgramMap<?> ngramMap;
+	private final HashNgramMap<?> ngramMap;
 
 	private long numFilled = 0;
 
@@ -45,8 +45,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 
 	private final int maxNgramOrder;
 
-	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final double loadFactor, final long[] wordRanges, final int ngramOrder,
-		final int maxNgramOrder, final long numNgramsForPreviousOrder, final int totalNumWords, final AbstractNgramMap<?> ngramMap) {
+	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final double loadFactor, final CustomWidthArray wordRanges, final int ngramOrder,
+		final int maxNgramOrder, final long numNgramsForPreviousOrder, final int totalNumWords, final HashNgramMap<?> ngramMap) {
 		this.ngramOrder = ngramOrder;
 		this.ngramMap = ngramMap;
 		assert ngramOrder >= 1;
@@ -85,9 +85,9 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	private long setWordRanges(final LongArray numNgramsForEachWord, final double maxLoadFactor, final long numWords) {
 		long currStart = 0;
 		for (int w = (0); w < numWords; ++w) {
-			wordRanges[wordRangeIndex(w)] = currStart;
-			final long numNgrams = numNgramsForEachWord.get(w);
-			currStart += numNgrams <= 3 ? numNgrams : Math.round(numNgrams * 1.0 / maxLoadFactor);
+			wordRanges.setAndGrowIfNeeded(wordRangeIndex(w), currStart);
+			
+			currStart += ngramMap.getRangeSizeForWord(numNgramsForEachWord, w);
 
 		}
 		return currStart;
@@ -263,7 +263,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	}
 
 	private final long wordRanges(final int i) {
-		return wordRanges[wordRangeIndex(i)];
+		return wordRanges.get(wordRangeIndex(i));
 	}
 
 }
