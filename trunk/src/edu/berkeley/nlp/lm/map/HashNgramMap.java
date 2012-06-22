@@ -68,6 +68,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final long maxSize = getMaximumSize(numNgramsForEachWord);
 
 		// a little ugly: store word ranges for all orders in the same array to increase cache locality
+		// also, if we can, store two ints per long for cache locality
 		final boolean fitsInInt = maxSize < Integer.MAX_VALUE;
 		final int logicalNumRangeEntries = (maxNgramOrder - 1) * (int) numWords;
 		final long[] wordRanges = new long[fitsInInt ? (logicalNumRangeEntries / 2 + logicalNumRangeEntries % 2) : logicalNumRangeEntries];
