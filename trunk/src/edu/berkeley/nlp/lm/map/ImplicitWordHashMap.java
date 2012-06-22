@@ -116,14 +116,14 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	 */
 	private long linearSearch(final long key, final boolean returnFirstEmptyIndex) {
 		final int word = ngramMap.wordOf(key);
-		final long contextOffsetOf = ngramMap.contextOffsetOf(key);
-		assert contextOffsetOf >= 0;
-		assert word >= 0;
 		if (word >= numWords) return -1;
 		final long rangeStart = wordRangeStart(word);
 		final long rangeEnd = wordRangeEnd(word);
 		final long startIndex = hash(key, rangeStart, rangeEnd);
 		if (startIndex < 0) return -1L;
+		final long contextOffsetOf = ngramMap.contextOffsetOf(key);
+		assert contextOffsetOf >= 0;
+		assert word >= 0;
 		assert startIndex >= rangeStart;
 		assert startIndex < rangeEnd;
 
