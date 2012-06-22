@@ -35,7 +35,7 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 
 	protected final int valueRadix;
 
-	protected int wordWidth;
+	protected int valueWidth;
 
 	protected final int defaultValRank = 10;
 
@@ -97,11 +97,11 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 
 		final CustomWidthArray valueRanksHere = valueRanks[ngramOrder];
 		final int widthOffset = ngramOrder == 0 || !useMapValueArray ? 0 : valueRanksHere.getKeyWidth();
-		valueRanksHere.setAndGrowIfNeeded(offset, indexOfCounts, widthOffset, wordWidth);
+		valueRanksHere.setAndGrowIfNeeded(offset, indexOfCounts, widthOffset, valueWidth);
 		if (storeSuffixIndexes && ngramOrder > 0) {
 			assert suffixOffset >= 0;
 			assert suffixOffset <= Integer.MAX_VALUE;
-			valueRanksHere.setAndGrowIfNeeded(offset, suffixOffset, widthOffset + wordWidth, suffixBitsForOrder[ngramOrder]);
+			valueRanksHere.setAndGrowIfNeeded(offset, suffixOffset, widthOffset + valueWidth, suffixBitsForOrder[ngramOrder]);
 		}
 		return true;
 
@@ -142,7 +142,7 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 				useMapValueArray = true;
 				valueRanks[ngramOrder] = valueStoringArray;
 			} else {
-				valueRanks[ngramOrder] = new CustomWidthArray(size, wordWidth, wordWidth + suffixBits);
+				valueRanks[ngramOrder] = new CustomWidthArray(size, valueWidth, valueWidth + suffixBits);
 				valueRanks[ngramOrder].setAndGrowIfNeeded(size - 1, 0L);
 			}
 		}
@@ -152,7 +152,8 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 		assert ngramOrder > 0;
 		final CustomWidthArray valueRanksHere = valueRanks[ngramOrder];
 		final int widthOffset = ngramOrder == 0 || !useMapValueArray ? 0 : valueRanksHere.getKeyWidth();
-		return valueRanksHere.get(index, widthOffset + wordWidth, suffixBitsForOrder[ngramOrder]);
+		final int width = widthOffset+valueWidth;
+		return valueRanksHere.get(index, width, valueRanksHere.getFullWidth() - width);
 	}
 
 	/**
@@ -175,7 +176,7 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 	protected long getRank(final int ngramOrder, final long offset) {
 		final CustomWidthArray valueRanksHere = valueRanks[ngramOrder];
 		final int widthOffset = ngramOrder == 0 || !useMapValueArray ? 0 : valueRanksHere.getKeyWidth();
-		return valueRanksHere.get(offset, widthOffset, wordWidth);
+		return valueRanksHere.get(offset, widthOffset, valueWidth);
 	}
 
 	@Override
@@ -205,7 +206,7 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 
 	@Override
 	public int numValueBits(int ngramOrder) {
-		return wordWidth + suffixBitsForOrder[ngramOrder];
+		return valueWidth + suffixBitsForOrder[ngramOrder];
 	}
 
 }

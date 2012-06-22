@@ -47,8 +47,8 @@ public final class UncompressedProbBackoffValueContainer extends RankedValueCont
 			countIndexer.put(defaultVal, countIndexer.size());
 			probsAndBackoffsForRank[k++] = defaultVal;
 		}
-		wordWidth = CustomWidthArray.numBitsNeeded(countIndexer.size());
-		Logger.logss("Storing count indices using " + wordWidth + " bits.");
+		valueWidth = CustomWidthArray.numBitsNeeded(countIndexer.size());
+		Logger.logss("Storing count indices using " + valueWidth + " bits.");
 		Logger.endTrack();
 	}
 
@@ -67,13 +67,13 @@ public final class UncompressedProbBackoffValueContainer extends RankedValueCont
 		super(valueRadix, storePrefixIndexes, numNgramsForEachOrder);
 		this.countIndexer = countIndexer;
 		this.probsAndBackoffsForRank = probsAndBackoffsForRank;
-		super.wordWidth = wordWidth;
+		super.valueWidth = wordWidth;
 	}
 
 	@Override
 	public UncompressedProbBackoffValueContainer createFreshValues(long[] numNgramsForEachOrder_) {
 		return new UncompressedProbBackoffValueContainer(valueRadix, storeSuffixIndexes, numNgramsForEachOrder_, probsAndBackoffsForRank, countIndexer,
-			wordWidth);
+			valueWidth);
 	}
 
 	@Override

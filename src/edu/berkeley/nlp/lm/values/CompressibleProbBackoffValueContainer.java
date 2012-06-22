@@ -74,10 +74,10 @@ public final class CompressibleProbBackoffValueContainer extends RankedValueCont
 			backoffsForRank[b++] = f;
 		}
 		backoffWidth = CustomWidthArray.numBitsNeeded(backoffIndexer.size());
-		wordWidth = CustomWidthArray.numBitsNeeded(probIndexer.size()) + backoffWidth;
+		valueWidth = CustomWidthArray.numBitsNeeded(probIndexer.size()) + backoffWidth;
 		
 
-		Logger.logss("Storing count indices using " + wordWidth + " bits.");
+		Logger.logss("Storing count indices using " + valueWidth + " bits.");
 		Logger.endTrack();
 	}
 	
@@ -117,14 +117,14 @@ public final class CompressibleProbBackoffValueContainer extends RankedValueCont
 		this.probIndexer = probIndexer;
 		this.backoffIndexer = backoffIndexer;
 		this.probsForRank = probsForRank;
-		super.wordWidth = wordWidth;
+		super.valueWidth = wordWidth;
 		this.backoffWidth = backoffWidth;
 	}
 
 	@Override
 	public CompressibleProbBackoffValueContainer createFreshValues(long[] numNgramsForEachOrder_) {
 		return new CompressibleProbBackoffValueContainer(valueRadix, storeSuffixIndexes, numNgramsForEachOrder_, probsForRank, backoffsForRank, probIndexer,
-			wordWidth, backoffIndexer, backoffWidth);
+			valueWidth, backoffIndexer, backoffWidth);
 	}
 
 	public final float getProb(final int ngramOrder, final long index) {

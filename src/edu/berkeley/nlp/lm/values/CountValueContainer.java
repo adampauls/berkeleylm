@@ -43,7 +43,7 @@ public final class CountValueContainer extends RankedValueContainer<LongRef>
 			countsForRank[k++] = getDefaultVal().asLong();
 
 		}
-		wordWidth = CustomWidthArray.numBitsNeeded(countIndexer.size());
+		valueWidth = CustomWidthArray.numBitsNeeded(countIndexer.size());
 	}
 
 	/**
@@ -58,12 +58,12 @@ public final class CountValueContainer extends RankedValueContainer<LongRef>
 		super(valueRadix, storePrefixIndexes, numNgramsForEachOrder);
 		this.countsForRank = countsForRank;
 		this.countIndexer = countIndexer;
-		this.wordWidth = wordWidth;
+		this.valueWidth = wordWidth;
 	}
 
 	@Override
 	public CountValueContainer createFreshValues(long[] numNgramsForEachOrder_) {
-		return new CountValueContainer(valueRadix, storeSuffixIndexes, numNgramsForEachOrder_, countsForRank, countIndexer, wordWidth);
+		return new CountValueContainer(valueRadix, storeSuffixIndexes, numNgramsForEachOrder_, countsForRank, countIndexer, valueWidth);
 	}
 
 	@Override
