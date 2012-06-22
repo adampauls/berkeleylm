@@ -139,9 +139,11 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 	@Override
 	public void putCached(final int[] ngram, final int startPos, final int endPos, final float f, final int hash) {
 		final int[] arrayHere = !threadSafe ? threadUnsafeArray : threadSafeArray.get();
-		setLength(hash, endPos - startPos, arrayHere);
-		System.arraycopy(ngram, startPos, arrayHere, getKeyStart(hash), endPos - startPos);
 		setVal(hash, f, arrayHere);
+		setLength(hash, endPos - startPos, arrayHere);
+		for (int i = startPos; i < endPos; ++i) {
+			arrayHere[getKeyStart(hash) + i - startPos] = ngram[i];
+		}
 	}
 
 	/*
