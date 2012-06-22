@@ -324,4 +324,8 @@ public final class CustomWidthArray implements Serializable
 		}
 	}
 
+	public int getFullWidth() {
+		return fullWidth;
+	}
+
 }
