@@ -5,6 +5,7 @@ import java.util.Iterator;
 
 import edu.berkeley.nlp.lm.array.CustomWidthArray;
 import edu.berkeley.nlp.lm.array.LongArray;
+import edu.berkeley.nlp.lm.bits.BitUtils;
 import edu.berkeley.nlp.lm.collections.Iterators;
 import edu.berkeley.nlp.lm.util.Annotations.PrintMemoryCount;
 import edu.berkeley.nlp.lm.util.Logger;
@@ -28,7 +29,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	final CustomWidthArray keys;
 
 	@PrintMemoryCount
-	private final CustomWidthArray wordRanges;
+	private final long[] wordRanges;
 
 	private final HashNgramMap<?> ngramMap;
 
@@ -45,14 +46,17 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 
 	private final int maxNgramOrder;
 
-	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final CustomWidthArray wordRanges, final int ngramOrder, final int maxNgramOrder,
-		final long numNgramsForPreviousOrder, final int totalNumWords, final HashNgramMap<?> ngramMap) {
+	private final boolean fitsInInt;
+
+	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final long[] wordRanges, final int ngramOrder, final int maxNgramOrder,
+		final long numNgramsForPreviousOrder, final int totalNumWords, final HashNgramMap<?> ngramMap, final boolean fitsInInt) {
 		this.ngramOrder = ngramOrder;
 		this.ngramMap = ngramMap;
 		assert ngramOrder >= 1;
 		this.maxNgramOrder = maxNgramOrder;
 		this.totalNumWords = totalNumWords;
 		this.numWords = (int) numNgramsForEachWord.size();
+		this.fitsInInt = fitsInInt;
 
 		this.wordRanges = wordRanges;
 		final long totalNumNgrams = setWordRanges(numNgramsForEachWord, numWords);
@@ -85,10 +89,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	private long setWordRanges(final LongArray numNgramsForEachWord, final long numWords) {
 		long currStart = 0;
 		for (int w = (0); w < numWords; ++w) {
-			wordRanges.setAndGrowIfNeeded(wordRangeStartIndex(w), currStart);
+			setWordRangeStart(w, currStart);
 			currStart += ngramMap.getRangeSizeForWord(numNgramsForEachWord, w);
-			wordRanges.setAndGrowIfNeeded(wordRangeEndIndex(w), currStart);
-
 
 		}
 		return currStart;
@@ -259,20 +261,45 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	//		return (ngramOrder - 1) * totalNumWords + w;
 	//	}
 
-	private final int wordRangeStartIndex(final int w) {
-		return 2 * w * maxNgramOrder + ngramOrder - 1;
+	//	private final int wordRangeStartIndex(final int w) {
+	//		return 2 * w * maxNgramOrder + ngramOrder - 1;
+	//	}
+	//
+	//	private final int wordRangeEndIndex(final int w) {
+	//		return (2 * w + 1) * maxNgramOrder + ngramOrder - 1;
+	//	}
+
+	private final long wordRangeStart(final int w) {
+		return wordRangeAt(w * maxNgramOrder + ngramOrder - 1);
 	}
 
-	private final int wordRangeEndIndex(final int w) {
-		return (2 * w + 1) * maxNgramOrder + ngramOrder - 1;
+	private final long wordRangeEnd(final int w) {
+		return w == numWords - 1 ? getCapacity() : wordRangeAt((w + 1) * maxNgramOrder + ngramOrder - 1);
+
 	}
 
-	private final long wordRangeStart(final int i) {
-		return wordRanges.get(wordRangeStartIndex(i));
+	/**
+	 * @param logicalIndex
+	 * @return
+	 */
+	private long wordRangeAt(final int logicalIndex) {
+		if (fitsInInt) {
+			return logicalIndex % 2 == 0 ? BitUtils.getLowInt(wordRanges[logicalIndex / 2]) : BitUtils.getHighInt(wordRanges[logicalIndex >> 1]);
+		} else {
+			return wordRanges[logicalIndex];
+		}
 	}
 
-	private final long wordRangeEnd(final int i) {
-		return wordRanges.get(wordRangeEndIndex(i));
+	private void setWordRangeStart(int w, long currStart) {
+		final int logicalIndex = w * maxNgramOrder + ngramOrder - 1;
+		if (fitsInInt) {
+			if (logicalIndex % 2 == 0)
+				wordRanges[logicalIndex / 2] = BitUtils.setLowInt(wordRanges[logicalIndex / 2], (int) currStart);
+			else
+				wordRanges[logicalIndex / 2] = BitUtils.setHighInt(wordRanges[logicalIndex / 2], (int) currStart);
+		} else {
+			wordRanges[logicalIndex] = currStart;
+		}
 	}
 
 }

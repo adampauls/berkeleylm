@@ -1,12 +1,11 @@
 package edu.berkeley.nlp.lm.values;
 
 import edu.berkeley.nlp.lm.ConfigOptions;
+import edu.berkeley.nlp.lm.bits.BitUtils;
 import edu.berkeley.nlp.lm.collections.LongRepresentable;
 
 public class ProbBackoffPair implements Comparable<ProbBackoffPair>, LongRepresentable<ProbBackoffPair>
 {
-
-	private static final long INT_BITS_MASK = ((1L << Integer.SIZE) - 1);
 
 	static final int MANTISSA_MASK = 0x9fffff;
 
@@ -75,18 +74,17 @@ public class ProbBackoffPair implements Comparable<ProbBackoffPair>, LongReprese
 	public long asLong() {
 		final int probBits = Float.floatToIntBits(prob);
 		final int backoffBits = Float.floatToIntBits(backoff);
-		final long probBitsShifted = ((long) probBits) << Integer.SIZE;
-		final long backoffBitsShifted = backoffBits & INT_BITS_MASK;
-		return probBitsShifted | backoffBitsShifted;
+		return BitUtils.combineInts(probBits, backoffBits);
+		
 	}
 
 	public static float probOf(long key) {
-		return Float.intBitsToFloat((int) (key >>> Integer.SIZE));
+		return Float.intBitsToFloat(BitUtils.getHighInt(key));
 
 	}
 
 	public static float backoffOf(long key) {
-		return Float.intBitsToFloat((int) (key & INT_BITS_MASK));
+		return Float.intBitsToFloat(BitUtils.getLowInt(key));
 
 	}
 }
