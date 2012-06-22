@@ -278,7 +278,8 @@ public final class CustomWidthArray implements Serializable
 		long bit = bit(from);
 		boolean goneAroundOnce = false;
 		int innerIndex = LongArray.i(word);
-		long[] currArray = data.data[LongArray.o(word)];
+		final long[][] localData = data.data;
+		long[] currArray = localData[LongArray.o(word)];
 		long lastDatum = currArray[innerIndex];
 		final long widthDiff = Long.SIZE - keyWidth;
 		while (true) {
@@ -290,7 +291,7 @@ public final class CustomWidthArray implements Serializable
 				word = word(from);
 				innerIndex = LongArray.i(word);
 				final int outerIndex = LongArray.o(word);
-				currArray = data.data[outerIndex];
+				currArray = localData[outerIndex];
 				lastDatum = currArray[(int) word];
 				goneAroundOnce = true;
 			}
@@ -306,7 +307,7 @@ public final class CustomWidthArray implements Serializable
 				innerIndex = LongArray.i(word);
 				if (innerIndex == currArray.length) {
 					innerIndex = 0;
-					currArray = data.data[LongArray.o(word)];
+					currArray = localData[LongArray.o(word)];
 				}
 				lastDatum = currArray[innerIndex];
 			}
