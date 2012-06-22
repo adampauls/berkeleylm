@@ -23,6 +23,8 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 	private final ArrayEncodedLmCache cache;
 
 	private final ArrayEncodedNgramLanguageModel<W> lm;
+	
+	private final int capacity;
 
 	/**
 	 * To use this wrapper in a multithreaded environment, you should create one
@@ -66,13 +68,14 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 		super(lm.getLmOrder(), lm.getWordIndexer(), Float.NaN);
 		this.cache = cache;
 		this.lm = lm;
+		this.capacity = cache.capacity();
 
 	}
 
 	@Override
 	public float getLogProb(final int[] ngram, final int startPos, final int endPos) {
 		if (endPos - startPos == 1) return lm.getLogProb(ngram, startPos, endPos);
-		final int hash = Math.abs(hash(ngram, startPos, endPos)) % cache.capacity();
+		final int hash = hash(ngram, startPos, endPos) % capacity;
 		float f = cache.getCached(ngram, startPos, endPos, hash);
 		if (!Float.isNaN(f)) return f;
 		f = lm.getLogProb(ngram, startPos, endPos);
@@ -81,7 +84,8 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 	}
 
 	private static int hash(final int[] key, final int startPos, final int endPos) {
-		return MurmurHash.hash32(key, startPos, endPos);
+		final int hash = MurmurHash.hash32(key, startPos, endPos);
+		return hash < 0 ? -hash : hash;
 	}
 
 }

@@ -25,6 +25,8 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 	private final ContextEncodedLmCache contextCache;
 
 	private final ContextEncodedNgramLanguageModel<T> lm;
+	
+	private final int capacity;
 
 	/**
 	 * This type of caching is only threadsafe if you have one cache wrapper per
@@ -67,6 +69,7 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 		super(lm.getLmOrder(), lm.getWordIndexer(), Float.NaN);
 		this.lm = lm;
 		this.contextCache = cache;
+		capacity = contextCache.capacity();
 
 	}
 
@@ -88,7 +91,7 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 	@Override
 	public float getLogProb(final long contextOffset, final int contextOrder, final int word, @OutputParameter final LmContextInfo contextOutput) {
 		if (contextOrder < 0) return lm.getLogProb(contextOffset, contextOrder, word, contextOutput);
-		final int hash = Math.abs(hash(contextOffset, contextOrder, word)) % contextCache.capacity();
+		final int hash = hash(contextOffset, contextOrder, word) % capacity;
 		float f = contextCache.getCached(contextOffset, contextOrder, word, hash, contextOutput);
 		if (!Float.isNaN(f)) return f;
 		f = lm.getLogProb(contextOffset, contextOrder, word, contextOutput);
@@ -97,7 +100,8 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 	}
 
 	private static int hash(final long contextOffset, final int contextOrder, final int word) {
-		return (int) MurmurHash.hashThreeLongs(contextOffset, contextOrder, word);
+		final int hash = (int) MurmurHash.hashThreeLongs(contextOffset, contextOrder, word);
+		return hash < 0 ? -hash : hash;
 	}
 
 }
