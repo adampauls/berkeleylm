@@ -66,18 +66,19 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		implicitUnigramMap = new UnigramHashMap(numWords, this);
 		initCapacities = null;
 		final long maxSize = getMaximumSize(numNgramsForEachWord);
-		
+
 		// a little ugly: store word ranges for all orders in the same array to increase cache locality
-		final CustomWidthArray wordRanges = new CustomWidthArray(2*(maxNgramOrder - 1) * (int) numWords, maxSize < Integer.MAX_VALUE ? Integer.SIZE : Long.SIZE);
+		final boolean fitsInInt = maxSize < Integer.MAX_VALUE;
+		final int logicalNumRangeEntries = (maxNgramOrder - 1) * (int) numWords;
+		final long[] wordRanges = new long[fitsInInt ? (logicalNumRangeEntries / 2 + logicalNumRangeEntries % 2) : logicalNumRangeEntries];
 		values.setMap(this);
 		values.setSizeAtLeast(numWords, 0);
 		for (int ngramOrder = 1; ngramOrder < maxNgramOrder; ++ngramOrder) {
 			final long numNgramsForPreviousOrder = ngramOrder == 1 ? numWords : implicitMaps[ngramOrder - 2].getCapacity();
 			implicitMaps[ngramOrder - 1] = new ImplicitWordHashMap(numNgramsForEachWord[ngramOrder], wordRanges, ngramOrder, maxNgramOrder - 1,
-				numNgramsForPreviousOrder, (int) numWords, this);
+				numNgramsForPreviousOrder, (int) numWords, this, fitsInInt);
 			values.setSizeAtLeast(implicitMaps[ngramOrder - 1].getCapacity(), ngramOrder);
 		}
-		wordRanges.trim();
 	}
 
 	private long getMaximumSize(final LongArray[] numNgramsForEachWord) {
@@ -388,8 +389,8 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	private long getOffsetForContextEncoding(final long contextOffset_, final int contextOrder, final int word, @OutputParameter final T outputVal) {
 		if (word < 0) return -1;
 		final int ngramOrder = contextOrder + 1;
-		final long contextOffset = contextOffset_ >= 0? contextOffset_ :  0;
-		
+		final long contextOffset = contextOffset_ >= 0 ? contextOffset_ : 0;
+
 		final long key = combineToKey(word, contextOffset);
 		final long offset = getOffsetHelpFromMap(ngramOrder, key);
 		if (offset >= 0 && outputVal != null) {
@@ -397,7 +398,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		}
 		return offset;
 	}
-	
+
 	private long getOffsetHelpFromMap(int ngramOrder, long key) {
 		if (isExplicit) { return (ngramOrder >= explicitMaps.length || explicitMaps[ngramOrder] == null) ? -1 : explicitMaps[ngramOrder].getOffset(key); }
 		return ngramOrder == 0 ? implicitUnigramMap.getOffset(key) : implicitMaps[ngramOrder - 1].getOffset(key);
