@@ -102,7 +102,6 @@ public final class LongArray implements Serializable
 		data[o(pos)][i(pos)] = val;
 	}
 
-	
 	private void incrementHelp(final long pos, final long val) {
 		data[o(pos)][i(pos)] += val;
 	}
@@ -154,9 +153,7 @@ public final class LongArray implements Serializable
 	 * @see edu.berkeley.nlp.mt.lm.util.collections.LongArray#get(long)
 	 */
 	public long get(final long pos) {
-		if (pos >= size) { //
-			throw new ArrayIndexOutOfBoundsException("" + pos);
-		}
+		assert (pos < size) : this.getClass().getName() + " array index out of bounds";
 		return getHelp(pos);
 	}
 
@@ -297,7 +294,7 @@ public final class LongArray implements Serializable
 		if (index >= size) {
 			setAndGrowIfNeeded(index, count);
 		} else {
-			incrementHelp(index,count);
+			incrementHelp(index, count);
 		}
 	}
 
