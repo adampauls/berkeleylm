@@ -77,7 +77,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		for (int ngramOrder = 1; ngramOrder < maxNgramOrder; ++ngramOrder) {
 			final long numNgramsForPreviousOrder = ngramOrder == 1 ? numWords : implicitMaps[ngramOrder - 2].getCapacity();
 			implicitMaps[ngramOrder - 1] = new ImplicitWordHashMap(numNgramsForEachWord[ngramOrder], wordRanges, ngramOrder, maxNgramOrder - 1,
-				numNgramsForPreviousOrder, (int) numWords, this, fitsInInt);
+				numNgramsForPreviousOrder, (int) numWords, this, fitsInInt, !opts.storeRankedProbBackoffs);
 			values.setSizeAtLeast(implicitMaps[ngramOrder - 1].getCapacity(), ngramOrder);
 		}
 	}

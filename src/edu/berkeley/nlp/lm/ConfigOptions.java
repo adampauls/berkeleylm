@@ -52,6 +52,10 @@ public class ConfigOptions implements Serializable
 	@Option(gloss = "Number of bits to round the mantissa of floats to when reading from ARPA LM files. Note that the mantissa of a float is at most 24 bits long.")
 	public static int roundBits = 24;
 
+	@Option(gloss = "For (uncompressed) models that store probabilities and backoffs, store by ranking")
+	public boolean storeRankedProbBackoffs = true;
+
+
 	public ConfigOptions() {
 	}
 

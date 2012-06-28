@@ -11,21 +11,25 @@ public class BitUtils
 	}
 
 	public static int getLowInt(long key) {
-		return (int) (key & INT_BITS_MASK);
+		return (int) getLowLong(key);
 
 	}
 
+	public static long getLowLong(long key) {
+		return (key & INT_BITS_MASK);
+	}
+
 	public static long setLowInt(long key, int i) {
-		return combineInts(getHighInt(key), i);
+		return combineInts(i, getHighInt(key));
 
 	}
 
 	public static long setHighInt(long key, int i) {
-		return combineInts(i, getLowInt(key));
+		return combineInts(getLowInt(key), i);
 
 	}
 
-	public static long combineInts(int highInt, int lowInt) {
+	public static long combineInts(int lowInt, int highInt) {
 		return (((long) highInt) << Integer.SIZE) | (lowInt & INT_BITS_MASK);
 	}
 
