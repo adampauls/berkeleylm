@@ -8,6 +8,7 @@ import edu.berkeley.nlp.lm.map.NgramMap;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 import edu.berkeley.nlp.lm.util.Logger;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
+import edu.berkeley.nlp.lm.values.ProbBackoffValueContainer;
 import edu.berkeley.nlp.lm.values.UncompressedProbBackoffValueContainer;
 
 /**
@@ -28,7 +29,7 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 
 	private final HashNgramMap<ProbBackoffPair> map;
 
-	private final UncompressedProbBackoffValueContainer values;
+	private final ProbBackoffValueContainer values;
 
 	private final long numWords;
 
@@ -36,7 +37,7 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 		final ConfigOptions opts) {
 		super(lmOrder, wordIndexer, (float) opts.unknownWordLogProb);
 		this.map = (HashNgramMap<ProbBackoffPair>) map;
-		this.values = (UncompressedProbBackoffValueContainer) map.getValues();
+		this.values = (ProbBackoffValueContainer) map.getValues();
 		numWords = map.getNumNgrams(0);
 
 	}

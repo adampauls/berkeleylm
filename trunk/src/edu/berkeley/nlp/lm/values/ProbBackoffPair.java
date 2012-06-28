@@ -31,6 +31,10 @@ public class ProbBackoffPair implements Comparable<ProbBackoffPair>, LongReprese
 		return true;
 	}
 
+	public ProbBackoffPair(final long probBackoff) {
+		this(probOf(probBackoff), backoffOf(probBackoff));
+	}
+
 	public ProbBackoffPair(final float logProb, final float backoff) {
 		this.prob = round(logProb, ConfigOptions.roundBits);
 		this.backoff = round(backoff, ConfigOptions.roundBits);
@@ -72,19 +76,28 @@ public class ProbBackoffPair implements Comparable<ProbBackoffPair>, LongReprese
 
 	@Override
 	public long asLong() {
+		return floatsToLong(prob, backoff);
+
+	}
+
+	/**
+	 * @param prob
+	 * @param backoff
+	 * @return
+	 */
+	public static long floatsToLong(final float prob, final float backoff) {
 		final int probBits = Float.floatToIntBits(prob);
 		final int backoffBits = Float.floatToIntBits(backoff);
 		return BitUtils.combineInts(probBits, backoffBits);
-		
 	}
 
 	public static float probOf(long key) {
-		return Float.intBitsToFloat(BitUtils.getHighInt(key));
+		return Float.intBitsToFloat(BitUtils.getLowInt(key));
 
 	}
 
 	public static float backoffOf(long key) {
-		return Float.intBitsToFloat(BitUtils.getLowInt(key));
+		return Float.intBitsToFloat(BitUtils.getHighInt(key));
 
 	}
 }

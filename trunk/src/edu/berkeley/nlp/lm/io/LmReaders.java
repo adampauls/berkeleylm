@@ -31,6 +31,7 @@ import edu.berkeley.nlp.lm.values.CompressibleProbBackoffValueContainer;
 import edu.berkeley.nlp.lm.values.ProbBackoffPair;
 import edu.berkeley.nlp.lm.values.UncompressedProbBackoffValueContainer;
 import edu.berkeley.nlp.lm.values.CountValueContainer;
+import edu.berkeley.nlp.lm.values.UnrankedUncompressedProbBackoffValueContainer;
 import edu.berkeley.nlp.lm.values.ValueContainer;
 
 /**
@@ -435,8 +436,9 @@ public class LmReaders
 		final FirstPassCallback<ProbBackoffPair> valueAddingCallback, final LongArray[] numNgramsForEachWord, final boolean contextEncoded,
 		final boolean reversed, final boolean compress) {
 		final ValueContainer<ProbBackoffPair> values = compress ? new CompressibleProbBackoffValueContainer(valueAddingCallback.getValueCounter(),
-			opts.valueRadix, contextEncoded, valueAddingCallback.getNumNgramsForEachOrder()) : new UncompressedProbBackoffValueContainer(
-			valueAddingCallback.getValueCounter(), opts.valueRadix, contextEncoded, valueAddingCallback.getNumNgramsForEachOrder());
+			opts.valueRadix, contextEncoded, valueAddingCallback.getNumNgramsForEachOrder())
+			: opts.storeRankedProbBackoffs ? new UncompressedProbBackoffValueContainer(valueAddingCallback.getValueCounter(), opts.valueRadix, contextEncoded,
+				valueAddingCallback.getNumNgramsForEachOrder()) : new UnrankedUncompressedProbBackoffValueContainer(contextEncoded, valueAddingCallback.getNumNgramsForEachOrder());
 		if (contextEncoded && compress) throw new RuntimeException("Compression is not supported by context-encoded LMs");
 		final NgramMap<ProbBackoffPair> map = buildMapCommon(opts, wordIndexer, numNgramsForEachWord, valueAddingCallback.getNumNgramsForEachOrder(), reversed,
 			lmReader, values, compress);

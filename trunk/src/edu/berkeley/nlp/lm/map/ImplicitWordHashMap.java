@@ -48,8 +48,10 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 
 	private final boolean fitsInInt;
 
+	private final int numSuffixBits;
+
 	public ImplicitWordHashMap(final LongArray numNgramsForEachWord, final long[] wordRanges, final int ngramOrder, final int maxNgramOrder,
-		final long numNgramsForPreviousOrder, final int totalNumWords, final HashNgramMap<?> ngramMap, final boolean fitsInInt) {
+		final long numNgramsForPreviousOrder, final int totalNumWords, final HashNgramMap<?> ngramMap, final boolean fitsInInt, final boolean storeWords) {
 		this.ngramOrder = ngramOrder;
 		this.ngramMap = ngramMap;
 		assert ngramOrder >= 1;
@@ -58,9 +60,10 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		this.numWords = (int) numNgramsForEachWord.size();
 		this.fitsInInt = fitsInInt;
 
-		this.wordRanges = wordRanges;
+		this.wordRanges = storeWords ? null : wordRanges;
 		final long totalNumNgrams = setWordRanges(numNgramsForEachWord, numWords);
-		final int numBitsHere = CustomWidthArray.numBitsNeeded(numNgramsForPreviousOrder + 1);
+		numSuffixBits = CustomWidthArray.numBitsNeeded(numNgramsForPreviousOrder + 1);
+		final int numBitsHere = numSuffixBits + (storeWords ? CustomWidthArray.numBitsNeeded(totalNumWords) : 0);
 		keys = new CustomWidthArray(totalNumNgrams, numBitsHere, numBitsHere + ngramMap.getValues().numValueBits(ngramOrder));
 		keys.fill(EMPTY_KEY, totalNumNgrams);
 		numFilled = 0;
@@ -97,10 +100,27 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	}
 
 	private void setKey(final long index, final long putKey) {
-		final long contextOffset = ngramMap.contextOffsetOf(putKey);
+		final long contextOffset = wordRanges == null ? shrinkKey(putKey) : ngramMap.contextOffsetOf(putKey);
 		assert contextOffset >= 0;
 		keys.set(index, contextOffset + 1);
 
+	}
+
+	/**
+	 * @param word
+	 * @param suffixIndex
+	 * @return
+	 */
+	private final long shrinkKey(final long key) {
+		final int word = ngramMap.wordOf(key);
+		final long suffixIndex = ngramMap.contextOffsetOf(key);
+		return (((long) word) << (numSuffixBits)) | suffixIndex;
+	}
+
+	private final long expandKey(final long key) {
+		final int word = (int) (key >>> numSuffixBits);
+		final long suffixIndex = key & ((1L << numSuffixBits) - 1);
+		return ngramMap.combineToKey(word, suffixIndex);
 	}
 
 	@Override
@@ -121,7 +141,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		final long rangeEnd = wordRangeEnd(word);
 		final long startIndex = hash(key, rangeStart, rangeEnd);
 		if (startIndex < 0) return -1L;
-		final long contextOffsetOf = ngramMap.contextOffsetOf(key);
+		final long contextOffsetOf = wordRanges == null ? shrinkKey(key) : ngramMap.contextOffsetOf(key);
 		assert contextOffsetOf >= 0;
 		assert word >= 0;
 		assert startIndex >= rangeStart;
@@ -191,7 +211,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 
 	@Override
 	public long getKey(final long contextOffset) {
-		return ngramMap.combineToKey(getWordForContext(contextOffset), getNextOffset(contextOffset));
+		return wordRanges == null ? expandKey(getNextOffset(contextOffset)) : ngramMap.combineToKey(getWordForContext(contextOffset),
+			getNextOffset(contextOffset));
 	}
 
 	@Override
@@ -258,11 +279,11 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	}
 
 	private final long wordRangeStart(final int w) {
-		return wordRangeAt(w * maxNgramOrder + ngramOrder - 1);
+		return wordRanges == null ? 0 : wordRangeAt(w * maxNgramOrder + ngramOrder - 1);
 	}
 
 	private final long wordRangeEnd(final int w) {
-		return w == numWords - 1 ? getCapacity() : wordRangeAt((w + 1) * maxNgramOrder + ngramOrder - 1);
+		return wordRanges == null || w == numWords - 1 ? getCapacity() : wordRangeAt((w + 1) * maxNgramOrder + ngramOrder - 1);
 
 	}
 
@@ -279,6 +300,7 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	}
 
 	private void setWordRangeStart(int w, long currStart) {
+		if (wordRanges == null) return;
 		final int logicalIndex = w * maxNgramOrder + ngramOrder - 1;
 		if (fitsInInt) {
 			if (logicalIndex % 2 == 0)

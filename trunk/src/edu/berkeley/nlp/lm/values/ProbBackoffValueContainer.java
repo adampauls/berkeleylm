@@ -9,4 +9,6 @@ public interface ProbBackoffValueContainer extends ValueContainer<ProbBackoffPai
 
 	public abstract ProbBackoffPair getScratchValue();
 
+	public abstract long getSuffixOffset(final long index, final int ngramOrder);
+
 }
