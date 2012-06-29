@@ -92,11 +92,14 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	private long setWordRanges(final LongArray numNgramsForEachWord, final long numWords) {
 		long currStart = 0;
 		for (int w = (0); w < numWords; ++w) {
-			setWordRangeStart(w, currStart);
-			currStart += ngramMap.getRangeSizeForWord(numNgramsForEachWord, w);
-
+			if (wordRanges != null) {
+				setWordRangeStart(w, currStart);
+				currStart += ngramMap.getRangeSizeForWord(numNgramsForEachWord, w);
+			} else {
+				currStart += numNgramsForEachWord.get(w);
+			}
 		}
-		return currStart;
+		return wordRanges == null ? Math.round(currStart * 1.0 / ngramMap.getLoadFactor()) : currStart;
 	}
 
 	private void setKey(final long index, final long putKey) {
@@ -300,7 +303,6 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 	}
 
 	private void setWordRangeStart(int w, long currStart) {
-		if (wordRanges == null) return;
 		final int logicalIndex = w * maxNgramOrder + ngramOrder - 1;
 		if (fitsInInt) {
 			if (logicalIndex % 2 == 0)

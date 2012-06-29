@@ -665,4 +665,8 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		}
 
 	}
+
+	 double getLoadFactor() {
+		return maxLoadFactor;
+	}
 }

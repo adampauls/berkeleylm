@@ -146,7 +146,7 @@ public final class UnrankedUncompressedProbBackoffValueContainer implements Prob
 		if (valueRanks[ngramOrder] == null) {
 			final int suffixBits = (ngramOrder == 0 || !storeSuffixIndexes) ? 0 : suffixBitsForOrder[ngramOrder];
 
-			if (ngramOrder < suffixBitsForOrder.length - 1) suffixBitsForOrder[ngramOrder + 1] = CustomWidthArray.numBitsNeeded(size);
+			if (storeSuffixIndexes && ngramOrder < suffixBitsForOrder.length - 1) suffixBitsForOrder[ngramOrder + 1] = CustomWidthArray.numBitsNeeded(size);
 
 			final CustomWidthArray valueStoringArray = ngramMap.getValueStoringArray(ngramOrder);
 			final boolean useValueStoringArrayHere = valueStoringArray != null;
