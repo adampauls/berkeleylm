@@ -31,6 +31,8 @@ public final class CustomWidthArray implements Serializable
 
 	private final int fullWidth;
 
+	final long widthDiff;
+
 	private final LongArray data;
 
 	private final static long numLongs(final long size) {
@@ -58,6 +60,7 @@ public final class CustomWidthArray implements Serializable
 		assert fullWidth > 0;
 		this.keyWidth = keyWidth;
 		this.fullWidth = fullWidth;
+		this.widthDiff = Long.SIZE - keyWidth;
 		final long numBits = numWords * fullWidth;
 		data = new LongArray(numLongs(numBits));// new long[numLongs(numBits)];
 		size = 0;
@@ -243,18 +246,47 @@ public final class CustomWidthArray implements Serializable
 
 	public long linearSearch(final long key, final long rangeStart, final long rangeEnd, final long startIndex, final long emptyKey,
 		final boolean returnFirstEmptyIndex) {
-		//		boolean goneAroundOnce = false;
-		for (long i = startIndex; i < rangeEnd; ++i) {
-			final long searchKey = getHelp(i, 0, keyWidth);
-			if (searchKey == key) return i;
-			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
+		long from = startIndex * fullWidth;
+		long i = startIndex;
+		long word = word(from);
+		long bit = bit(from);
+		boolean goneAroundOnce = false;
+		int innerIndex = LongArray.i(word);
+		final long[][] localData = data.data;
+		long[] currArray = localData[LongArray.o(word)];
+		long lastDatum = currArray[innerIndex];
+
+		while (true) {
+			if (i == rangeEnd) {
+				if (goneAroundOnce) return -1L;
+				i = rangeStart;
+				from = i * fullWidth;
+				bit = bit(from);
+				word = word(from);
+				innerIndex = LongArray.i(word);
+				final int outerIndex = LongArray.o(word);
+				currArray = localData[outerIndex];
+				lastDatum = currArray[(int) word];
+				goneAroundOnce = true;
+			}
+			final long searchKey = (bit <= widthDiff) ? (lastDatum << widthDiff - bit >>> widthDiff)
+				: (lastDatum >>> bit | (currArray[innerIndex + 1]) << Long.SIZE + widthDiff - bit >>> widthDiff);
+			if (searchKey == key) { return i; }
+			if (searchKey == emptyKey) { return returnFirstEmptyIndex ? i : -1L; }
+			i++;
+			from += fullWidth;
+			final long nextWord = word(from);
+			if (nextWord > word) {
+				word = nextWord;
+				innerIndex = LongArray.i(word);
+				if (innerIndex == currArray.length) {
+					innerIndex = 0;
+					currArray = localData[LongArray.o(word)];
+				}
+				lastDatum = currArray[innerIndex];
+			}
+			bit = bit(from);
 		}
-		for (long i = rangeStart; i < startIndex; ++i) {
-			final long searchKey = getHelp(i, 0, keyWidth);
-			if (searchKey == key) return i;
-			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
-		}
-		return -1L;
 	}
 
 	public void incrementCount(final long index, final long count) {
