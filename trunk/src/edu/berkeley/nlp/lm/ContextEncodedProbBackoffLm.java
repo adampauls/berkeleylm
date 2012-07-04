@@ -57,10 +57,10 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 		final HashNgramMap<ProbBackoffPair> localMap = map;
 		long longestOffset = -2;
 		int longestOrder = -2;
-		long currContextOffset = contextOffset;
 		float backoffSum = 0.0f;
 
 		if (localMap.wordHasBigrams(word)) {
+			long currContextOffset = contextOffset;
 			for (int currContextOrder = contextOrder; currContextOrder >= 0; --currContextOrder) {
 				final int ngramOrder = currContextOrder + 1;
 				final long offset = localMap.getOffset(currContextOffset, currContextOrder, word);
