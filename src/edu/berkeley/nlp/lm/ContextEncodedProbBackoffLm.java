@@ -52,12 +52,13 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 	 */
 	@Override
 	public float getLogProb(final long contextOffset, final int contextOrder, final int word, @OutputParameter final LmContextInfo outputContext) {
-		final HashNgramMap<ProbBackoffPair> localMap = map;
-		long currContextOffset = contextOffset;
-		float backoffSum = 0.0f;
 		if (word < 0 || word >= numWords) { return oovReturn(outputContext); }
+
+		final HashNgramMap<ProbBackoffPair> localMap = map;
 		long longestOffset = -2;
 		int longestOrder = -2;
+		long currContextOffset = contextOffset;
+		float backoffSum = 0.0f;
 
 		if (localMap.wordHasBigrams(word)) {
 			for (int currContextOrder = contextOrder; currContextOrder >= 0; --currContextOrder) {
