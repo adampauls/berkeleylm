@@ -61,9 +61,9 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 		long longestOffset = -2;
 		int longestOrder = -2;
 
-		while (currContextOrder >= -1) {
+		while (currContextOrder >= 0 && !onlyUnigram) {
 			final int ngramOrder = currContextOrder + 1;
-			final long offset = (onlyUnigram && currContextOrder >= 0) ? -1 : localMap.getOffset(currContextOffset, currContextOrder, word);
+			final long offset = localMap.getOffset(currContextOffset, currContextOrder, word);
 			final float prob = offset < 0 ? Float.NaN : values.getProb(ngramOrder, offset);
 			if (offset >= 0 && longestOffset == -2) {
 				longestOffset = offset;
@@ -72,7 +72,7 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 			if (offset >= 0 && !Float.isNaN(prob)) {
 				setOutputContext(outputContext, longestOffset, longestOrder);
 				return backoffSum + prob;
-			} else if (currContextOrder >= 0) {
+			} else {
 
 				final float backOff = currContextOffset < 0 ? 0.0f : values.getBackoff(currContextOrder, currContextOffset);
 				backoffSum += (Float.isNaN(backOff) ? 0.0f : backOff);
@@ -80,7 +80,14 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 			}
 			currContextOrder--;
 		}
-		return oovReturn(outputContext);
+
+		// do unigram
+		final long offset = word;
+		final int ngramOrder = 0;
+		final float prob = values.getProb(ngramOrder, offset);
+		if (Float.isNaN(prob)) return oovReturn(outputContext);
+		setOutputContext(outputContext, longestOffset == -2 ? offset : longestOffset, longestOffset == -2 ? ngramOrder : longestOrder);
+		return backoffSum + prob;
 
 	}
 
