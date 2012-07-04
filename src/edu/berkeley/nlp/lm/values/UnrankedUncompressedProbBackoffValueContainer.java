@@ -163,7 +163,7 @@ public final class UnrankedUncompressedProbBackoffValueContainer implements Prob
 	public long getSuffixOffset(final long index, final int ngramOrder) {
 		assert ngramOrder > 0;
 		final CustomWidthArray valueRanksHere = valueRanks[ngramOrder];
-		final int widthOffset = ngramOrder == 0 ? 0 : valueRanksHere.getKeyWidth();
+		final int widthOffset = valueRanksHere.getKeyWidth();
 		final int width = widthOffset + numProbBackoffBits(ngramOrder);
 		return valueRanksHere.get(index, width, valueRanksHere.getFullWidth() - width);
 	}

@@ -111,7 +111,7 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 
 	@Override
 	public BitList getCompressed(final long offset, final int ngramOrder) {
-		
+
 		final long l = getRank(ngramOrder, offset);
 		return valueCoder.compress(l);
 	}
@@ -151,8 +151,8 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 	public long getSuffixOffset(final long index, final int ngramOrder) {
 		assert ngramOrder > 0;
 		final CustomWidthArray valueRanksHere = valueRanks[ngramOrder];
-		final int widthOffset = ngramOrder == 0 || !useMapValueArray ? 0 : valueRanksHere.getKeyWidth();
-		final int width = widthOffset+valueWidth;
+		final int widthOffset = !useMapValueArray ? 0 : valueRanksHere.getKeyWidth();
+		final int width = widthOffset + valueWidth;
 		return valueRanksHere.get(index, width, valueRanksHere.getFullWidth() - width);
 	}
 

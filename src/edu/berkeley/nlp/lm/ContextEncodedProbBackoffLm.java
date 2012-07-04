@@ -53,32 +53,31 @@ public class ContextEncodedProbBackoffLm<W> extends AbstractContextEncodedNgramL
 	@Override
 	public float getLogProb(final long contextOffset, final int contextOrder, final int word, @OutputParameter final LmContextInfo outputContext) {
 		final HashNgramMap<ProbBackoffPair> localMap = map;
-		int currContextOrder = contextOrder;
 		long currContextOffset = contextOffset;
 		float backoffSum = 0.0f;
 		if (word < 0 || word >= numWords) { return oovReturn(outputContext); }
-		final boolean onlyUnigram = !localMap.wordHasBigrams(word);
 		long longestOffset = -2;
 		int longestOrder = -2;
 
-		while (currContextOrder >= 0 && !onlyUnigram) {
-			final int ngramOrder = currContextOrder + 1;
-			final long offset = localMap.getOffset(currContextOffset, currContextOrder, word);
-			final float prob = offset < 0 ? Float.NaN : values.getProb(ngramOrder, offset);
-			if (offset >= 0 && longestOffset == -2) {
-				longestOffset = offset;
-				longestOrder = ngramOrder;
-			}
-			if (offset >= 0 && !Float.isNaN(prob)) {
-				setOutputContext(outputContext, longestOffset, longestOrder);
-				return backoffSum + prob;
-			} else {
-
-				final float backOff = currContextOffset < 0 ? 0.0f : values.getBackoff(currContextOrder, currContextOffset);
+		if (localMap.wordHasBigrams(word)) {
+			for (int currContextOrder = contextOrder; currContextOrder >= 0; --currContextOrder) {
+				final int ngramOrder = currContextOrder + 1;
+				final long offset = localMap.getOffset(currContextOffset, currContextOrder, word);
+				final float prob = offset < 0 ? Float.NaN : values.getProb(ngramOrder, offset);
+				if (offset >= 0) {
+					if (longestOffset == -2) {
+						longestOffset = offset;
+						longestOrder = ngramOrder;
+					}
+					if (!Float.isNaN(prob)) {
+						setOutputContext(outputContext, longestOffset, longestOrder);
+						return backoffSum + prob;
+					}
+				}
+				final float backOff = values.getBackoff(currContextOrder, currContextOffset);
 				backoffSum += (Float.isNaN(backOff) ? 0.0f : backOff);
 				currContextOffset = currContextOrder == 0 ? 0 : values.getSuffixOffset(currContextOffset, currContextOrder);
 			}
-			currContextOrder--;
 		}
 
 		// do unigram
