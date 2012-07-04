@@ -31,21 +31,13 @@ public final class CustomWidthArray implements Serializable
 
 	private final int fullWidth;
 
-	//	private final long widthDiff;
-	//
-	//	private final long fullMask;
-
 	private final LongArray data;
 
-	private long widthDiff;
-
 	private final static long numLongs(final long size) {
-		//		assert (size + WORD_MASK) >>> LOG2_BITS_PER_WORD <= Integer.MAX_VALUE;
 		return ((size + WORD_MASK) >>> LOG2_BITS_PER_WORD);
 	}
 
 	private final static long word(final long index) {
-		//		assert index >>> LOG2_BITS_PER_WORD <= Integer.MAX_VALUE;
 		return (index >>> LOG2_BITS_PER_WORD);
 	}
 
@@ -69,7 +61,6 @@ public final class CustomWidthArray implements Serializable
 		final long numBits = numWords * fullWidth;
 		data = new LongArray(numLongs(numBits));// new long[numLongs(numBits)];
 		size = 0;
-		widthDiff = Long.SIZE - keyWidth;
 	}
 
 	private long length() {
@@ -105,24 +96,6 @@ public final class CustomWidthArray implements Serializable
 		rangeCheck(index);
 		return (data.get(word(index)) & mask(index)) != 0;
 	}
-
-	//	public boolean set(final long index, final boolean value) {
-	//		rangeCheck(index);
-	//		final long word = word(index);
-	//		final long mask = mask(index);
-	//		final long currVal = data.get(word);
-	//		final boolean oldValue = (currVal & mask) != 0;
-	//		if (value)
-	//			data.set(word, currVal | mask);
-	//		else
-	//			data.set(word, currVal & ~mask);
-	//		return oldValue != value;
-	//	}
-
-	//	public void set(final long index) {
-	//		rangeCheck(index);
-	//		data.set(word(index), data.get(word(index)) | mask(index));
-	//	}
 
 	public void clear(final long index) {
 		rangeCheck(index);
@@ -195,9 +168,6 @@ public final class CustomWidthArray implements Serializable
 
 	public void set(final long index, final long value) {
 		rangeCheck(index);
-		//		if (width != Long.SIZE && value > fullMask) { //
-		//			throw new IllegalArgumentException("Value too large: " + value);
-		//		}
 		final int offset = 0;
 		final int width = keyWidth;
 		setHelp(index, value, offset, width);
