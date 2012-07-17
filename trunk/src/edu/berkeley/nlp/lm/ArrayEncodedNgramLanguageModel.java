@@ -6,7 +6,9 @@ import edu.berkeley.nlp.lm.collections.BoundedList;
 
 /**
  * Top-level interface for an n-gram language model which accepts n-gram in an
- * array-of-integers encoding.
+ * array-of-integers encoding. The integers represent words of type
+ * <code>W</code> in the vocabulary, and the mapping from the vocabulary to
+ * integers is managed by an instance of the {@link WordIndexer} class.
  * 
  * @author adampauls
  */

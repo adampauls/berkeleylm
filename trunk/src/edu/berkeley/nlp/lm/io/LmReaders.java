@@ -50,13 +50,13 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * This software supports the estimation of two types of language models:
  * Kneser-Ney language models (Kneser and Ney, 1995) and Stupid Backoff language
  * models (Brants et al. 2007). Kneser-Ney language models can be estimated from
- * raw text by called
- * {@link #createKneserNeyLmFromTextFiles(List, WordIndexer, int, File)}. This
+ * raw text by calling
+ * {@link #createKneserNeyLmFromTextFiles(List, WordIndexer, int, File, ConfigOptions)}. This
  * can also be done from the command-line by calling <code>main()</code> in
  * {@link MakeKneserNeyArpaFromText}. See the <code>examples</code> folder for a
  * script which demonstrates its use. A Stupid Backoff language model can be
  * read from a directory containing n-gram counts in the format used by Google's
- * Web1T corpus by calling {@link #readLmFromGoogleNgramDir(String, boolean)}.
+ * Web1T corpus by calling {@link #readLmFromGoogleNgramDir(String, boolean, boolean)}.
  * Note that this software does not (yet) support building Google count
  * directories from raw text, though this can be done using SRILM.
  * <p>
@@ -88,10 +88,7 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * {@link ContextEncodedCachingLmWrapper} and
  * {@link ArrayEncodedCachingLmWrapper}). These caches are described in section
  * 4.1 of Pauls and Klein (2011). You should more or less always use these
- * caches, since they are faster and have modest memory requirements. Note,
- * however, that the caches are <b>not</b> synchronized. The only threadsafe way
- * to use them is to have a separate caching wrapper for each separate decoding
- * thread (though they can of course all wrap the same underlying LM).
+ * caches, since they are faster and have modest memory requirements. 
  * <p>
  * This software also support a java Map wrapper around an n-gram collection.
  * You can read a map wrapper using
