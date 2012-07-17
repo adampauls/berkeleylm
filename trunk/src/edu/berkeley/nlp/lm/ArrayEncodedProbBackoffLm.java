@@ -59,30 +59,29 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 	public float getLogProb(final int[] ngram, final int startPos, final int endPos) {
 		final NgramMap<ProbBackoffPair> localMap = map;
 
-		long probContext = 0L;
 		int probContextOrder = -1;
-		long matchedProbContext = -1L;
-		int matchedProbContextOrder = -1;
+		long matchedProbContext = 0;
+		int matchedProbContextOrder = -2;
 
 		final ProbBackoffPair scratch = !useScratchValues ? null : new ProbBackoffPair(Float.NaN, Float.NaN);
 		for (int i = endPos - 1; i >= startPos; --i) {
-			probContext = localMap.getValueAndOffset(probContext, probContextOrder, ngram[i], scratch);
+			final long probContext = localMap.getValueAndOffset(matchedProbContext, probContextOrder, ngram[i], scratch);
 			if (probContext < 0) break;
 
 			matchedProbContext = probContext;
 			matchedProbContextOrder = probContextOrder;
 			probContextOrder++;
 		}
-		if (matchedProbContext < 0) {//
+		if (matchedProbContextOrder == -2) {//
 			return oovWordLogProb;
 		}
 		float logProb = scratch == null ? values.getProb(matchedProbContextOrder + 1, matchedProbContext) : scratch.prob;
 		if (Float.isNaN(logProb)) {
 			// this was a fake entry, let's do it again, but only keep track of the biggest match which was not fake
-			probContext = 0L;
+
 			probContextOrder = -1;
 			for (int i = endPos - 1; i >= startPos; --i) {
-				probContext = localMap.getValueAndOffset(probContext, probContextOrder, ngram[i], scratch);
+				final long probContext = localMap.getValueAndOffset(matchedProbContext, probContextOrder, ngram[i], scratch);
 				if (probContext < 0) break;
 				final float tmpProb = scratch == null ? values.getProb(probContextOrder + 1, probContext) : scratch.prob;
 				if (!Float.isNaN(tmpProb)) {
@@ -95,7 +94,22 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 		}
 
 		// matched the whole n-gram, so no need to back off
-		if (matchedProbContextOrder == endPos - startPos - 2) return logProb;
+		final float backoff = matchedProbContextOrder == endPos - startPos - 2 ? 0.0f : getBackoffSum(ngram, startPos, endPos, localMap,
+			matchedProbContextOrder, scratch);
+		return logProb + backoff;
+	}
+
+	/**
+	 * @param ngram
+	 * @param startPos
+	 * @param endPos
+	 * @param localMap
+	 * @param matchedProbContextOrder
+	 * @param scratch
+	 * @return
+	 */
+	private float getBackoffSum(final int[] ngram, final int startPos, final int endPos, final NgramMap<ProbBackoffPair> localMap, int matchedProbContextOrder,
+		final ProbBackoffPair scratch) {
 		long backoffContext = 0L;
 		float backoff = 0.0f;
 		int backoffContextOrder = -1;
@@ -108,7 +122,7 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 				backoff += Float.isNaN(currBackoff) ? 0.0f : currBackoff;
 			}
 		}
-		return logProb + backoff;
+		return backoff;
 	}
 
 	/*

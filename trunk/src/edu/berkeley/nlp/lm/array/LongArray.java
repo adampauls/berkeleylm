@@ -247,8 +247,8 @@ public final class LongArray implements Serializable
 	 * 
 	 * @see edu.berkeley.nlp.mt.lm.util.collections.LongArray#trimToSize(long)
 	 */
-	public void trimToSize(@SuppressWarnings("hiding") final long size) {
-		allocFor(size, data);
+	public void trimToSize(final long size_) {
+		allocFor(size_, data);
 	}
 
 	/*

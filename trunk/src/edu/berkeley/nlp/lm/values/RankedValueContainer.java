@@ -133,9 +133,10 @@ abstract class RankedValueContainer<V extends LongRepresentable<V>> implements C
 	@Override
 	public void setSizeAtLeast(final long size, final int ngramOrder) {
 		if (valueRanks[ngramOrder] == null) {
-			final int suffixBits = (ngramOrder == 0 || !storeSuffixIndexes) ? 0 : suffixBitsForOrder[ngramOrder];
+			final int suffixBits = (ngramOrder == 0) ? 0 : suffixBitsForOrder[ngramOrder];
 
-			if (ngramOrder < suffixBitsForOrder.length - 1) suffixBitsForOrder[ngramOrder + 1] = CustomWidthArray.numBitsNeeded(size);
+			if (ngramOrder < suffixBitsForOrder.length - 1)
+				suffixBitsForOrder[ngramOrder + 1] = !storeSuffixIndexes ? 0 : CustomWidthArray.numBitsNeeded(size);
 			final CustomWidthArray valueStoringArray = ngramMap.getValueStoringArray(ngramOrder);
 			final boolean useValueStoringArrayHere = valueStoringArray != null && useValueStoringArray();
 			if (useValueStoringArrayHere) {
