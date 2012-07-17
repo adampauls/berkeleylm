@@ -82,11 +82,11 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 	}
 
 	private boolean equals(final int[] ngram, final int startPos, final int endPos, final int[] cachedNgram, final int cachedNgramStart) {
-
+		boolean all = true;
 		for (int i = startPos; i < endPos; ++i) {
-			if (cachedNgram[cachedNgramStart + i - startPos] != ngram[i]) return false;
+			all &= cachedNgram[cachedNgramStart + i - startPos] == ngram[i];
 		}
-		return true;
+		return all;
 	}
 
 	private float getVal(final int hash, final int[] arrayHere) {
