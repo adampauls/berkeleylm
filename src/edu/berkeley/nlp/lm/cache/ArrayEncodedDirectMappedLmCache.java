@@ -17,15 +17,15 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private static final int VAL_OFFSET = 0;
+	private static final int LENGTH_OFFSET = 0;
 
-	private static final int LENGTH_OFFSET = 1;
+	private static final int VAL_OFFSET = 1;
 
 	private static final int KEY_OFFSET = 2;
 
 	// for efficiency, this array fakes a struct with fields:
-	// float val;
 	// int length;
+	// float val;
 	// int[maxNgramOrder] key; 
 	private final int[] threadUnsafeArray;
 
@@ -63,7 +63,7 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 	 */
 	private int[] allocCache() {
 		final int[] ret = new int[cacheSize * structLength];
-		Arrays.fill(ret, Float.floatToIntBits(Float.NaN));
+		Arrays.fill(ret, -1);
 		return ret;
 	}
 
@@ -75,17 +75,14 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 	@Override
 	public float getCached(final int[] ngram, final int startPos, final int endPos, final int hash) {
 		final int[] arrayHere = !threadSafe ? threadUnsafeArray : threadSafeArray.get();
-		final float f = getVal(hash, arrayHere);
-		if (!Float.isNaN(f)) {
-			final int cachedNgramLength = getLength(hash, arrayHere);
-			if (equals(ngram, startPos, endPos, arrayHere, getKeyStart(hash), cachedNgramLength)) { return f; }
-		}
+		final int cachedNgramLength = getLength(hash, arrayHere);
+		if (endPos >= startPos && cachedNgramLength == endPos - startPos && equals(ngram, startPos, endPos, arrayHere, getKeyStart(hash))) { return getVal(
+			hash, arrayHere); }
 		return Float.NaN;
 	}
 
-	private boolean equals(final int[] ngram, final int startPos, final int endPos, final int[] cachedNgram, final int cachedNgramStart,
-		final int cachedNgramLength) {
-		if (cachedNgramLength != endPos - startPos) return false;
+	private boolean equals(final int[] ngram, final int startPos, final int endPos, final int[] cachedNgram, final int cachedNgramStart) {
+
 		for (int i = startPos; i < endPos; ++i) {
 			if (cachedNgram[cachedNgramStart + i - startPos] != ngram[i]) return false;
 		}

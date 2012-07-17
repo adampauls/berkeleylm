@@ -37,6 +37,7 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 	private final NgramMap<ProbBackoffPair> map;
 
 	private final ProbBackoffValueContainer values;
+
 	private final boolean useScratchValues;
 
 	public ArrayEncodedProbBackoffLm(final int lmOrder, final WordIndexer<W> wordIndexer, final NgramMap<ProbBackoffPair> map, final ConfigOptions opts) {
@@ -57,7 +58,6 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 	@Override
 	public float getLogProb(final int[] ngram, final int startPos, final int endPos) {
 		final NgramMap<ProbBackoffPair> localMap = map;
-		float backoff = 0.0f;
 
 		long probContext = 0L;
 		int probContextOrder = -1;
@@ -97,6 +97,7 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 		// matched the whole n-gram, so no need to back off
 		if (matchedProbContextOrder == endPos - startPos - 2) return logProb;
 		long backoffContext = 0L;
+		float backoff = 0.0f;
 		int backoffContextOrder = -1;
 		for (int i = 0; i < endPos - startPos - 1; ++i) {
 			backoffContext = localMap.getValueAndOffset(backoffContext, backoffContextOrder, ngram[endPos - i - 2], scratch);
@@ -138,5 +139,4 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 		return map;
 	}
 
-	
 }

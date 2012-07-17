@@ -11,6 +11,8 @@ import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
  * use a context-encoding without implementing this interface). A
  * context-encoding encodes an n-gram as a integer representing the last word,
  * and an offset which serves as a logical pointer to the (n-1) prefix words.
+ * The integers represent words of type <code>W</code> in the vocabulary, and the mapping
+ * from the vocabulary to integers is managed by an instance of the {@link WordIndexer} class.
  * 
  * @author adampauls
  * 

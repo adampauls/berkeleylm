@@ -15,11 +15,11 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 
 	private static int pos = 0;
 
+	private static final int CONTEXT_OFFSET = pos++;
+
 	private static final int VAL_AND_WORD_OFFSET = pos++;
 
 	private static final int OUTPUT_CONTEXT_OFFSET = pos++;
-
-	private static final int CONTEXT_OFFSET = pos++;
 
 	private static final int STRUCT_LENGTH = pos;
 
@@ -36,10 +36,10 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	private static long FLOAT_MASK = ((1L << Integer.SIZE) - 1);
 
 	// for efficiency, this array fakes a struct with fields
+	// long contextOffset; (also contains order of context)
 	// float prob;
 	// int word;
 	// long outputContextOffset; (also contains order of context)
-	// long contextOffset; (also contains order of context)
 	private final long[] threadUnsafeArray;
 
 	private final ThreadLocal<long[]> threadSafeArray;
@@ -73,37 +73,27 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	 */
 	private long[] allocCache() {
 		final long[] array = new long[STRUCT_LENGTH * cacheSize];
-		Arrays.fill(array, Float.floatToIntBits(Float.NaN));
+		Arrays.fill(array, -1);
 		return array;
 	}
 
 	@Override
 	public float getCached(final long contextOffset, final int contextOrder, final int word, final int hash, @OutputParameter final LmContextInfo outputPrefix) {
 		final long[] array = !threadSafe ? threadUnsafeArray : threadSafeArray.get();
-		final float f = getVal(hash, array);
+		final int cachedWordHere = getWord(hash, array);
 
-		if (!Float.isNaN(f)) {
+		if (word >= 0 && word == cachedWordHere && getLong(hash, CONTEXT_OFFSET, array) == combine(contextOrder, contextOffset)) {
+			final float f = getVal(hash, array);
+			if (outputPrefix == null) return f;
 			final long outputOrderAndOffset = getLong(hash, OUTPUT_CONTEXT_OFFSET, array);
-			if (outputPrefix == null || outputOrderAndOffset >= 0) {
-				final int cachedWordHere = getWord(hash, array);
-
-				if (cachedWordHere != -1 && word == cachedWordHere) {
-					if (contextEquals(hash, contextOffset, contextOrder, array)) {
-						if (outputPrefix != null) {
-							outputPrefix.order = orderOf(outputOrderAndOffset);
-							outputPrefix.offset = offsetOf(outputOrderAndOffset);
-						}
-						return f;
-					}
-				}
+			if (outputOrderAndOffset >= 0) {
+				outputPrefix.order = orderOf(outputOrderAndOffset);
+				outputPrefix.offset = offsetOf(outputOrderAndOffset);
+				return f;
 			}
+
 		}
 		return Float.NaN;
-	}
-
-	private boolean contextEquals(int hash, long contextOffset, int contextOrder, long[] array) {
-		return getLong(hash, CONTEXT_OFFSET, array) == combine(contextOrder, contextOffset);
-
 	}
 
 	@Override
