@@ -263,31 +263,17 @@ public final class LongArray implements Serializable
 
 	public long linearSearch(final long key, final long rangeStart, final long rangeEnd, final long startIndex, final long emptyKey,
 		final boolean returnFirstEmptyIndex) {
-		long i = startIndex;
-		boolean goneAroundOnce = false;
-		int outerIndex = o(i);
-		int innerIndex = i(i);
-		long[] currArray = data[outerIndex];
-		while (true) {
-			if (i == rangeEnd) {
-				if (goneAroundOnce) return -1L;
-				i = rangeStart;
-				outerIndex = o(i);
-				innerIndex = i(i);
-				currArray = data[outerIndex];
-				goneAroundOnce = true;
-			}
-			if (innerIndex == currArray.length) {
-				outerIndex++;
-				innerIndex = 0;
-				currArray = data[outerIndex];
-			}
-			final long searchKey = currArray[innerIndex];
+		for (long i = startIndex; i < rangeEnd; ++i) {
+			final long searchKey = getHelp(i);
 			if (searchKey == key) return i;
 			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
-			++i;
-			++innerIndex;
 		}
+		for (long i = rangeStart; i < startIndex; ++i) {
+			final long searchKey = getHelp(i);
+			if (searchKey == key) return i;
+			if (searchKey == emptyKey) return returnFirstEmptyIndex ? i : -1L;
+		}
+		return -1L;
 	}
 
 	public void incrementCount(final long index, final long count) {

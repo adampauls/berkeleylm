@@ -15,9 +15,9 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 
 	private static int pos = 0;
 
-	private static final int CONTEXT_OFFSET = pos++;
-
 	private static final int VAL_AND_WORD_OFFSET = pos++;
+
+	private static final int CONTEXT_OFFSET = pos++;
 
 	private static final int OUTPUT_CONTEXT_OFFSET = pos++;
 
@@ -36,9 +36,9 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	private static long FLOAT_MASK = ((1L << Integer.SIZE) - 1);
 
 	// for efficiency, this array fakes a struct with fields
-	// long contextOffset; (also contains order of context)
 	// float prob;
 	// int word;
+	// long contextOffset; (also contains order of context)
 	// long outputContextOffset; (also contains order of context)
 	private final long[] threadUnsafeArray;
 
@@ -121,18 +121,6 @@ public final class ContextEncodedDirectMappedLmCache implements ContextEncodedLm
 	private int getWord(final int hash, long[] array) {
 		return (int) ((array[startOfStruct(hash) + VAL_AND_WORD_OFFSET] & WORD_MASK) >>> Integer.SIZE);
 	}
-
-	//	private int getOutputContextOrder(final int hash, long[] array) {
-	////		return array[startOfStruct(hash) + OUTPUT_CONTEXT_ORDER];
-	//	}
-	//
-	//	private long getOutputContextOffset(final int hash, long[] array) {
-	//		return getLong(hash, OUTPUT_CONTEXT_OFFSET, array);
-	//	}
-	//
-	//	private long getContextOffset(final int hash, long[] array) {
-	//		return getLong(hash, CONTEXT_OFFSET, array);
-	//	}
 
 	/**
 	 * @param hash
