@@ -394,7 +394,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 		final long key = combineToKey(word, contextOffset);
 		final long offset = getOffsetHelpFromMap(ngramOrder, key);
-		if (offset >= 0 && outputVal != null) {
+		if (outputVal != null && offset >= 0) {
 			values.getFromOffset(offset, ngramOrder, outputVal);
 		}
 		return offset;
