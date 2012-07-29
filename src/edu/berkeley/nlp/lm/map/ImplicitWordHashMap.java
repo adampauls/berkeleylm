@@ -142,8 +142,9 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		if (word >= numWords) return -1;
 		final long rangeStart = wordRangeStart(word);
 		final long rangeEnd = wordRangeEnd(word);
-		final long startIndex = hash(key, rangeStart, rangeEnd);
-		if (startIndex < 0) return -1L;
+		final long numHashPositions = rangeEnd - rangeStart;
+		if (numHashPositions == 0) return -1L;
+		final long startIndex = hash(key, numHashPositions,rangeStart);
 		final long contextOffsetOf = wordRanges == null ? shrinkKey(key) : ngramMap.contextOffsetOf(key);
 		assert contextOffsetOf >= 0;
 		assert word >= 0;
@@ -164,9 +165,8 @@ final class ImplicitWordHashMap implements Serializable, HashMap
 		return (double) numFilled / getCapacity();
 	}
 
-	private long hash(final long key, final long startOfRange, final long endOfRange) {
-		final long numHashPositions = endOfRange - startOfRange;
-		if (numHashPositions == 0) return -1;
+	private long hash(final long key, final long numHashPositions, final long startOfRange) {
+		
 		long hash = MurmurHash.hashOneLong(key, 0x9747b28c);
 		if (hash < 0) hash = -hash;
 		hash %= numHashPositions;
