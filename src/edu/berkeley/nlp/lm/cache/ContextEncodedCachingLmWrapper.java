@@ -3,6 +3,7 @@ package edu.berkeley.nlp.lm.cache;
 import edu.berkeley.nlp.lm.AbstractContextEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.WordIndexer;
+import edu.berkeley.nlp.lm.bits.BitUtils;
 import edu.berkeley.nlp.lm.util.MurmurHash;
 import edu.berkeley.nlp.lm.util.Annotations.OutputParameter;
 
@@ -25,7 +26,7 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 	private final ContextEncodedLmCache contextCache;
 
 	private final ContextEncodedNgramLanguageModel<T> lm;
-	
+
 	private final int capacity;
 
 	/**
@@ -46,8 +47,8 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 
 	/**
 	 * This type of caching is threadsafe and (internally) maintains a separate
-	 * cache for each thread that calls it. Note each thread has its own cache, so if you have lots of threads,
-	 * memory usage could be substantial. 
+	 * cache for each thread that calls it. Note each thread has its own cache,
+	 * so if you have lots of threads, memory usage could be substantial.
 	 * 
 	 * @param <T>
 	 * @param lm
@@ -101,7 +102,7 @@ public class ContextEncodedCachingLmWrapper<T> extends AbstractContextEncodedNgr
 
 	private static int hash(final long contextOffset, final int contextOrder, final int word) {
 		final int hash = (int) MurmurHash.hashThreeLongs(contextOffset, contextOrder, word);
-		return hash < 0 ? -hash : hash;
+		return BitUtils.abs(hash);
 	}
 
 }

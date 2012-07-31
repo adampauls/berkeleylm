@@ -115,7 +115,7 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 		long backoffContext = unigramWord;
 		float backoff = 0.0f;
 
-		// check of must include unigram backoff
+		// check if must include unigram backoff
 		if (matchedProbContextOrder < 0) {
 			if (scratch != null) {
 				localMap.getValueAndOffset(0, -1, ngram[endPos - 2], scratch);

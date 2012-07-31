@@ -2,6 +2,7 @@ package edu.berkeley.nlp.lm.cache;
 
 import edu.berkeley.nlp.lm.AbstractArrayEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ArrayEncodedNgramLanguageModel;
+import edu.berkeley.nlp.lm.bits.BitUtils;
 import edu.berkeley.nlp.lm.util.MurmurHash;
 
 /**
@@ -85,7 +86,7 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 
 	private static int hash(final int[] key, final int startPos, final int endPos) {
 		final int hash = MurmurHash.hash32(key, startPos, endPos);
-		return hash < 0 ? -hash : hash;
+		return  BitUtils.abs(hash);
 	}
 
 }
