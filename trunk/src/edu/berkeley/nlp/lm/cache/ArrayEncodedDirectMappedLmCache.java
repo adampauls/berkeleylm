@@ -17,16 +17,19 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private static final int LENGTH_OFFSET = 0;
+	private static final int WORD_OFFSET = 0;
 
-	private static final int VAL_OFFSET = 1;
+	private static final int LENGTH_OFFSET = 1;
 
-	private static final int KEY_OFFSET = 2;
+	private static final int VAL_OFFSET = 2;
+
+	private static final int KEY_OFFSET = 3;
 
 	// for efficiency, this array fakes a struct with fields:
+	// int firstWord;
 	// int length;
 	// float val;
-	// int[maxNgramOrder] key; 
+	// int[maxNgramOrder -1] key; 
 	private final int[] threadUnsafeArray;
 
 	private final ThreadLocal<int[]> threadSafeArray;
@@ -75,15 +78,16 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 	@Override
 	public float getCached(final int[] ngram, final int startPos, final int endPos, final int hash) {
 		final int[] arrayHere = !threadSafe ? threadUnsafeArray : threadSafeArray.get();
-		final int cachedNgramLength = getLength(hash, arrayHere);
-		if (endPos >= startPos && cachedNgramLength == endPos - startPos && equals(ngram, startPos, endPos, arrayHere, getKeyStart(hash))) { return getVal(
-			hash, arrayHere); }
-		return Float.NaN;
+		if (ngram[endPos - 1] == getWord(hash, arrayHere) && getLength(hash, arrayHere) == endPos - startPos
+			&& equals(ngram, startPos, endPos, arrayHere, getKeyStart(hash))) //
+			return getVal(hash, arrayHere);
+		else
+			return Float.NaN;
 	}
 
 	private boolean equals(final int[] ngram, final int startPos, final int endPos, final int[] cachedNgram, final int cachedNgramStart) {
 		boolean all = true;
-		for (int i = startPos; i < endPos; ++i) {
+		for (int i = startPos; i < endPos - 1; ++i) {
 			all &= cachedNgram[cachedNgramStart + i - startPos] == ngram[i];
 		}
 		return all;
@@ -97,12 +101,20 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 		return arrayHere[startOfStruct(hash) + VAL_OFFSET] = Float.floatToIntBits(f);
 	}
 
+	private float setWord(final int hash, final int word, final int[] arrayHere) {
+		return arrayHere[startOfStruct(hash) + WORD_OFFSET] = word;
+	}
+
 	private float setLength(final int hash, final int l, final int[] array) {
 		return array[startOfStruct(hash) + LENGTH_OFFSET] = l;
 	}
 
 	private int getLength(final int hash, final int[] arrayHere) {
 		return arrayHere[startOfStruct(hash) + LENGTH_OFFSET];
+	}
+
+	private int getWord(final int hash, final int[] arrayHere) {
+		return arrayHere[startOfStruct(hash) + WORD_OFFSET];
 	}
 
 	private int getKeyStart(final int hash) {
@@ -137,6 +149,7 @@ public final class ArrayEncodedDirectMappedLmCache implements ArrayEncodedLmCach
 	public void putCached(final int[] ngram, final int startPos, final int endPos, final float f, final int hash) {
 		final int[] arrayHere = !threadSafe ? threadUnsafeArray : threadSafeArray.get();
 		setVal(hash, f, arrayHere);
+		setWord(hash, ngram[endPos - 1], arrayHere);
 		setLength(hash, endPos - startPos, arrayHere);
 		for (int i = startPos; i < endPos; ++i) {
 			arrayHere[getKeyStart(hash) + i - startPos] = ngram[i];
