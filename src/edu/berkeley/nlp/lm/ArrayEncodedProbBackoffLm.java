@@ -94,7 +94,6 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 			}
 		}
 
-		// matched the whole n-gram, so no need to back off
 		final float backoff = matchedProbContextOrder == endPos - startPos - 2 || endPos - startPos <= 1 ? 0.0f : getBackoffSum(ngram, startPos, endPos,
 			localMap, matchedProbContextOrder, scratch);
 		return logProb + backoff;

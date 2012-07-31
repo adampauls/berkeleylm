@@ -23,7 +23,7 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 	private final ArrayEncodedLmCache cache;
 
 	private final ArrayEncodedNgramLanguageModel<W> lm;
-	
+
 	private final int capacity;
 
 	/**
@@ -74,7 +74,7 @@ public class ArrayEncodedCachingLmWrapper<W> extends AbstractArrayEncodedNgramLa
 
 	@Override
 	public float getLogProb(final int[] ngram, final int startPos, final int endPos) {
-		if (endPos - startPos == 1) return lm.getLogProb(ngram, startPos, endPos);
+		if (endPos - startPos <= 1) return lm.getLogProb(ngram, startPos, endPos);
 		final int hash = hash(ngram, startPos, endPos) % capacity;
 		float f = cache.getCached(ngram, startPos, endPos, hash);
 		if (!Float.isNaN(f)) return f;

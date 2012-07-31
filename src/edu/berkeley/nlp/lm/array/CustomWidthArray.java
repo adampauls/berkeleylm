@@ -110,8 +110,10 @@ public final class CustomWidthArray implements Serializable
 		final long startWord = word(from);
 		final long startBit = bit(from);
 		if (l == Long.SIZE) return 0;
-		if (startBit <= l) return data.get(startWord) << l - startBit >>> l;
-		return data.get(startWord) >>> startBit | data.get(startWord + 1) << Long.SIZE + l - startBit >>> l;
+		if (startBit <= l)
+			return data.get(startWord) << l - startBit >>> l;
+		else
+			return data.get(startWord) >>> startBit | data.get(startWord + 1) << Long.SIZE + l - startBit >>> l;
 	}
 
 	public boolean add(final long value) {
