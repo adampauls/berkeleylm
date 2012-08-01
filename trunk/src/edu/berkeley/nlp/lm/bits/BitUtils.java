@@ -12,17 +12,17 @@ public class BitUtils
 
 	public static int abs(int a_) {
 		int a = a_;
-		int temp = a >> (Integer.SIZE - 1); // make a mask of the sign bit
-		a ^= temp; // toggle the bits if value is negative
-		a += temp & 1;
+		int signMask = a >> (Integer.SIZE - 1); // make a mask of the sign bit
+		a ^= signMask; // toggle the bits if value is negative
+		a += signMask & 1;
 		return a;
 	}
 
 	public static long abs(long a_) {
 		long a = a_;
-		long temp = a >> (Long.SIZE - 1); // make a mask of the sign bit
-		a ^= temp; // toggle the bits if value is negative
-		a += temp & 1;
+		long signMask = a >> (Long.SIZE - 1); // make a mask of the sign bit
+		a ^= signMask; // toggle the bits if value is negative
+		a += signMask & 1;
 		return a;
 	}
 
