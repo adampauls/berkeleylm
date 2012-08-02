@@ -111,7 +111,7 @@ public final class CustomWidthArray implements Serializable
 		if (l == Long.SIZE) return 0;
 		final long startWord = word(from);
 		final long startBit = bit(from);
-		final long diff = Math.max(0, l - startBit);
+		final long diff = BitUtils.max(0, l - startBit);
 		//		if (startBit <= l)
 		//			return data.get(startWord) << diff >>> Math.max(l, startBit);
 		//		else
