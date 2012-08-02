@@ -105,11 +105,10 @@ public final class CustomWidthArray implements Serializable
 		data.set(word(index), data.get(word(index)) & ~mask(index));
 	}
 
-	private long getLong(final long from, final long to) {
-		final long l = Long.SIZE - (to - from);
+	private long getLong(final long from, final long l) {
+		if (l == Long.SIZE) return 0;
 		final long startWord = word(from);
 		final long startBit = bit(from);
-		if (l == Long.SIZE) return 0;
 		if (startBit <= l)
 			return data.get(startWord) << l - startBit >>> l;
 		else
@@ -160,7 +159,7 @@ public final class CustomWidthArray implements Serializable
 	 */
 	private long getHelp(final long index, int offset, int width) {
 		final long start = index * fullWidth + offset;
-		return getLong(start, start + width);
+		return getLong(start, Long.SIZE - width);
 	}
 
 	public static int numBitsNeeded(final long n) {
