@@ -3,8 +3,6 @@ package edu.berkeley.nlp.lm.array;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 
-import edu.berkeley.nlp.lm.bits.BitUtils;
-
 /**
  * An array with a custom word "width" in bits. Borrows heavily from Sux4J
  * (http://sux.dsi.unimi.it/)
@@ -111,12 +109,10 @@ public final class CustomWidthArray implements Serializable
 		if (l == Long.SIZE) return 0;
 		final long startWord = word(from);
 		final long startBit = bit(from);
-		final long diff = BitUtils.max(0, l - startBit);
-		//		if (startBit <= l)
-		//			return data.get(startWord) << diff >>> Math.max(l, startBit);
-		//		else
-		return data.get(startWord) << diff >>> BitUtils.max(l, startBit)
-			| ((startWord + 1 >= data.size()) ? 0 : BitUtils.min(BitUtils.max(0, startBit - l), 1) * (data.get(startWord + 1) << Long.SIZE + l - startBit >>> l));
+		if (startBit <= l)
+			return data.get(startWord) << l - startBit >>> l;
+		else
+			return data.get(startWord) >>> startBit | data.get(startWord + 1) << Long.SIZE + l - startBit >>> l;
 	}
 
 	public boolean add(final long value) {
