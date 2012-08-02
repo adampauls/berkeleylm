@@ -45,13 +45,30 @@ public class BitUtils
 
 	}
 
+	public static long max(long a_, long b) {
+		long a = a_;
+		a -= b;
+		a &= (~a) >> Long.SIZE - 1;
+		a += b;
+		return a;
+	}
+
+	public static long min(long a_, long b) {
+		long a = a_;
+		a -= b;
+		a &= a >> Long.SIZE - 1;
+		a += b;
+		return a;
+	}
+
 	public static long combineInts(int lowInt, int highInt) {
 		return (((long) highInt) << Integer.SIZE) | (lowInt & INT_BITS_MASK);
 	}
-	
+
 	public static void main(String[] argv) {
-		int x = 0xfff;
-		x >>>= 32;
+		long x = 0xfff;
+		x <<= Long.SIZE - 1;
+		x >>>= Long.SIZE - 1;
 		System.out.println(x);
 	}
 

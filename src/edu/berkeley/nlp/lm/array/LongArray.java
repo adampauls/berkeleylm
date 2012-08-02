@@ -41,17 +41,6 @@ public final class LongArray implements Serializable
 		public static LongArray newLongArray(@SuppressWarnings("unused") final long maxKeySize, @SuppressWarnings("unused") final long maxNumKeys,
 			final long initCapacity) {
 			return new LongArray(initCapacity);
-			//			if (maxNumKeys <= Integer.MAX_VALUE) {
-			//				if (maxKeySize <= Byte.MAX_VALUE) {
-			//					return new ByteLongArray(initCapacity);
-			//				} else if (maxKeySize <= Integer.MAX_VALUE) {
-			//					return new IntLongArray(initCapacity);
-			//				} else {
-			//					return new LongLongArray(initCapacity);
-			//				}
-			//			} else {
-			//				return new LargeLongArray(initCapacity);
-			//			}
 		}
 	}
 
@@ -181,6 +170,10 @@ public final class LongArray implements Serializable
 	private long getHelp(final long pos) {
 		final int i = i(pos);
 		final int o = o(pos);
+		if (i >= first.length) {
+			@SuppressWarnings("unused")
+			int x = 5;
+		}
 		return o == 0 ? first[i] : data[o][i];
 	}
 
@@ -248,6 +241,7 @@ public final class LongArray implements Serializable
 	 * @see edu.berkeley.nlp.mt.lm.util.collections.LongArray#trimToSize(long)
 	 */
 	public void trimToSize(final long size_) {
+		this.size = size_;
 		allocFor(size_, data);
 	}
 
