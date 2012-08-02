@@ -48,5 +48,11 @@ public class BitUtils
 	public static long combineInts(int lowInt, int highInt) {
 		return (((long) highInt) << Integer.SIZE) | (lowInt & INT_BITS_MASK);
 	}
+	
+	public static void main(String[] argv) {
+		int x = 0xfff;
+		x >>>= 32;
+		System.out.println(x);
+	}
 
 }
