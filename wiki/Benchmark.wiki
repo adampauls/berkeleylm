@@ -50,3 +50,7 @@ Here are the memory usages for the models above, along with the query times.
 || KenLM `trie+state*` || 200 || 2.7 || 
 
 Note that the numbers above do not include storage of the words in the vocabulary. For BerkeleyLM, this storage takes an additional 0.2GB for each model. KenLM does not store the words in the vocabulary, keeping only vocabulary ids computing by hashing. Hence, KenLM's models can have hash collisions which would lead to incorrect query results, though in practice the odds of this are rare.
+
+Also note that Ken's benchmark measures memory usage for BerkeleyLM by looking at memory used by the whole JVM, which is a little misleading, since the JVM does its own memory management and can sometimes keep around empty space owing to details of the implementation of garbage collection. The memory usages above count just the memory used by the data structures themselves. 
+
+== Feature Comparison ==
