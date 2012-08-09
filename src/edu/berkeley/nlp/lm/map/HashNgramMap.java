@@ -184,7 +184,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		final int ngramOrder = endPos - startPos - 1;
 		HashMap map = getHashMapForOrder(ngramOrder);
 		if (!forcedNew && map instanceof ExplicitWordHashMap && map.getLoadFactor() >= maxLoadFactor) {
-			rehash(ngramOrder, map.getCapacity() * 3 / 2);
+			rehash(ngramOrder, map.getCapacity() * 3 / 2, 1);
 			map = getHashMapForOrder(ngramOrder);
 		}
 		final long key = getKey(ngram, startPos, endPos);
@@ -252,7 +252,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		for (int ngramOrder = 0; ngramOrder < explicitMaps.length; ++ngramOrder) {
 			if (explicitMaps[ngramOrder] == null) continue;
 			if (explicitMaps[ngramOrder].getLoadFactor(num) >= maxLoadFactor) {
-				rehash(ngramOrder, Math.max(num * 3 / 2, explicitMaps[ngramOrder].getCapacity() * 3 / 2));
+				rehash(ngramOrder, (explicitMaps[ngramOrder].getCapacity() + num) * 3 / 2, num);
 				return;
 			}
 		}
@@ -405,7 +405,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		return ngramOrder == 0 ? implicitUnigramMap.getOffset(key) : implicitMaps[ngramOrder - 1].getOffset(key);
 	}
 
-	private void rehash(final int changedNgramOrder, final long newCapacity) {
+	private void rehash(final int changedNgramOrder, final long newCapacity, final int numAdding) {
 		assert isExplicit;
 		final long[] newCapacities = new long[explicitMaps.length];
 		Arrays.fill(newCapacities, -1L);
@@ -419,7 +419,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 				newCapacities[ngramOrder] = newCapacity;
 
 			} else {
-				newCapacities[ngramOrder] = explicitMaps[ngramOrder].getLoadFactor() >= maxLoadFactor / 2 ? (explicitMaps[ngramOrder].getCapacity() * 3 / 2)
+				newCapacities[ngramOrder] = explicitMaps[ngramOrder].getLoadFactor(numAdding) >= maxLoadFactor / 2 ? ((explicitMaps[ngramOrder].getCapacity() + numAdding) * 3 / 2)
 					: explicitMaps[ngramOrder].getCapacity();
 			}
 			assert newCapacities[ngramOrder] >= 0 : "Bad capacity " + newCapacities[ngramOrder];
@@ -666,7 +666,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 	}
 
-	 double getLoadFactor() {
+	double getLoadFactor() {
 		return maxLoadFactor;
 	}
 }
