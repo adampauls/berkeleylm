@@ -1,0 +1,32 @@
+#summary Comparison with KenLM
+
+= Comparison with KenLM =
+
+This is a brief comparison with [http://kheafield.com/code/kenlm/ KenLM], another recent and popular language modeling toolkit. If you don't want to see all the details, here is a quick summary:
+* For decoding tasks, where repeated queries are common, BerkeleyLM is slightly faster than KenLM, provided caching is enabled
+* For cache-unfriendly LM queries (like evaluating the perplexity of a corpus), KenLM is faster than BerkeleyLM
+* BerkeleyLM's `HASH` method takes about the same amount of memory as KenLM's `trie`, and BerkeleyLM's `HASH+SCROLL` uses a little bit more memory than KenLM's `probing`. 
+* BerkeleyLM takes longer to load, but loading time small if you build a binary first for both KenLM and BerkeleyLM
+* BerkeleyLM offers more functionality than KenLM, including Kneser-Ney LM estimation from raw text custom handling of Google n-gram style count-based LMs. 
+* Basically, we recommend using BerkeleyLM if you are programming in Java and KenLM if you are programming in C++.
+
+= Timing =
+
+In this benchmark, I'll be using an evaluation similar to the one in [http://nlp.cs.berkeley.edu/pubs/Pauls-Klein_2011_LM_paper.pdf our paper]. Specifically, we logged all queries from the Joshua Decoder on one of their built-in text examples. We threw out all queries on rule fragments, because these queries are often short (unigrams and bigrams) and skew the results. Removing these queries leaves mostly 5-gram queries. We evaluate our models on the average time per query required to evaluate these queries in order. Note that this differs from [http://kheafield.com/code/kenlm/benchmark/ this benchmark], where performance is measured by computing the perplexity of a file. The latter is a cache-unfriendly task, but also one that end users probably don't care about, since you probably want to use these toolkits inside a decoder. 
+
+Here are some results. Lower times are faster. Each time is averaged over 3 runs. Variance isn't shown, but is usually on the order of +/- 10 ns/query. The BerkeleyLM models are shown with caching enabled. The model we used is the same 5-gram model using in [http://kheafield.com/code/kenlm/benchmark/ this Ken's benchmark]. 
+
+|| Model || Time (nanoseconds / query) || 
+|| BerkeleyLM `HASH+SCROLL` || 84 ||
+|| BerkeleyLM `HASH` || 159 ||
+|| BerkeleyLM `COMPRESSED` || 510 || 
+|| KenLM `probing+state` || 109 ||
+|| KenLM `probing` || 187 ||
+
+
+
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
