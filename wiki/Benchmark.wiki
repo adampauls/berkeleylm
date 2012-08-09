@@ -1,6 +1,6 @@
 #summary Comparison with KenLM
 
-= Comparison with KenLM =
+= Comparison with KenLM (still a draft) =
 
 This is a brief comparison with [http://kheafield.com/code/kenlm/ KenLM], another recent and popular language modeling toolkit. If you don't want to see all the details, here is a quick summary:
   * For decoding tasks, where repeated queries are common, BerkeleyLM is slightly faster than KenLM, provided caching is enabled
