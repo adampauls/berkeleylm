@@ -22,11 +22,12 @@ Here are some results. Lower times are faster. Each time is averaged over 3 runs
 || BerkeleyLM `COMPRESSED` || 510 || 
 || KenLM `probing+state` || 109 ||
 || KenLM `probing` || 187 ||
+|| KenLM `trie+state*` || 200 ||
 
+We have shown KenLM's `probing` model called in two different ways: the first (`+state`) involves using state that persists between queries, something which is also exploited by `HASH+SCROLL`. The second involves raw queries over n-grams, which is comparable to `HASH` since the latter does not need persistent state. Note that using BerkeleyLM or KenLM's persistent state makes integration into a decoder a little more involved, and in practice people tend to avoid using state so that the toolkit can be treated as black box. (Also note that although both toolkits use persistent state, these states actually quite different information). 
 
+Timings for `trie+state` are based on projections from Ken's benchmark (for some low-level reason, this would have been annoying to integrate into my test suite). 
 
+Basically, `HASH+SCROLL` is a little bit faster than `probing+state` and `HASH` is a little faster than `probing`. However, these differences in time are really quite tiny (a single, uncached memory access takes something like 30 ns on the machines I tested on), and you will probably not notice this difference when the model is actually decoding. Note that Ken's benchmark found that `probing` was not much faster than `trie` for decoding, despite a 2x difference in raw query speed. 
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+== Memory ==
