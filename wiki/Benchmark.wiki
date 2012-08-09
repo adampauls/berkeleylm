@@ -17,12 +17,12 @@ In this benchmark, I'll be using an evaluation similar to the one in [http://nlp
 Here are some results. Lower times are faster. Each time is averaged over 3 runs. Variance isn't shown, but is usually on the order of +/- 10 ns/query. The BerkeleyLM models are shown with caching enabled. The model we used is the same 5-gram model using in [http://kheafield.com/code/kenlm/benchmark/ this Ken's benchmark]. 
 
 || Model || Time (nanoseconds / query) || 
-|| BerkeleyLM `HASH+SCROLL` || 84 ||
-|| BerkeleyLM `HASH` || 159 ||
-|| BerkeleyLM `COMPRESSED` || 510 || 
-|| KenLM `probing+state` || 109 ||
-|| KenLM `probing` || 187 ||
-|| KenLM `trie+state*` || 200 ||
+|| BerkeleyLM `HASH+SCROLL` || 84ns ||
+|| BerkeleyLM `HASH` || 159ns ||
+|| BerkeleyLM `COMPRESSED` || 510ns || 
+|| KenLM `probing+state` || 109ns ||
+|| KenLM `probing` || 187ns ||
+|| KenLM `trie+state*` || 200ns ||
 
 We have shown KenLM's `probing` model called in two different ways: the first (`+state`) involves using state that persists between queries, something which is also exploited by `HASH+SCROLL`. The second involves raw queries over n-grams, which is comparable to `HASH` since the latter does not need persistent state. Note that using BerkeleyLM or KenLM's persistent state makes integration into a decoder a little more involved, and in practice people tend to avoid using state so that the toolkit can be treated as black box. (Also note that although both toolkits use persistent state, these states actually quite different information). 
 
@@ -33,24 +33,36 @@ Basically, `HASH+SCROLL` is a little bit faster than `probing+state` and `HASH` 
 Note that caching is a very important! Here, we show the results for BerkeleyLM with and without caching. 
 
 || Model || Caching || No Caching||
-|| BerkeleyLM `HASH+SCROLL` || 84 || 285||
-|| BerkeleyLM `HASH` || 159 || 635 ||
-|| BerkeleyLM `COMPRESSED` || 510 || 4310 ||
+|| BerkeleyLM `HASH+SCROLL` || 84ns || 285ns||
+|| BerkeleyLM `HASH` || 159ns || 635ns ||
+|| BerkeleyLM `COMPRESSED` || 510ns || 4310ns ||
 
 == Memory ==
 
 Here are the memory usages for the models above, along with the query times.
 
 || Model || Time (ns/query)  || Memory (GB) ||
-|| BerkeleyLM `HASH+SCROLL` || 84 || 3.7 ||
-|| BerkeleyLM `HASH` || 159 || 2.7 || 
-|| BerkeleyLM `COMPRESSED` || 510 || 1.6 || 
-|| KenLM `probing+state` || 109 || 4.9||
-|| KenLM `probing` || 187 || 4.9 || 
-|| KenLM `trie+state*` || 200 || 2.7 || 
+|| BerkeleyLM `HASH+SCROLL` || 84ns || 3.7GB ||
+|| BerkeleyLM `HASH` || 159ns || 2.7GB || 
+|| BerkeleyLM `COMPRESSED` || 510ns || 1.6GB || 
+|| KenLM `probing+state` || 109ns || 4.9GB||
+|| KenLM `probing` || 187ns || 4.9GB || 
+|| KenLM `trie+state*` || 200ns || 2.7GB || 
 
 Note that the numbers above do not include storage of the words in the vocabulary. For BerkeleyLM, this storage takes an additional 0.2GB for each model. KenLM does not store the words in the vocabulary, keeping only vocabulary ids computing by hashing. Hence, KenLM's models can have hash collisions which would lead to incorrect query results, though in practice the odds of this are rare.
 
 Also note that Ken's benchmark measures memory usage for BerkeleyLM by looking at memory used by the whole JVM, which is a little misleading, since the JVM does its own memory management and can sometimes keep around empty space owing to details of the implementation of garbage collection. The memory usages above count just the memory used by the data structures themselves. 
+
+== Loading Times == 
+
+Here are the times for loading a language model from an ARPA file. Note that the variance is usually a few minutes. Note that loading from binaries is significantly faster.
+
+|| Model ||Loading Time (min)  || 
+|| BerkeleyLM `HASH+SCROLL` || 23m || 
+|| BerkeleyLM `HASH` || 28 m ||
+|| BerkeleyLM `COMPRESSED` || 72m || 
+|| KenLM `probing+state` || 14m ||
+|| KenLM `probing` || 14m || 
+|| KenLM `trie+state*` || 40m || 
 
 == Feature Comparison ==
