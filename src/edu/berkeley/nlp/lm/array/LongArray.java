@@ -170,10 +170,6 @@ public final class LongArray implements Serializable
 	private long getHelp(final long pos) {
 		final int i = i(pos);
 		final int o = o(pos);
-		if (i >= first.length) {
-			@SuppressWarnings("unused")
-			int x = 5;
-		}
 		return o == 0 ? first[i] : data[o][i];
 	}
 
