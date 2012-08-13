@@ -57,7 +57,7 @@ Also note that Ken's benchmark measures memory usage for BerkeleyLM by looking a
 
 == Loading Times == 
 
-Here are the times for loading a language model from an ARPA file. Note that the variance is usually a few minutes. Loading from pre-built binaries is significantly faster. It takes less than a minute for BerkeleyLM to load this model, and KenLM is nearly instant because it uses memory mapping (though of course the cost of loading a binary from disk is stil
+Here are the times for loading a language model from an ARPA file. Note that the variance is usually a few minutes.
 
 || Model ||Loading Time (min)  || 
 || BerkeleyLM `HASH+SCROLL` || 24m || 
@@ -65,8 +65,21 @@ Here are the times for loading a language model from an ARPA file. Note that the
 || BerkeleyLM `COMPRESSED` || 82m || 
 || KenLM `probing+state` || 14m ||
 || KenLM `probing` || 14m || 
-|| KenLM `trie+state*` || 40m || 
+|| KenLM `trie+state` || 40m || 
 
+KenLMs `trie` model and all BerkeleyLM models needs to make several passes over the data to pack things efficiently, which is why they are slower than `probing`. `COMPRESSED` must also compress the data, which adds significant overhead. 
 
+However, you should only incur these costs once. Loading from pre-built binaries is significantly faster. It takes a few seconds for BerkeleyLM to load this model, and KenLM is nearly instant because it uses memory mapping (though of course the cost of loading the binary from disk is still incurred, just spread out over execution). 
 
-== Feature Comparison ==
+== General Comparison ==
+
+To sum up, here is a chart that compares the two models on functionality. 
+
+|| Feature || BerkeleyLM || KenLM || 
+|| LM Estimation || yes || no || 
+|| Count-based language models || yes || no ||
+|| Handles Google n-gram-formatted inputs || yes || no || 
+|| Exact representation || yes || almost* || 
+|| Quantization || can round floats to fixed number of bits || yes || 
+
+Note that KenLM's models are not technically exact because they do not (by default) keep the vocabulary around, so vocabulary hash collisions cannot be detected. KenLM's `probing` model additionally cannot detect collisions on n-gram hashes. In practice, collisions in either case are unlikely. However, it should be noted although the `probing` is (usually) answers queries correctly, the storage of n-gram hashes alone limits it in other ways. In particular, it is impossible to iterate over the n-grams in a `probing` model. 
