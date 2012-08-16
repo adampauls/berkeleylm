@@ -16,6 +16,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.channels.Channels;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -103,7 +104,7 @@ public class IOUtils
 	}
 
 	public static ObjectInputStream openObjIn(final File path) throws IOException {
-		final InputStream fis = new BufferedInputStream(new FileInputStream(path));
+		final InputStream fis = new BufferedInputStream(Channels.newInputStream(new FileInputStream(path).getChannel()));
 		return path.getName().endsWith(".gz") ? new ObjectInputStream(new GZIPInputStream(fis)) : new ObjectInputStream(fis);
 	}
 
