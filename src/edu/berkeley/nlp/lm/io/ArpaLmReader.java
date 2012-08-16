@@ -92,9 +92,9 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 	protected List<Long> parseHeader() {
 		final List<Long> numEachNgrams = new ArrayList<Long>();
 		try {
-			while (reader.ready()) {
+			String readLine = null;
+			while ((readLine = readLine()) != null) {
 
-				final String readLine = readLine();
 				final String ngramTotalPrefix = "ngram ";
 				if (readLine.startsWith(ngramTotalPrefix)) {
 					final int equalsIndex = readLine.indexOf('=');
@@ -111,7 +111,7 @@ public class ArpaLmReader<W> implements LmReader<ProbBackoffPair, ArpaLmReaderCa
 			throw new RuntimeException(e);
 
 		}
-		throw new RuntimeException("\"\\1-grams: expected (line " + lineNumber + ")");
+		throw new RuntimeException("Something wrong with I/O.");
 	}
 
 	/**
