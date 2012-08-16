@@ -5,6 +5,7 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,9 +43,9 @@ public class IOUtils
 	}
 
 	public static BufferedReader openIn(final File path) throws IOException {
-		InputStream is = new BufferedInputStream(new FileInputStream(path), 2 << 14);
-		if (path.getName().endsWith(".gz")) is = new GZIPInputStream(is, 2 << 14);
-		return new BufferedReader(getReader(is), 2 << 14);
+		InputStream is = getBufferedInputStream(path);
+		if (path.getName().endsWith(".gz")) is = new GZIPInputStream(is);
+		return new BufferedReader(getReader(is));
 	}
 
 	public static BufferedReader openInHard(final String path) {
@@ -104,8 +105,17 @@ public class IOUtils
 	}
 
 	public static ObjectInputStream openObjIn(final File path) throws IOException {
-		final InputStream fis = new BufferedInputStream(Channels.newInputStream(new FileInputStream(path).getChannel()));
+		final InputStream fis = getBufferedInputStream(path);
 		return path.getName().endsWith(".gz") ? new ObjectInputStream(new GZIPInputStream(fis)) : new ObjectInputStream(fis);
+	}
+
+	/**
+	 * @param path
+	 * @return
+	 * @throws FileNotFoundException
+	 */
+	private static BufferedInputStream getBufferedInputStream(final File path) throws FileNotFoundException {
+		return new BufferedInputStream(Channels.newInputStream(new FileInputStream(path).getChannel()));
 	}
 
 	// openObjOut
