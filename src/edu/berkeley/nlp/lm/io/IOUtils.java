@@ -43,7 +43,7 @@ public class IOUtils
 	}
 
 	public static BufferedReader openIn(final File path) throws IOException {
-		InputStream is = new BufferedInputStream(new FileInputStream(path));
+		InputStream is = getBufferedInputStream(path);
 		if (path.getName().endsWith(".gz")) is = new GZIPInputStream(is);
 		return new BufferedReader(getReader(is));
 	}
