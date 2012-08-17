@@ -115,8 +115,8 @@ public class IOUtils
 	 * @throws FileNotFoundException
 	 */
 	private static BufferedInputStream getBufferedInputStream(final File path) throws FileNotFoundException {
-		return new BufferedInputStream((new FileInputStream(path)));
-//		return new BufferedInputStream(Channels.newInputStream(new FileInputStream(path).getChannel()));
+		//		return new BufferedInputStream((new FileInputStream(path)));
+		return new BufferedInputStream(Channels.newInputStream(new FileInputStream(path).getChannel()));
 	}
 
 	// openObjOut
