@@ -9,7 +9,8 @@ import edu.berkeley.nlp.lm.values.CountValueContainer;
 
 /**
  * Language model implementation which uses stupid backoff (Brants et al., 2007)
- * computation.
+ * computation. Note that stupid backoff does not properly normalize, so the
+ * scores this LM computes are not in fact probabilities. 
  * 
  * @author adampauls
  * 
