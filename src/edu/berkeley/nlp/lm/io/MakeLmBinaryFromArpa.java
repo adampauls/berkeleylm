@@ -48,7 +48,7 @@ public class MakeLmBinaryFromArpa
 
 			@Override
 			public String docString() {
-				return "build a compressed array-encoded LM instead of the default hash table";
+				return "build a context-encoded LM instead of the default hash table";
 			}
 
 			@Override
@@ -65,7 +65,7 @@ public class MakeLmBinaryFromArpa
 
 			@Override
 			public String docString() {
-				return "build a context-encoded hash-table LM instead of the array encoding";
+				return "build a compressed hash-table LM instead of the array encoding";
 			}
 
 			@Override
