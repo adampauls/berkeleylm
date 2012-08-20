@@ -62,7 +62,8 @@ public class ComputePerplexity
 		Logger.setGlobalLogger(new Logger.SystemLogger(System.err, System.err));
 		NgramLanguageModel<String> lm = readBinary(isGoogleBinary, vocabFile, binaryFile);
 		double prob = computeProb(files, lm);
-		System.out.println("Log probability of text is: " + prob);
+		System.err.print("Log probability of text is: ");
+		System.out.println(prob);
 	}
 
 	/**
