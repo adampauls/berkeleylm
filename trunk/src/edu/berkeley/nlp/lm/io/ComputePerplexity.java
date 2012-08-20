@@ -72,17 +72,19 @@ public class ComputePerplexity
 	 * @throws FileNotFoundException
 	 */
 	private static double computeProb(List<String> files, NgramLanguageModel<String> lm) throws IOException, FileNotFoundException {
-		double prob = 0.0;
+		double logProb = 0.0;
 		for (String file : files) {
+			Logger.startTrack("Scoring file " + file + "; current log probability is " + logProb);
 			final InputStream is = (file.equals("-")) ? System.in : (file.endsWith(".gz") ? new GZIPInputStream(new FileInputStream(file))
 				: new FileInputStream(file));
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new BufferedInputStream(is)));
 			for (String line : Iterators.able(IOUtils.lineIterator(reader))) {
 				List<String> words = Arrays.asList(line.trim().split("\\s+"));
-				prob += lm.getLogProb(words);
+				logProb += lm.getLogProb(words);
 			}
+			Logger.endTrack();
 		}
-		return prob;
+		return logProb;
 	}
 
 	/**
