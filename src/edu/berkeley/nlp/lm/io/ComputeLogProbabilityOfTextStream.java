@@ -31,7 +31,7 @@ import edu.berkeley.nlp.lm.util.Logger;
  * @author adampauls
  * 
  */
-public class ComputePerplexity
+public class ComputeLogProbabilityOfTextStream
 {
 
 	/**
