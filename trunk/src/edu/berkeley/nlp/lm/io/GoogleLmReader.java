@@ -80,7 +80,7 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 				try {
 					int k = 0;
 					for (String line : Iterators.able(IOUtils.lineIterator(ngramFile.getPath()))) {
-						if (k % 1000 == 0) Logger.logs("Line " + k);
+						if (k % 10000 == 0) Logger.logs("Line " + k);
 						k++;
 						line = line.trim();
 						parseLine(line, ngramOrder, callback);
