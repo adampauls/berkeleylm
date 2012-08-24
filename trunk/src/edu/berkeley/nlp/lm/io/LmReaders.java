@@ -95,7 +95,8 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * {@link #readNgramMapFromGoogleNgramDir(String, boolean, WordIndexer)}.
  * <p>
  * {@link ComputeLogProbabilityOfTextStream} provides a <code>main()</code> method for computing the log probability of raw text.
- * 
+ * <p>
+ * Some example scripts can be found in the <code>examples/<code> directory.
  * 
  * @author adampauls
  * 
