@@ -93,8 +93,8 @@ import edu.berkeley.nlp.lm.values.ValueContainer;
  * This software also support a java Map wrapper around an n-gram collection.
  * You can read a map wrapper using
  * {@link #readNgramMapFromGoogleNgramDir(String, boolean, WordIndexer)}.
- * 
- * {@link ComputeLogProbabilityOfTextStream} provides a <code>main</code> method for computing the log probability of raw text.
+ * <p>
+ * {@link ComputeLogProbabilityOfTextStream} provides a <code>main()</code> method for computing the log probability of raw text.
  * 
  * 
  * @author adampauls
