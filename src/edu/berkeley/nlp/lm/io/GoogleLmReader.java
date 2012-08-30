@@ -83,7 +83,11 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 						if (k % 10000 == 0) Logger.logs("Line " + k);
 						k++;
 						line = line.trim();
-						parseLine(line, ngramOrder, callback);
+						try {
+							parseLine(line, ngramOrder, callback);
+						} catch (Throwable e) {
+							throw new RuntimeException("Could not parse line " + line + "\n", e);
+						}
 					}
 				} catch (final NumberFormatException e) {
 					throw new RuntimeException(e);
