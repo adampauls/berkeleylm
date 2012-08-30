@@ -86,14 +86,11 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 						try {
 							parseLine(line, ngramOrder, callback);
 						} catch (Throwable e) {
-							throw new RuntimeException("Could not parse line " + line + "\n", e);
+							throw new RuntimeException("Could not parse line " + k + " '" + line + "' from file " + ngramFile + "\n", e);
 						}
 					}
-				} catch (final NumberFormatException e) {
-					throw new RuntimeException(e);
-
 				} catch (final IOException e) {
-					throw new RuntimeException(e);
+					throw new RuntimeException("Could not read file " + ngramFile + "\n", e);
 
 				}
 				Logger.endTrack();
