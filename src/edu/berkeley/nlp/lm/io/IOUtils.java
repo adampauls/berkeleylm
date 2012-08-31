@@ -263,6 +263,7 @@ public class IOUtils
 			private boolean nextLine() throws IOException {
 				if (line != null) { return true; }
 				line = reader.readLine();
+				if (line == null) reader.close();
 				return line != null;
 			}
 
