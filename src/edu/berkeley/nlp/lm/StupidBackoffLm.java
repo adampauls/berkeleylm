@@ -10,7 +10,7 @@ import edu.berkeley.nlp.lm.values.CountValueContainer;
 /**
  * Language model implementation which uses stupid backoff (Brants et al., 2007)
  * computation. Note that stupid backoff does not properly normalize, so the
- * scores this LM computes are not in fact probabilities. 
+ * scores this LM computes are not in fact probabilities.
  * 
  * @author adampauls
  * 
@@ -48,8 +48,9 @@ public class StupidBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W
 		float logProb = oovWordLogProb;
 		long probContext = 0L;
 		int probContextOrder = -1;
+		long backoffContext = 0L;
+		int backoffContextOrder = -1;
 
-		long lastCount = ((CountValueContainer) map.getValues()).getUnigramSum();
 		final LongRef scratch = new LongRef(-1L);
 		for (int i = endPos - 1; i >= startPos; --i) {
 			assert (probContext >= 0);
@@ -58,8 +59,15 @@ public class StupidBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W
 			if (probContext < 0) {
 				return logProb;
 			} else {
-				logProb = (float) Math.log(scratch.value / ((float) lastCount) * pow(alpha, i - startPos));
-				lastCount = scratch.value;
+				final long currCount = scratch.value;
+				long backoffCount = -1L;
+				if (i == endPos - 1) {
+					backoffCount = ((CountValueContainer) map.getValues()).getUnigramSum();
+				} else {
+					backoffContext = localMap.getValueAndOffset(backoffContext, backoffContextOrder, ngram[i], scratch);
+					backoffCount = scratch.value;
+				}
+				logProb = (float) Math.log(currCount / ((float) backoffCount) * pow(alpha, i - startPos));
 				probContextOrder++;
 			}
 
