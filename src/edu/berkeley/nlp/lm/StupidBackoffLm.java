@@ -64,7 +64,7 @@ public class StupidBackoffLm<W> extends AbstractArrayEncodedNgramLanguageModel<W
 				if (i == endPos - 1) {
 					backoffCount = ((CountValueContainer) map.getValues()).getUnigramSum();
 				} else {
-					backoffContext = localMap.getValueAndOffset(backoffContext, backoffContextOrder, ngram[i], scratch);
+					backoffContext = localMap.getValueAndOffset(backoffContext, backoffContextOrder++, ngram[i], scratch);
 					backoffCount = scratch.value;
 				}
 				logProb = (float) Math.log(currCount / ((float) backoffCount) * pow(alpha, i - startPos));
