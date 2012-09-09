@@ -88,6 +88,10 @@ public final class LongArray implements Serializable
 	 * @param val
 	 */
 	private void setHelp(final long pos, final long val) {
+		if (i(pos) >= data[0].length) {
+			@SuppressWarnings("unused")
+			int x = 5;
+		}
 		data[o(pos)][i(pos)] = val;
 	}
 

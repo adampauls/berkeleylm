@@ -55,12 +55,12 @@ public final class NgramMapAddingCallback<V> implements ArpaLmReaderCallback<V>
 
 	@Override
 	public void handleNgramOrderFinished(final int order) {
-		map.handleNgramsFinished(order);
 		for (final int[] ngram : failures) {
-			if (ngram.length == order + 1 && !map.contains(ngram, 0, ngram.length)) {
+			if (ngram.length == order) {// && !map.contains(ngram, 0, ngram.length)) {
 				map.put(ngram, 0, ngram.length, null);
 			}
 		}
+		map.handleNgramsFinished(order);
 	}
 
 	@Override

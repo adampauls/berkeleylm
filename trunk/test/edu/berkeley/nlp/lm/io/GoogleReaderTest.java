@@ -33,13 +33,13 @@ public class GoogleReaderTest
 	 * @param lm
 	 */
 	private void checkScores(final ArrayEncodedNgramLanguageModel<String> lm) {
-		Assert.assertEquals(lm.getLogProb(Arrays.asList("the", "(")), -12.314105, 1e-3);
-		Assert.assertEquals(lm.getLogProb(Arrays.asList("of", "the", "(")), -6.684612, 1e-3);
-		Assert.assertEquals(lm.getLogProb(Arrays.asList("of", "the", "(")), -6.684612, 1e-3);
-		Assert.assertEquals(lm.getLogProb(Arrays.asList("a", "the", "(")), -13.230395, 1e-3);
-		Assert.assertEquals(lm.getLogProb(Arrays.asList("a", ")", "(")), -5.6564045, 1e-3);
-		Assert.assertEquals(lm.getLogProb(Arrays.asList("the", "of", "a")), -15.491532, 1e-3);
-		Assert.assertEquals(lm.getLogProb(Arrays.asList("of", "the", "(")), -6.684612, 1e-3);
+		Assert.assertEquals(lm.getLogProb(Arrays.asList("of", "xxx")), Math.log(1f / 12765289150L), 1e-3);
+		Assert.assertEquals(lm.getLogProb(Arrays.asList("the", "(")), Math.log(40000f / 19401194714L), 1e-3);
+		Assert.assertEquals(lm.getLogProb(Arrays.asList("of", "the", "(")), Math.log(50f / 854) + 0 * Math.log(0.4), 1e-3);
+		Assert.assertEquals(lm.getLogProb(Arrays.asList("a", "the", "(")), Math.log(40000f / 19401194714L) + Math.log(0.4), 1e-3);
+		Assert.assertEquals(lm.getLogProb(Arrays.asList("a", ")", "(")), Math.log(8912668768L * 1.0f / 408012035092L) + 2 * Math.log(0.4), 1e-3);
+		Assert.assertEquals(lm.getLogProb(Arrays.asList("the", "of", "a")), Math.log(3668f / 12765289150L) + Math.log(0.4), 1e-3);
+		Assert.assertEquals(lm.getLogProb(Arrays.asList("of", "the", "(")), Math.log(50f / 854), 1e-3);
 	}
 
 }
