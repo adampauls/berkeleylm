@@ -11,7 +11,7 @@
 	<property name="lib" value="./lib" />
 	<property name="doc" value="./doc" />
 	<property name="jar" value="jar" />
-	<property name="version" value="1.1.1" />
+	<property name="version" value="1.1.2" />
 	<property name="root" value="berkeleylm-${version}" />
 
 	<property name="junit-jar" value="${lib}/junit-4.6.jar" />
@@ -56,6 +56,12 @@
 	<!-- Delete the compiled files -->
 	<target name="clean">
 
+		
+		<delete verbose="true" quiet="true">
+			<fileset dir="${doc}">
+				<include name="**/*" />
+			</fileset>
+		</delete>
 		<delete verbose="true" quiet="true">
 			<fileset dir="${src}">
 				<include name="**/*.class" />
@@ -68,11 +74,6 @@
 		</delete>
 		<delete verbose="true" quiet="true">
 			<fileset dir="${test-reports}">
-				<include name="**/*" />
-			</fileset>
-		</delete>
-		<delete verbose="true" quiet="true">
-			<fileset dir="${doc}">
 				<include name="**/*" />
 			</fileset>
 		</delete>
@@ -90,7 +91,7 @@
 
 	<target name="javadoc">
 		<mkdir dir="${doc}" />
-		<javadoc packagenames="edu.berkeley.nlp.lm.*" classpath="${cli}" sourcepath="${src}" destdir="${doc}" author="true" version="true" charset="utf-8">
+		<javadoc packagenames="edu.berkeley.nlp.lm.*" overview="${src}/overview.html" classpath="${cli}" sourcepath="${src}" destdir="${doc}" author="true" version="true" charset="utf-8">
 			<link href="http://download.oracle.com/javase/6/docs/api/" />
 		</javadoc>
 	</target> 
@@ -122,7 +123,7 @@
 		</junit>
 	</target>
 
-	<target name="all" depends="test,jar, javadoc" />
+	<target name="all" depends="test,jar,javadoc" />
 
 
 	<!-- Build the tarball for distribution -->
