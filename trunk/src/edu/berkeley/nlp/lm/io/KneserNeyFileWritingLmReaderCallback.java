@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
@@ -56,9 +57,9 @@ public class KneserNeyFileWritingLmReaderCallback<W> implements ArpaLmReaderCall
 		final String line = StrUtils.join(WordIndexer.StaticMethods.toList(wordIndexer, ngram, startPos, endPos));
 		final boolean endsWithEndSym = ngram[ngram.length - 1] == wordIndexer.getIndexPossiblyUnk(wordIndexer.getEndSymbol());
 		if (endsWithEndSym || value.backoff == 0.0f)
-			out.printf("%f\t%s\n", value.prob, line);
+			out.printf(Locale.US, "%f\t%s\n", value.prob, line);
 		else {
-			out.printf("%f\t%s\t%f\n", value.prob, line, value.backoff);
+			out.printf(Locale.US, "%f\t%s\t%f\n", value.prob, line, value.backoff);
 		}
 	}
 

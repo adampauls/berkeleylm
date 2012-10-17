@@ -70,7 +70,7 @@ public class TextReader<W> implements LmReader<LongRef, LmReaderCallback<LongRef
 		for (final String line : allLinesIterator) {
 			if (numLines % 10000 == 0) Logger.logs("On line " + numLines);
 			numLines++;
-			final String[] words = line.split(" ");
+			final String[] words = line.split("\\s+");
 			final int[] sent = new int[words.length + 2];
 			sent[0] = wordIndexer.getOrAddIndex(wordIndexer.getStartSymbol());
 			sent[sent.length - 1] = wordIndexer.getOrAddIndex(wordIndexer.getEndSymbol());
