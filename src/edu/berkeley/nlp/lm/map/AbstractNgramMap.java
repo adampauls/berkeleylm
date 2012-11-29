@@ -45,7 +45,9 @@ public abstract class AbstractNgramMap<T> implements NgramMap<T>, Serializable
 	 * @return
 	 */
 	protected final long combineToKey(final int word, final long suffixIndex) {
-		return (((long) word) << (NUM_SUFFIX_BITS)) | suffixIndex;
+		final long key = (((long) word) << (NUM_SUFFIX_BITS)) | suffixIndex;
+		assert key >= 0 : "Trouble creating key " + word + " :: " + suffixIndex + ". Might need to increase numWordBits.";
+		return key;
 	}
 
 	protected final ValueContainer<T> values;

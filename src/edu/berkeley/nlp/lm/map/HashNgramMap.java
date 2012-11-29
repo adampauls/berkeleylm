@@ -439,7 +439,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 				if (currHashMap.isEmptyKey(key)) continue;
 				getNgramFromContextEncodingHelp(contextOffsetOf(key), ngramOrder - 1, wordOf(key), scratchArray);
 				final long newKey = newMap.getKey(scratchArray, 0, scratchArray.length);
-				assert newKey >= 0 : "Failure for old n-gram " + Arrays.toString(scratchArray);
+				assert newKey >= 0 : "Failure for old n-gram " + Arrays.toString(scratchArray) + " :: " + newKey;
 				final long index = newHashMap.put(newKey);
 				assert index >= 0;
 
