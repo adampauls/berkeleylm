@@ -11,6 +11,7 @@ import edu.berkeley.nlp.lm.ArrayEncodedNgramLanguageModel;
 import edu.berkeley.nlp.lm.ArrayEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.ConfigOptions;
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel;
+import edu.berkeley.nlp.lm.NgramLanguageModel;
 import edu.berkeley.nlp.lm.ContextEncodedNgramLanguageModel.LmContextInfo;
 import edu.berkeley.nlp.lm.ContextEncodedProbBackoffLm;
 import edu.berkeley.nlp.lm.StringWordIndexer;
@@ -18,6 +19,7 @@ import edu.berkeley.nlp.lm.cache.ArrayEncodedCachingLmWrapper;
 import edu.berkeley.nlp.lm.cache.ArrayEncodedDirectMappedLmCache;
 import edu.berkeley.nlp.lm.cache.ContextEncodedCachingLmWrapper;
 import edu.berkeley.nlp.lm.cache.ContextEncodedDirectMappedLmCache;
+import edu.berkeley.nlp.lm.collections.Counter;
 import edu.berkeley.nlp.lm.collections.Iterators;
 
 public class PerplexityTest
@@ -72,6 +74,13 @@ public class PerplexityTest
 		final float goldLogProb = TEST_PERPLEX_GOLD_PROB;
 		final ArrayEncodedProbBackoffLm<String> lm = getLm(false);
 		testArrayEncodedLogProb(lm, file, goldLogProb);
+	}
+	
+	@Test
+	public void testPredict() {
+		final ArrayEncodedProbBackoffLm<String> lm = getLm(false);
+		Counter<String> c = NgramLanguageModel.StaticMethods.getDistributionOverNextWords(lm, Arrays.asList("this is some context and the release of".split(" ")));
+		Assert.assertEquals(c.getCount("political"), 0.8381973309763864, 1e-10);
 	}
 
 	@Test

@@ -1,6 +1,7 @@
 package edu.berkeley.nlp.lm;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -53,12 +54,13 @@ public interface NgramLanguageModel<W>
 	 * .
 	 */
 	public float getLogProb(List<W> ngram);
-	
+
 	/**
-	 * Sets the (log) probability for an OOV word. Note that this is in general different
-	 * from the log prob of the <code>unk</code> tag probability. 
+	 * Sets the (log) probability for an OOV word. Note that this is in general
+	 * different from the log prob of the <code>unk</code> tag probability.
+	 * 
 	 * @author adampauls
-	 *
+	 * 
 	 */
 	public void setOovWordLogProb(float logProb);
 
@@ -118,6 +120,33 @@ public interface NgramLanguageModel<W>
 
 			}
 			return ret.subList(1, ret.size() - 1);
+		}
+
+		/**
+		 * Builds a distribution over next possible words given the context. Context can be of any length, but 
+		 * only at most <code>lm.getLmOrder() - 1</code> words are actually used.
+		 * 
+		 * @param <W>
+		 * @param lm
+		 * @param context
+		 * @return
+		 */
+		public static <W> Counter<W> getDistributionOverNextWords(final NgramLanguageModel<W> lm, List<W> context) {
+			List<W> ngram = new ArrayList<W>();
+			for (int i = 0; i < lm.getLmOrder() - 1 && i < context.size(); ++i) {
+				ngram.add(context.get(context.size() - i - 1));
+			}
+			if (ngram.size() < lm.getLmOrder() - 1) ngram.add(lm.getWordIndexer().getStartSymbol());
+			Collections.reverse(ngram);
+			ngram.add(null);
+			Counter<W> c = new Counter<W>();
+			for (int index = 0; index < lm.getWordIndexer().numWords(); ++index) {
+				W word = lm.getWordIndexer().getWord(index);
+				if (word.equals(lm.getWordIndexer().getStartSymbol())) continue;
+				ngram.set(ngram.size() - 1, word);
+				c.setCount(word, Math.exp(lm.getLogProb(ngram) * Math.log(10)));
+			}
+			return c;
 		}
 
 	}
