@@ -60,8 +60,12 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 	 */
 	@Override
 	public float getLogProb(final int[] ngram, final int startPos, final int endPos) {
+		int startPos_ = startPos;
+		while (endPos - startPos_ > lmOrder) {
+			startPos_++;	
+		}
 		final NgramMap<ProbBackoffPair> localMap = map;
-		if (endPos - startPos < 1) return 0.0f;
+		if (endPos - startPos_ < 1) return 0.0f;
 
 		final ProbBackoffPair scratch = !useScratchValues ? null : new ProbBackoffPair(Float.NaN, Float.NaN);
 		final int unigramWord = ngram[endPos - 1];
@@ -69,7 +73,7 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 
 		long matchedProbContext = unigramWord;
 		int matchedProbContextOrder = -1;
-		for (int i = endPos - 2; i >= startPos; --i) {
+		for (int i = endPos - 2; i >= startPos_; --i) {
 			final int probContextOrder = endPos - i - 2;
 			final long probContext = localMap.getValueAndOffset(matchedProbContext, probContextOrder, ngram[i], scratch);
 			if (probContext < 0) break;
@@ -81,7 +85,7 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 			// this was a fake entry, let's do it again, but only keep track of the biggest match which was not fake
 			matchedProbContext = 0;
 			matchedProbContextOrder = -1;
-			for (int i = endPos - 1; i >= startPos; --i) {
+			for (int i = endPos - 1; i >= startPos_; --i) {
 				final int probContextOrder = endPos - i - 2;
 				final long probContext = localMap.getValueAndOffset(matchedProbContext, probContextOrder, ngram[i], scratch);
 				if (probContext < 0) break;
@@ -94,7 +98,7 @@ public class ArrayEncodedProbBackoffLm<W> extends AbstractArrayEncodedNgramLangu
 			}
 		}
 
-		final float backoff = matchedProbContextOrder == endPos - startPos - 2 || endPos - startPos <= 1 ? 0.0f : getBackoffSum(ngram, startPos, endPos,
+		final float backoff = matchedProbContextOrder == endPos - startPos_ - 2 || endPos - startPos_ <= 1 ? 0.0f : getBackoffSum(ngram, startPos_, endPos,
 			localMap, matchedProbContextOrder, scratch);
 		return logProb + backoff;
 	}

@@ -16,7 +16,12 @@ public interface ArrayEncodedNgramLanguageModel<W> extends NgramLanguageModel<W>
 {
 
 	/**
-	 * Calculate language model score of an n-gram.
+	 * Calculate language model score of an n-gram. <b>Warning:</b> if you
+	 * pass in an n-gram of length greater than <code>getLmOrder()</code>,
+	 * this call will silently ignore the extra words of context. In other
+	 * words, if you pass in a 5-gram (<code>endPos-startPos == 5</code>) to
+	 * a 3-gram model, it will only score the words from <code>startPos + 2</code>
+	 * to <code>endPos</code>.
 	 * 
 	 * @param ngram
 	 *            array of words in integer representation
