@@ -3,6 +3,7 @@ package edu.berkeley.nlp.lm.io;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -40,7 +41,6 @@ public class PerplexityTest
 		final float goldLogProb = TEST_PERPLEX_TINY_GOLD_PROB;
 		final ArrayEncodedProbBackoffLm<String> lm = getLm(false);
 		testArrayEncodedLogProb(lm, file, goldLogProb);
-		//		Assert.assertEquals(logScore, -2806.4f, 1e-1);
 	}
 
 	@Test
@@ -49,7 +49,15 @@ public class PerplexityTest
 		final float goldLogProb = TEST_PERPLEX_TINY_GOLD_PROB;
 		final ArrayEncodedProbBackoffLm<String> lm = getLm(true);
 		testArrayEncodedLogProb(lm, file, goldLogProb);
-		//		Assert.assertEquals(logScore, -2806.4f, 1e-1);
+	}
+
+	@Test
+	public void testBigNgram() {
+		final ArrayEncodedProbBackoffLm<String> lm = getLm(true);
+		final List<String> ngram = Arrays.asList("they they are wasting our money".split(" "));
+		final int[] longNgram = NgramLanguageModel.StaticMethods.toIntArray(ngram, lm);
+		float logProb = lm.getLogProb(longNgram);
+		Assert.assertEquals(-0.07232222, logProb,1e-7);
 	}
 
 	@Test
