@@ -62,7 +62,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	 */
 	protected static final long serialVersionUID = 1L;
 
-	protected static final int MAX_ORDER = 10;
+	protected static final int MAX_ORDER = 1000;
 
 	protected static final float DEFAULT_DISCOUNT = 0.75f;
 
@@ -283,7 +283,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 			long numNgrams = 0; //ngrams.getNumNgrams(ngramOrder);
 			for (final Entry<KneserNeyCounts> entry : ngrams.getNgramsForOrder(ngramOrder)) {
 				final long relevantCount = entry.value.tokenCounts;
-				if (ngramOrder >= lmOrder - 2 && relevantCount < opts.kneserNeyMinCounts[ngramOrder]) continue;
+				if (ngramOrder >= lmOrder - 2 && ngramOrder < opts.kneserNeyMinCounts.length && relevantCount < opts.kneserNeyMinCounts[ngramOrder]) continue;
 				numNgrams++;
 			}
 			lengths.add(numNgrams);
@@ -298,7 +298,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 			for (final Entry<KneserNeyCounts> entry : ngrams.getNgramsForOrder(ngramOrder)) {
 				if (linenum++ % 10000 == 0) Logger.logs("Writing line " + linenum);
 				final long relevantCount = entry.value.tokenCounts;
-				if (ngramOrder >= lmOrder - 2 && relevantCount < opts.kneserNeyMinCounts[ngramOrder]) continue;
+				if (ngramOrder >= lmOrder - 2 && ngramOrder < opts.kneserNeyMinCounts.length && relevantCount < opts.kneserNeyMinCounts[ngramOrder]) continue;
 
 				final int[] ngram = entry.key;
 				final int endPos = ngram.length;
