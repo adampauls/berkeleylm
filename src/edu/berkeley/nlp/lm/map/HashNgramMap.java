@@ -250,8 +250,9 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 	public void rehashIfNecessary(int num) {
 		if (explicitMaps == null) return;
 		for (int ngramOrder = 0; ngramOrder < explicitMaps.length; ++ngramOrder) {
-			if (explicitMaps[ngramOrder] == null) continue;
-			if (explicitMaps[ngramOrder].getLoadFactor(num) >= maxLoadFactor) {
+			if (explicitMaps[ngramOrder] == null) 
+				initCapacities[ngramOrder] = Math.max(100, num) * 3/2;
+			else if (explicitMaps[ngramOrder].getLoadFactor(num) >= maxLoadFactor) {
 				rehash(ngramOrder, (explicitMaps[ngramOrder].getCapacity() + num) * 3 / 2, num);
 				return;
 			}
