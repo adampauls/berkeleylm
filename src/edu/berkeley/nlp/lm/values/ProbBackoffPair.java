@@ -7,7 +7,7 @@ import edu.berkeley.nlp.lm.collections.LongRepresentable;
 public class ProbBackoffPair implements Comparable<ProbBackoffPair>, LongRepresentable<ProbBackoffPair>
 {
 
-	static final int MANTISSA_MASK = 0x9fffff;
+	static final int MANTISSA_MASK = 0x7fffff;
 
 	static final int REST_MASK = ~MANTISSA_MASK;
 
