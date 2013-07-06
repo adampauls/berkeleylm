@@ -217,15 +217,16 @@ public class LmReaders
 	 */
 	public static <W> ArrayEncodedNgramLanguageModel<W> readLmFromGoogleNgramDir(final String dir, final boolean compress, final boolean kneserNey,
 		final WordIndexer<W> wordIndexer, final ConfigOptions opts) {
+		final GoogleLmReader<W> googleLmReader = new GoogleLmReader<W>(dir, wordIndexer, opts);
 		if (kneserNey) {
-			final int lmOrder = 5;// TODO make this not hard-coded
-			KneserNeyLmReaderCallback<W> kneserNeyReader = new KneserNeyLmReaderCallback<W>(wordIndexer, lmOrder, opts);
-			new GoogleLmReader<W>(dir, wordIndexer, opts).parse(kneserNeyReader);
+			GoogleLmReader.addSpecialSymbols(wordIndexer);
+			KneserNeyLmReaderCallback<W> kneserNeyReader = new KneserNeyLmReaderCallback<W>(wordIndexer, googleLmReader.getLmOrder(), opts);
+			googleLmReader.parse(kneserNeyReader);
 			return readArrayEncodedLmFromArpa(kneserNeyReader, compress, wordIndexer, opts);
 		} else {
 			final FirstPassCallback<LongRef> valueAddingCallback = firstPassGoogle(dir, wordIndexer, opts);
 			final LongArray[] numNgramsForEachWord = valueAddingCallback.getNumNgramsForEachWord();
-			return secondPassGoogle(opts, new GoogleLmReader<W>(dir, wordIndexer, opts), wordIndexer, valueAddingCallback, numNgramsForEachWord, compress);
+			return secondPassGoogle(opts, googleLmReader, wordIndexer, valueAddingCallback, numNgramsForEachWord, compress);
 		}
 	}
 

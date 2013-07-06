@@ -62,8 +62,6 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	 */
 	protected static final long serialVersionUID = 1L;
 
-	protected static final int MAX_ORDER = 1000;
-
 	protected static final float DEFAULT_DISCOUNT = 0.75f;
 
 	protected final int lmOrder;
@@ -113,7 +111,6 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 		this.lmOrder = maxOrder;
 		this.startIndex = wordIndexer.getIndexPossiblyUnk(wordIndexer.getStartSymbol());
 
-		if (maxOrder >= MAX_ORDER) throw new IllegalArgumentException("Reguested n-grams of order " + maxOrder + " but we only allow up to " + 10);
 		this.opts = opts;
 		double last = Double.NEGATIVE_INFINITY;
 		for (final double c : opts.kneserNeyMinCounts) {
@@ -259,7 +256,7 @@ public class KneserNeyLmReaderCallback<W> implements NgramOrderedLmReaderCallbac
 	}
 
 	public static double[] defaultDiscounts() {
-		return constantArray(MAX_ORDER, DEFAULT_DISCOUNT);
+		return constantArray(defaultMinCounts().length, DEFAULT_DISCOUNT);
 	}
 
 	public static double[] defaultMinCounts() {
