@@ -21,6 +21,10 @@ import edu.berkeley.nlp.lm.util.LongRef;
 public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReaderCallback<LongRef>>
 {
 
+	public int getLmOrder() {
+		return lmOrder;
+	}
+
 	private static final String START_SYMBOL = "<S>";
 
 	private static final String END_SYMBOL = "</S>";
@@ -29,21 +33,15 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 
 	private static final String sortedVocabFile = "vocab_cs.gz";
 
-	private final String rootDir;
+	private final File[] ngramDirectories;
+	
+	private final int lmOrder;
 
 	private final WordIndexer<W> wordIndexer;
 
 	public GoogleLmReader(final String rootDir, final WordIndexer<W> wordIndexer, @SuppressWarnings("unused") final ConfigOptions opts) {
-		this.rootDir = rootDir;
-
 		this.wordIndexer = wordIndexer;
-
-	}
-
-	@Override
-	public void parse(final NgramOrderedLmReaderCallback<LongRef> callback) {
-
-		final File[] listFiles = new File(rootDir).listFiles(new FilenameFilter()
+		ngramDirectories = new File(rootDir).listFiles(new FilenameFilter()
 		{
 
 			@Override
@@ -51,10 +49,14 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 				return name.endsWith("gms");
 			}
 		});
-		Arrays.sort(listFiles);
-		int ngramOrder = 0;
+		Arrays.sort(ngramDirectories);
+		lmOrder = ngramDirectories.length;
+	}
 
-		for (final File ngramDir : listFiles) {
+	@Override
+	public void parse(final NgramOrderedLmReaderCallback<LongRef> callback) {
+		int ngramOrder = 0;
+		for (final File ngramDir : ngramDirectories) {
 			final int ngramOrder_ = ngramOrder;
 			final String regex = (ngramOrder_ + 1) + "gm-\\d+(.gz)?";
 			final File[] ngramFiles = ngramDir.listFiles(new FilenameFilter()
@@ -156,7 +158,7 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 	/**
 	 * 
 	 */
-	private static <W> void addSpecialSymbols(final WordIndexer<W> wordIndexer) {
+	public static <W> void addSpecialSymbols(final WordIndexer<W> wordIndexer) {
 		wordIndexer.setStartSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(START_SYMBOL)));
 		wordIndexer.setEndSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(END_SYMBOL)));
 		wordIndexer.setUnkSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(UNK_SYMBOL)));
