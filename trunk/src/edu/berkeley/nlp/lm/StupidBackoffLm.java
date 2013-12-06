@@ -10,7 +10,9 @@ import edu.berkeley.nlp.lm.values.CountValueContainer;
 /**
  * Language model implementation which uses stupid backoff (Brants et al., 2007)
  * computation. Note that stupid backoff does not properly normalize, so the
- * scores this LM computes are not in fact probabilities.
+ * scores this LM computes are not in fact probabilities. Also, unliked LMs estimated
+ * using {@link LmReaders.createKneserNeyLmFromTextFiles}, this model returns natural 
+ * logarithms instead of log10.
  * 
  * @author adampauls
  * 
