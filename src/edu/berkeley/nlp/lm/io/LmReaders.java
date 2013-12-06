@@ -286,7 +286,7 @@ public class LmReaders
 
 	/**
 	 * Estimates a Kneser-Ney language model from raw text, and writes a file
-	 * (in ARPA format)
+	 * (in ARPA format). Probabilities are in log base 10 to match SRILM.
 	 * 
 	 * @param <W>
 	 * @param files
