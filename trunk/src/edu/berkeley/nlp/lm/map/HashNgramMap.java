@@ -412,6 +412,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 		Arrays.fill(newCapacities, -1L);
 
 		assert changedNgramOrder >= 0;
+		long largestCapacity = 0L;
 		for (int ngramOrder = 0; ngramOrder < explicitMaps.length; ++ngramOrder) {
 			if (explicitMaps[ngramOrder] == null) break;
 			if (ngramOrder < changedNgramOrder) {
@@ -422,6 +423,7 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 			} else {
 				newCapacities[ngramOrder] = explicitMaps[ngramOrder].getLoadFactor(numAdding) >= maxLoadFactor / 2 ? ((explicitMaps[ngramOrder].getCapacity() + numAdding) * 3 / 2)
 					: explicitMaps[ngramOrder].getCapacity();
+				largestCapacity = Math.max(largestCapacity, newCapacities[ngramOrder]);
 			}
 			assert newCapacities[ngramOrder] >= 0 : "Bad capacity " + newCapacities[ngramOrder];
 		}
@@ -430,7 +432,11 @@ public final class HashNgramMap<T> extends AbstractNgramMap<T> implements Contex
 
 		for (int ngramOrder = 0; ngramOrder < explicitMaps.length; ++ngramOrder) {
 			final ExplicitWordHashMap currHashMap = explicitMaps[ngramOrder];
-			if (currHashMap == null) continue;
+			if (currHashMap == null) {
+				// We haven't initialized this map yet, but make sure there is enough space when we do.
+				initCapacities[ngramOrder] = largestCapacity;
+				continue;
+			}
 			final ExplicitWordHashMap newHashMap = (ExplicitWordHashMap) newMap.getHashMapForOrder(ngramOrder);
 			final T val = values.getScratchValue();
 			final int[] scratchArray = new int[ngramOrder + 1];
