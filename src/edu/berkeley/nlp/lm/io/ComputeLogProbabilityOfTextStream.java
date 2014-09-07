@@ -81,7 +81,7 @@ public class ComputeLogProbabilityOfTextStream
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new BufferedInputStream(is)));
 			for (String line : Iterators.able(IOUtils.lineIterator(reader))) {
 				List<String> words = Arrays.asList(line.trim().split("\\s+"));
-				logProb += lm.getLogProb(words);
+				logProb += lm.scoreSentence(words);
 			}
 			Logger.endTrack();
 		}
