@@ -158,7 +158,7 @@ public class GoogleLmReader<W> implements LmReader<LongRef, NgramOrderedLmReader
 	/**
 	 * 
 	 */
-	public static <W> void addSpecialSymbols(final WordIndexer<W> wordIndexer) {
+	static <W> void addSpecialSymbols(final WordIndexer<W> wordIndexer) {
 		wordIndexer.setStartSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(START_SYMBOL)));
 		wordIndexer.setEndSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(END_SYMBOL)));
 		wordIndexer.setUnkSymbol(wordIndexer.getWord(wordIndexer.getOrAddIndexFromString(UNK_SYMBOL)));
